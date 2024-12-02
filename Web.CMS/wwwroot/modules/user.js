@@ -294,7 +294,8 @@ var _user = {
             id: id
         };
         _magnific.OpenSmallPopup('', url, param);
-       
+        $('.modal-backdrop').css('z-index', '6')
+
     },
     ConfirmQRCodeUser: function (id) {
         _global_function.AddLoading()
@@ -431,17 +432,17 @@ var _user = {
             formData.set("RoleId", roles != null ? roles.join(',') : "");
             formData.set("UserPositionId", UserPositionId != null ? UserPositionId : 0);
             formData.set("Rank", Rank != null ? Rank : 0);
-            var company_type = ''
-            $('.company-type:checked').each(function (index, item) {
-                var element = $(this)
-                if (company_type.trim() == '') {
-                    company_type = '' + element.val()
-                }
-                else {
-                    company_type += ',' + element.val()
-                }
-            })
-            formData.set("CompanyType", company_type);
+            //var company_type = ''
+            //$('.company-type:checked').each(function (index, item) {
+            //    var element = $(this)
+            //    if (company_type.trim() == '') {
+            //        company_type = '' + element.val()
+            //    }
+            //    else {
+            //        company_type += ',' + element.val()
+            //    }
+            //})
+            //formData.set("CompanyType", company_type);
             formData.set("UserName", $('#UserName').val());
             formData.set("BirthDay", _global_function.GetDayText($('#datepicker').data('daterangepicker').startDate._d, true));
             formData.set("OldCompanyType", $('#form-create-user').attr('data-companytype'))

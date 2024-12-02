@@ -27,13 +27,13 @@
             <th class="th-profit" style="min-width: 150px;">Lợi nhuận</th>
             <th class="th-amount" style="min-width: 150px;">Giá bán</th>
             <th class="th-stock" style="min-width: 100px;">Kho hàng</th>
-            @*<th class="th-weight" style="@((is_one_weight==false ||is_one_weight==null)?"display:none;":"") min-width: 100px; ">
+            <th class="th-weight" style="@((is_one_weight==false ||is_one_weight==null)?"":"display:none;") min-width: 100px; ">
                 Cân nặng<br>
                 (Sau khi đóng gói)
             </th>
-            <th class="th-dismension" style="@((is_one_weight==false ||is_one_weight==null)?"display:none;":"") min-width: 300px;">
+            <th class="th-dismension" style="@((is_one_weight==false ||is_one_weight==null)?"":"display:none;") min-width: 300px;">
                 Kích thước đóng gói<br>(Phí vận chuyển thực tế sẽ thay đổi nếu bạn nhập sai kích thước)
-            </th>*@
+            </th>
             <th class="th-sku">SKU phân loại</th>
         </tr>
     </thead>
@@ -52,8 +52,8 @@
                         var attr_2 = attributes_detail.Where(x => x.attribute_id == "1");
                         foreach (var a2 in attr_2)
                         {
-                            var sub_selected = sub_product.Where(x=>x.variation_detail!=null).FirstOrDefault(x => x.variation_detail.Any(v => v.name.Contains(a1.name))
-                            && x.variation_detail.Any(v => v.name.Contains(a2.name)));
+                            var sub_selected = sub_product.Where(x => x.variation_detail != null).FirstOrDefault(x => x.variation_detail.Any(v => v.name.ToLower().Trim() == a1.name.ToLower().Trim())
+                            && x.variation_detail.Any(v => v.name.ToLower().Trim() == a2.name.ToLower().Trim()));
                             <tr class="@(is_first==false?"tr-main":"tr-sub")" data-attribute-0="@a1.name" data-attribute-1="@a2.name" data-id="@(sub_selected != null && sub_selected._id!=null ? sub_selected._id:"")">
                                 <td rowspan="@attr_2.Count()" style="@(is_first==false?"":"display:none;")">@a1.name</td>
                                 <td>@a2.name</td>
@@ -80,13 +80,13 @@
                                         <input type="text" class="form-control input-price" placeholder="Kho hàng" value="@(sub_selected != null && sub_selected.quanity_of_stock>0 ? sub_selected.quanity_of_stock.ToString("N0"):"")">
                                     </div>
                                 </td>
-                              @*   <td class="td-weight" style="@((is_one_weight==false ||is_one_weight==null)? "display:none;" : "")">
+                                <td class="td-weight" style="@((is_one_weight==false ||is_one_weight==null)? "":"display:none;")">
                                     <div class="form-group mb-0 price">
                                         <input type="text" class="form-control input-price" placeholder="nhập cân nặng" value="@(sub_selected != null && sub_selected.weight>0 ? ((float)sub_selected.weight).ToString("N0"):"")">
                                         <span class="note">gr</span>
                                     </div>
                                 </td>
-                                <td class="td-dismenssion" style="@((is_one_weight==false ||is_one_weight==null)?"display:none;":"")">
+                                <td class="td-dismenssion" style="@((is_one_weight==false ||is_one_weight==null)?"":"display:none;")">
                                     <div class="flex gap10 flex-nowrap align-items-center">
                                         <div  class="td-dismenssion-height form-group mb-0 price">
                                             <input type="text" class="form-control input-price" placeholder="nhập chiều rộng" value="@(sub_selected != null && sub_selected.package_height!=null ? ((float)sub_selected.package_height).ToString("N0"):"")">
@@ -102,7 +102,7 @@
                                         </div>
                                         <span class="note">cm</span>
                                     </div>
-                                </td> *@
+                                </td>
                                 <td class="td-sku">
                                     <div class="form-group mb-0">
                                         <input type="text" class="form-control" placeholder="SKU phân loại" value="@(sub_selected != null && sub_selected.sku!=null ?sub_selected.sku:"")">
@@ -141,13 +141,13 @@
                                     <input type="text" class="form-control input-price" placeholder="Kho hàng" value="@(sub_selected != null && sub_selected.quanity_of_stock>0 ? sub_selected.quanity_of_stock.ToString("N0"):"")">
                                 </div>
                             </td>
-                           @*  <td class="td-weight" style="@((is_one_weight==false ||is_one_weight==null)?"display:none;":"")">
+                            <td class="td-weight" style="@((is_one_weight==false ||is_one_weight==null)?"":"display:none;")">
                                 <div class="form-group mb-0 price">
                                     <input type="text" class="form-control input-price" placeholder="nhập cân nặng" value="@(sub_selected != null && sub_selected.profit>0 ? sub_selected.profit.ToString("N0"):"")">
                                     <span class="note">gr</span>
                                 </div>
                             </td>
-                            <td class="td-dismenssion" style="@((is_one_weight==false ||is_one_weight==null)?"display:none;":"")">
+                            <td class="td-dismenssion" style="@((is_one_weight==false ||is_one_weight==null)?"":"display:none;")">
                                 <div class="flex gap10 flex-nowrap align-items-center">
                                     <div class="form-group mb-0 input-price td-dismenssion-height">
                                         <input type="text" class=" form-control input-price" placeholder="nhập chiều rộng" value="@(sub_selected != null && sub_selected.package_height!=null ? ((float)sub_selected.package_height).ToString("N0"):"")">
@@ -163,7 +163,7 @@
                                     </div>
                                     <span class="note">cm</span>
                                 </div>
-                            </td> *@
+                            </td>
                             <td class="td-sku">
                                 <div class="form-group mb-0">
                                     <input type="text" class="form-control" placeholder="SKU phân loại" value="@(sub_selected != null && sub_selected.sku!=null ?sub_selected.sku:"")">

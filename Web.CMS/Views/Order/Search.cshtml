@@ -50,13 +50,14 @@
                         <th> Tổng tiền </th>
                         <th> Lợi nhuận </th>
                         <th> Trạng thái đơn</th>
+                        <th> Đơn vị vận chuyển</th>
                         <th> Trạng thái thanh toán</th>
                         <th> Hình thức thanh toán</th>
                         <th> Ngày tạo đơn</th>
                         <th> khách hàng</th>
                         <th>Voucher </th>
                         <th>Người phụ trách </th>
-                        <th>Nguồn đơn </th>                      
+                        <th>Nguồn đơn </th>   
                     </tr>
                 </thead>
                 <tbody>
@@ -124,6 +125,11 @@
                                             }
                                             break;
                                     }
+                                </td>
+                                <td>
+                                    <div>@item.CarrierTypeName</div>
+                                    <div>@item.ShippingTypeName</div>
+                                    <div>@item.ShippingCode</div>
                                 </td>
                                 <td>
                                     @if (item.PaymentStatus != "")

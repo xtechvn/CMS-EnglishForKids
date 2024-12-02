@@ -42,7 +42,8 @@ namespace Repositories.Repositories
 
         public async Task<List<Ward>> GetWardListByDistrictId(string districtId)
         {
-            return await _CommonDAL.GetWardListByDistrictId(districtId);
+            var ProvinceDetail = await _CommonDAL.GetDistrictDetail(Convert.ToInt32(districtId));
+            return await _CommonDAL.GetWardListByDistrictId(ProvinceDetail.DistrictId);
         }
 
         public async Task<List<AllCode>> GetAllCodeByType(string type)

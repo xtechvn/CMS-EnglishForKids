@@ -1,0 +1,92 @@
+﻿@{
+    Layout = null;
+}
+@using Utilities
+@using Entities.ViewModels
+@using Entities.Models
+@model GenericViewModel<CourseViewModel>
+@{
+    var id = (string)ViewBag.ListID;
+}
+<div class="table-responsive table-default">
+    <input type="hidden" id="data-total-record" value="@Model.TotalRecord" />
+    <table class="table table-gird">
+        <thead>
+            <tr class="bg-main2">
+                <th class="center">STT</th>
+                <th>Khóa học</th>
+                <th>Ngày đăng</th>
+                <th>Lượt xem</th>
+                <th>Lượng mua</th>
+                <th>Trạng Thái</th>
+                <th class="center">Số Lượng tài liệu</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.ListData != null && Model.ListData.Count > 0)
+            {
+                var counter = (Model.CurrentPage - 1) * Model.PageSize;
+                foreach (var item in Model.ListData)
+                {
+                    counter++;
+                    <tr>
+                        <td class="center">@counter</td>
+                        
+                        <td>
+                            <img width="35" src="@(item.Thumbnail)" onerror="_imageError(this)">
+                            <div><a href="/courses/detail/@item.Id">@item.Title</a></div>
+                            <a href="#" class="italic blue">@item.CourseCategoryName</a>
+                        </td>
+                        <td>@(item.CreatedDate != DateTime.MinValue ? item.CreatedDate.Value.ToString("dd/MM/yyyy HH:mm") : string.Empty)</td>
+                        @* <td>@(item.UpdatedDate != DateTime.MinValue ? item.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm") : string.Empty)</td>
+                        <td>@item.StatusName</td>
+                        <td>@item.AuthorName</td> *@
+                        <td id="pv_@item.Id" class="center">0</td>
+                        <td id="pv_@item.Id" class="center">0</td>
+                        <td>@item.StatusName</td>
+                        <td id="pv_@item.Id" class="center">0</td>
+
+                    </tr>
+                }
+
+            }
+        </tbody>
+    </table>
+</div>
+
+@await Component.InvokeAsync("Paging", new
+    {
+        pageModel = new Paging()
+    {
+        TotalRecord = Model.TotalRecord,
+        TotalPage = Model.TotalPage,
+        CurrentPage = Model.CurrentPage,
+        PageSize = Model.PageSize,
+        RecordName = "bài viết",
+        PageAction = "_news.OnPaging({0})"
+    }
+    })
+<script>
+    _news.LoadPageView(@id);
+</script>
+
+                   
+        </tbody>
+    </table>
+</div>
+
+@await Component.InvokeAsync("Paging", new
+    {
+        pageModel = new Paging()
+    {
+        TotalRecord = Model.TotalRecord,
+        TotalPage = Model.TotalPage,
+        CurrentPage = Model.CurrentPage,
+        PageSize = Model.PageSize,
+        RecordName = "bài viết",
+        PageAction = "_news.OnPaging({0})"
+    }
+    })
+<script>
+    _news.LoadPageView(@id);
+</script>

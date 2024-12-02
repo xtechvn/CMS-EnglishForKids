@@ -22,7 +22,7 @@ namespace Utilities.Contants
         PHIEU_CHI = 62,//phiếu chi
         NAP_QUY = 46,//NẠP QUỸ
         QL_KHACH_HANG = 2,//Quản lý khách hàng
-        PHIEU_THU = 57,//quản lý phiếu thu
+        PHIEU_THU = 21,//quản lý phiếu thu
         YEU_CAU_XUAT_HOA_DON = 77,//quản lý phiếu thu
         CHUONG_TRINH = 90,//quản chương trình qc
         //CHUONG_TRINH = 82,//quản chương trình pro

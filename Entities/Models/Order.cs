@@ -61,4 +61,16 @@ public partial class Order
     public int? WardId { get; set; }
 
     public string Address { get; set; }
+
+    public double? ShippingFee { get; set; }
+
+    public int? CarrierId { get; set; }
+
+    public int? ShippingType { get; set; }
+
+    public string ShippingCode { get; set; }
+
+    public int? ShippingStatus { get; set; }
+
+    public double? PackageWeight { get; set; }
 }

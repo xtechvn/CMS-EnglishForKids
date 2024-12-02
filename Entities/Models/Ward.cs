@@ -20,4 +20,6 @@ public partial class Ward
     public string DistrictId { get; set; }
 
     public short? Status { get; set; }
+
+    public DateTime? CreatedDate { get; set; }
 }

@@ -8,7 +8,7 @@
             $(this).next('.form-down-filter').slideDown();
             $(this).next('.list-noti').slideDown();
             $('.form-down input').focus();
-
+            $(this).closest('td').find('.form-down').slideDown();
 
         }
     });
@@ -19,6 +19,7 @@
             $(this).next('.form-down').slideUp();
             $(this).next('.list-noti').slideUp();
             $(this).next('.form-down-filter').slideUp();
+            $(this).closest('td').find('.form-down').slideUp();
         }
 
     });

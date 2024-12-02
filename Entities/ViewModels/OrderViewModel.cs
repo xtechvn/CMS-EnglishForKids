@@ -51,7 +51,10 @@ namespace Entities.ViewModels
         public string ListProductId { get; set; }
         public string OrderStatus { get; set; }
         public string OrderCode { get; set; }
-
+        public string ShippingCode { get; set; }
+        public double ShippingFee { get; set; }
+        public string ShippingTypeName { get; set; }
+        public string CarrierTypeName { get; set; }
         public List<ProductMongoDbModel> ListProduct { get; set; }
     }
     public class TotalValueOrder
@@ -104,6 +107,7 @@ namespace Entities.ViewModels
     public class OrderViewSearchModel
     {
         public int SysTemType { get; set; } = -1;
+        public int CarrierId { get; set; } = -1;
         public string PaymentStatus { get; set; }
         public string PermisionType { get; set; }
         public string[] HINHTHUCTT { get; set; }
@@ -225,6 +229,13 @@ namespace Entities.ViewModels
         public string WardName { get; set; }
         public string DistrictName { get; set; }
         public string ProvinceName { get; set; }
+        public string ProvinceId { get; set; }
+        public string DistrictId { get; set; }
+        public string WardId { get; set; }
+        public string ShippingCode { get; set; }
+        public double ShippingFee { get; set; }
+        public string ShippingTypeName { get; set; }
+        public string CarrierTypeName { get; set; }
     }
     public class OrderServiceViewModel
     {

@@ -70,6 +70,21 @@ namespace DAL
                 return null;
             }
         }
+        public async Task<District> GetDistrictDetail(long id)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    return await _DbContext.Districts.Where(s => s.Id == id).FirstOrDefaultAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetProvinceDetail - CommonDAL: " + ex);
+                return null;
+            }
+        }
         public async Task<List<District>> District(string ProvinceId)
         {
             try

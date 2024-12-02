@@ -4,12 +4,19 @@ using Entities.ViewModels.Products;
 using HuloToys_Service.ElasticSearch.NewEs;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using OfficeOpenXml;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using Repositories.IRepositories;
+using Repositories.Repositories;
+using System.Security.Claims;
+using System.Text;
 using Utilities;
 using Utilities.Contants;
 using Utilities.Contants.ProductV2;
 using WEB.Adavigo.CMS.Service;
+using WEB.CMS.Controllers.Product.Bussiness;
 using WEB.CMS.Customize;
+using WEB.CMS.Models;
 using WEB.CMS.Models.Product;
 
 namespace WEB.CMS.Controllers
@@ -22,6 +29,7 @@ namespace WEB.CMS.Controllers
         private readonly IConfiguration _configuration;
         private readonly IGroupProductRepository _groupProductRepository;
         private readonly RedisConn _redisConn;
+        private readonly ProductDetailService productDetailService;
         private StaticAPIService _staticAPIService;
         private readonly int group_product_root = 31;
         private readonly int db_index = 9;
@@ -35,6 +43,7 @@ namespace WEB.CMS.Controllers
             _groupProductRepository = groupProductRepository;
             db_index = Convert.ToInt32(configuration["Redis:Database:db_search_result"]);
             _configuration = configuration;
+            productDetailService = new ProductDetailService(configuration);
         }
         public IActionResult Index()
         {
@@ -69,12 +78,22 @@ namespace WEB.CMS.Controllers
                 is_success = false
             });
         }
+
         public async Task<IActionResult> ProductListing(string keyword = "", int group_id = -1, int page_index = 1, int page_size = 10)
         {
             try
             {
                 if (page_size <= 0) page_size = 10;
                 if (page_index < 1) page_index = 1;
+                Console.WriteLine($"Controller received keyword: '{keyword}'");
+
+                // Kiểm tra encoding
+                var bytes = System.Text.Encoding.UTF8.GetBytes(keyword);
+                Console.WriteLine($"Keyword bytes: {string.Join(",", bytes)}");
+
+                var normalizedKeyword = keyword.Normalize(NormalizationForm.FormC);
+                Console.WriteLine($"Normalized keyword: '{normalizedKeyword}'");
+
                 var main_products = await _productV2DetailMongoAccess.Listing(keyword, group_id, page_index, page_size);
                 return Ok(new
                 {
@@ -92,6 +111,22 @@ namespace WEB.CMS.Controllers
             {
                 is_success = false
             });
+        }
+        public static string NormalizeString(string text)
+        {
+            var normalizedString = text.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder();
+
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLower();
         }
         public async Task<IActionResult> ProductSubListing(string parent_id)
         {
@@ -182,12 +217,12 @@ namespace WEB.CMS.Controllers
                     product_main.amount_max = amount_variations.OrderByDescending(x => x).First();
                     product_main.amount_min = amount_variations.OrderBy(x => x).First();
                     product_main.quanity_of_stock = request.variations.Sum(x => x.quanity_of_stock);
-                    //product_main.is_one_weight = request.is_one_weight;
-                    //product_main.weight = request.weight;
-                    //product_main.package_width = request.package_width;
-                    //product_main.package_height = request.package_height;
-                    //product_main.package_depth = request.package_depth;
-                    
+                    product_main.is_one_weight = request.is_one_weight;
+                    product_main.weight = request.weight;
+                    product_main.package_width = request.package_width;
+                    product_main.package_height = request.package_height;
+                    product_main.package_depth = request.package_depth;
+
 
                 }
                 else
@@ -196,11 +231,11 @@ namespace WEB.CMS.Controllers
                     product_main.amount_min = null;
                 }
                 product_main.parent_product_id = "";
+                product_main.created_date = DateTime.Now;
                 product_main.updated_last = DateTime.Now;
                 if (product_main._id == null || product_main._id.Trim() == "")
                 {
 
-                    product_main.created_date = DateTime.Now;
                     msg = "Thêm mới sản phẩm thành công";
                     product_main.status = (int)ProductStatus.ACTIVE;
                     rs = await _productV2DetailMongoAccess.AddNewAsync(product_main);
@@ -208,6 +243,7 @@ namespace WEB.CMS.Controllers
                 }
                 else
                 {
+                   
                     var old_product = await _productV2DetailMongoAccess.GetByID(product_main._id);
                     rs = await _productV2DetailMongoAccess.UpdateAsync(product_main);
                     await _productV2DetailMongoAccess.DeactiveByParentId(product_main._id);
@@ -228,11 +264,12 @@ namespace WEB.CMS.Controllers
                         product_by_variations.amount = variation.amount;
                         product_by_variations.quanity_of_stock = variation.quanity_of_stock;
                         product_by_variations.sku = variation.sku;
-                        //product_by_variations.is_one_weight = product_main.is_one_weight;
-                        //product_by_variations.weight = variation.weight;
-                        //product_by_variations.package_depth = variation.package_depth;
-                        //product_by_variations.package_height = variation.package_height;
-                        //product_by_variations.package_width = variation.package_width;
+                        product_by_variations.is_one_weight = product_main.is_one_weight;
+                        product_by_variations.weight = variation.weight;
+                        product_by_variations.package_depth = variation.package_depth;
+                        product_by_variations.package_height = variation.package_height;
+                        product_by_variations.package_width = variation.package_width;
+                        product_by_variations.created_date = DateTime.Now;
                         product_by_variations.updated_last = DateTime.Now;
                         if (variation._id != null && variation._id != "")
                         {
@@ -261,7 +298,7 @@ namespace WEB.CMS.Controllers
                 {
                     is_success = false,
                     msg = "Thêm mới / Cập nhật sản phẩm thất bại, vui lòng liên hệ bộ phận IT",
-                    err=rs
+                    err = rs
                 });
             }
             catch (Exception ex)
@@ -274,7 +311,7 @@ namespace WEB.CMS.Controllers
                     err = ex.ToString(),
                 });
             }
-           
+
         }
         public async Task<IActionResult> SummitImages(string data_image)
         {
@@ -358,7 +395,7 @@ namespace WEB.CMS.Controllers
                     {
                         try
                         {
-                            groups.Add( await _groupProductRepository.GetById(Convert.ToInt32(id)));
+                            groups.Add(await _groupProductRepository.GetById(Convert.ToInt32(id)));
                         }
                         catch { }
                     }
@@ -617,7 +654,7 @@ namespace WEB.CMS.Controllers
                     var product = await _productV2DetailMongoAccess.GetByID(product_id);
                     if (product != null && product._id != null)
                     {
-                        //ViewBag.IsOneWeight = product.is_one_weight;
+                        ViewBag.IsOneWeight = product.is_one_weight;
                         ViewBag.Attributes = product.attributes;
                         ViewBag.AttributesDetail = product.attributes_detail;
                         subs.AddRange(await _productV2DetailMongoAccess.SubListing(product_id));
@@ -636,6 +673,102 @@ namespace WEB.CMS.Controllers
             ViewBag.Index = item_index;
             return View();
         }
-    }
+        public IActionResult ImportExcel()
+        {
 
+            return PartialView();
+        }
+        [HttpPost]
+        public async Task<IActionResult> ImportProductListing(IFormFile file)
+        {
+
+            try
+            {
+                var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                var data_list = new List<ProductExcelUploadModel>();
+                using (var package = new ExcelPackage(stream))
+                {
+                    ExcelWorksheet ws = package.Workbook.Worksheets.FirstOrDefault();
+
+                    var endRow = ws.Cells.End.Row;
+                    var startRow = 2;
+
+                    for (int row = startRow; row <= endRow; row++)
+                    {
+                        var cellRange = ws.Cells[row, 1, row, 13];
+                        var isRowEmpty = cellRange.All(c => c.Value == null);
+                        if (isRowEmpty)
+                        {
+                            break;
+                        }
+                        data_list.Add(new ProductExcelUploadModel()
+                        {
+                            group_product_id = Convert.ToInt32(ws.Cells[row, 1].Value),
+                            name = ws.Cells[row, 2].Value.ToString(),
+                            description = ws.Cells[row, 3].Value == null ? "" : ws.Cells[row, 3].Value.ToString(),
+                            sku = ws.Cells[row, 4].Value==null?"": ws.Cells[row, 4].Value.ToString(),
+                            product_code = ws.Cells[row, 5].Value.ToString(),
+                            attribute_1_name = ws.Cells[row, 6].Value == null ? "" : ws.Cells[row, 6].Value.ToString(),
+                            variation_1_name = ws.Cells[row, 7].Value == null ? "" : ws.Cells[row, 7].Value.ToString(),
+                            attribute_2_name = ws.Cells[row, 8].Value == null ? "" : ws.Cells[row, 8].Value.ToString(),
+                            variation_2_name = ws.Cells[row, 9].Value == null ? "" : ws.Cells[row,9].Value.ToString(),
+                            variation_images = ws.Cells[row, 10].Value == null ? "" : ws.Cells[row, 10].Value.ToString(),
+                            price = ws.Cells[row, 11].Value==null?0:Convert.ToDouble(ws.Cells[row, 11].Value.ToString().Replace(",","")),
+                            profit = ws.Cells[row, 12].Value == null ? 0 : Convert.ToDouble(ws.Cells[row, 12].Value.ToString().Replace(",", "")),
+                            amount = ws.Cells[row, 13].Value==null?0: Convert.ToDouble(ws.Cells[row, 13].Value.ToString().Replace(",", "")),
+                            stock = ws.Cells[row, 14].Value == null ? 0 : Convert.ToInt32(ws.Cells[row, 14].Value.ToString().Replace(",", "")),
+                            variation_sku = ws.Cells[row, 15].Value == null ? "" : ws.Cells[row, 15].Value.ToString(),
+                            avatar = ws.Cells[row, 16].Value.ToString(),
+                            video = ws.Cells[row, 17].Value == null ? "" : ws.Cells[row, 17].Value.ToString(),
+                            image_1 = ws.Cells[row, 18].Value == null ? "" : ws.Cells[row, 18].Value.ToString(),
+                            image_2 = ws.Cells[row, 19].Value == null ? "" : ws.Cells[row, 19].Value.ToString(),
+                            image_3 = ws.Cells[row, 20].Value == null ? "" : ws.Cells[row, 20].Value.ToString(),
+                            image_4 = ws.Cells[row, 21].Value == null ? "" : ws.Cells[row, 21].Value.ToString(),
+                            image_5 = ws.Cells[row, 22].Value == null ? "" : ws.Cells[row, 22].Value.ToString(),
+                            image_6 = ws.Cells[row, 23].Value == null ? "" : ws.Cells[row, 23].Value.ToString(),
+                            image_7 = ws.Cells[row, 24].Value == null ? "" : ws.Cells[row, 24].Value.ToString(),
+                            image_8 = ws.Cells[row, 25].Value == null ? "" : ws.Cells[row, 25].Value.ToString(),
+                            weight = ws.Cells[row, 26].Value == null ? 0 : float.Parse(ws.Cells[row, 26].Value.ToString()),
+                            width = ws.Cells[row, 27].Value == null ? 0 : float.Parse(ws.Cells[row, 27].Value.ToString()),
+                            height = ws.Cells[row, 28].Value == null ? 0 : float.Parse(ws.Cells[row, 28].Value.ToString()),
+                            depth = ws.Cells[row, 29].Value == null ? 0 : float.Parse(ws.Cells[row, 29].Value.ToString()),
+                            brand = ws.Cells[row, 30].Value == null ? "" : ws.Cells[row, 30].Value.ToString(),
+                        });
+
+                    }
+
+
+                }
+
+                ViewBag.CheckedAll = true;
+                return PartialView(data_list);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("ImportProductListing - ProductController: " + ex.ToString());
+                return PartialView();
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> ConfirmProductExcel(string model_json )
+        {
+            List<ProductMongoDbModel> products = new List<ProductMongoDbModel>();
+            try
+            {
+                if(model_json==null || model_json.Trim()=="") return PartialView(products);
+                List<ProductExcelUploadModel> request = JsonConvert.DeserializeObject<List<ProductExcelUploadModel>>(model_json);
+                if (request == null || request.Count<=0) return PartialView(products);
+                products = await productDetailService.ConvertToProducts(request);
+              
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("ConfirmProductExcel - ProductController: " + ex.ToString());
+            }
+            return PartialView(products);
+
+        }
+    }
+    
 }

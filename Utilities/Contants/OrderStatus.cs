@@ -23,7 +23,9 @@ namespace Utilities.Contants
         FINISHED = 3,
       
         [Description("Đã hủy")]
-        CANCEL = 4,
+        CANCEL = 4, 
+        [Description("Giao thành công")]
+        FINISHED_DELIVERY = 5,
        
 
     }

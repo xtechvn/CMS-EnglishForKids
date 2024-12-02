@@ -170,11 +170,13 @@
     align-items: center;
     a {
         display: inline-block;
-        color: #000000;
-        padding: 10px 6px;
+        color: #616161;
+        padding: 10px;
+        border-bottom: 1px solid transparent;
         &.active {
-            border-bottom: 1px solid #056BD3;
-            color: #056BD3
+            border-bottom: 1px solid #DA621C;
+            color: #DA621C;
+            font-weight: bold;
         }
     }
     .dropdown {

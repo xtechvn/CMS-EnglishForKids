@@ -1,11 +1,14 @@
-﻿using Entities.ViewModels;
+﻿using Amazon.Runtime.Internal.Transform;
+using Entities.ViewModels;
 using Entities.ViewModels.News;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.ProjectModel;
 using Repositories.IRepositories;
 using System;
 using System.Collections.Generic;
@@ -26,7 +29,7 @@ namespace WEB.CMS.Controllers
     [CustomAuthorize]
     public class NewsController : Controller
     {
-        private const int NEWS_CATEGORY_ID = 39;
+        private const int NEWS_CATEGORY_ID = 10;
         private const int VIDEO_NEWS_CATEGORY_ID = 1;
         private readonly IGroupProductRepository _GroupProductRepository;
         private readonly IArticleRepository _ArticleRepository;
@@ -35,8 +38,9 @@ namespace WEB.CMS.Controllers
         private readonly IWebHostEnvironment _WebHostEnvironment;
         private readonly IConfiguration _configuration;
         private readonly WorkQueueClient work_queue;
+        private readonly QueueService _queueService;
 
-        public NewsController(IConfiguration configuration, IArticleRepository articleRepository, IUserRepository userRepository, ICommonRepository commonRepository, IWebHostEnvironment hostEnvironment,
+        public NewsController(IConfiguration configuration, IArticleRepository articleRepository, IUserRepository userRepository, ICommonRepository commonRepository, IWebHostEnvironment hostEnvironment, QueueService queueService,
             IGroupProductRepository groupProductRepository)
         {
             _ArticleRepository = articleRepository;
@@ -46,6 +50,7 @@ namespace WEB.CMS.Controllers
             _configuration = configuration;
             _GroupProductRepository = groupProductRepository;
             work_queue = new WorkQueueClient(configuration);
+            _queueService = queueService;
 
 
         }
@@ -97,7 +102,6 @@ namespace WEB.CMS.Controllers
             }
             var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
             ViewBag.StringTreeViewCate = await _GroupProductRepository.GetListTreeViewCheckBox(NEWS_CATEGORY_ID, -1, model.Categories);
-            ViewBag.StringTreeViewMainCate = await _GroupProductRepository. GetListTreeViewSelect(NEWS_CATEGORY_ID, -1, model.MainCategoryId);
             return View(model);
         }
 
@@ -142,25 +146,34 @@ namespace WEB.CMS.Controllers
         {
             try
             {
-
+                // Thiết lập cài đặt Json để bỏ qua các giá trị null và các thành phần thiếu
                 var settings = new JsonSerializerSettings
                 {
                     NullValueHandling = NullValueHandling.Ignore,
                     MissingMemberHandling = MissingMemberHandling.Ignore
                 };
 
+                // Deserialize dữ liệu từ request body
                 var model = JsonConvert.DeserializeObject<ArticleModel>(data.ToString(), settings);
 
+                // Lấy giá trị mặc định của NEWS_CATEGORY_ID từ cấu hình
                 var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
-                //if (await _GroupProductRepository.IsGroupHeader(model.Categories)) model.Categories.Add(NEWS_CATEGORY_ID);
 
+                // Nếu bài viết có danh mục và danh mục là GroupHeader, thêm NEWS_CATEGORY_ID vào danh mục
+                if (await _GroupProductRepository.IsGroupHeader(model.Categories))
+                {
+                    model.Categories.Add(NEWS_CATEGORY_ID);
+                }
+
+                // Lấy thông tin AuthorId từ token người dùng đăng nhập
                 if (model != null && HttpContext.User.FindFirst(ClaimTypes.NameIdentifier) != null)
                 {
                     model.AuthorId = int.Parse(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 }
 
+                // Kiểm tra xem nội dung bài viết có trống không
                 model.Body = ArticleHelper.HighLightLinkTag(model.Body);
-                if (model.Body == null || model.Body.Trim() == "" || model.Title == null || model.Title.Trim() == "" || model.Lead == null || model.Lead.Trim() == "")
+                if (string.IsNullOrWhiteSpace(model.Body) || string.IsNullOrWhiteSpace(model.Title) || string.IsNullOrWhiteSpace(model.Lead))
                 {
                     return new JsonResult(new
                     {
@@ -168,19 +181,24 @@ namespace WEB.CMS.Controllers
                         message = "Phần Tiêu đề, Mô tả và Nội dung bài viết không được để trống"
                     });
                 }
+
+                // Kiểm tra giới hạn độ dài của phần Lead
                 if (model.Lead.Length >= 400)
                 {
                     return new JsonResult(new
                     {
                         isSuccess = false,
-                        message = "Phần Tiêu đề không được vượt quá 400 ký tự"
+                        message = "Phần Mô tả không được vượt quá 400 ký tự"
                     });
                 }
+
+                // Lưu bài viết và lấy ID của bài viết đã được lưu
                 var articleId = await _ArticleRepository.SaveArticle(model);
 
+                // Kiểm tra xem quá trình lưu bài viết có thành công không
                 if (articleId > 0)
                 {
-                    // clear cache article
+                    // Xóa cache của bài viết sau khi cập nhật
                     var strCategories = string.Empty;
                     if (model.Categories != null && model.Categories.Count > 0)
                         strCategories = string.Join(",", model.Categories);
@@ -188,23 +206,34 @@ namespace WEB.CMS.Controllers
                     ClearCacheArticle(articleId, strCategories);
 
                     // Tạo message để push vào queue
+
+                    //var result = _queueService.PushMessageToQueue(
+                    //    "SP_GetAllArticle",                           // Tên Stored Procedure
+                    //    "es_hulotoys_sp_get_article",                // Tên index trong Elasticsearch
+                    //    Convert.ToInt16(ProjectType.HULOTOYS),       // Project Type
+                    //    model.Id,                                    // ID bài viết
+                    //    QueueName.queue_app_push                     // Tên Queue
+                    //);
+
+                    // Tạo message để push vào queue
                     var j_param = new Dictionary<string, object>
                             {
-                                { "store_name", "SP_GetAllArticle" },
-                                { "index_es", "es_biolife_sp_get_article" },
-                                {"project_type", Convert.ToInt16(ProjectType.BIOLIFE) },
-                                  {"id" , articleId }
+                                 { "store_name", "Sp_GetAllArticle" },
+                                { "index_es", "es_hulotoys_sp_get_article" },
+                                {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
+                                  {"id" , model.Id }
+
                             };
                     var _data_push = JsonConvert.SerializeObject(j_param);
                     // Push message vào queue
                     var response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
 
+                    // Trả về kết quả thành công với ID của bài viết
                     return new JsonResult(new
                     {
                         isSuccess = true,
                         message = "Cập nhật thành công",
-                        dataId = articleId,
-                        
+                        dataId = articleId
                     });
                 }
                 else
@@ -218,14 +247,16 @@ namespace WEB.CMS.Controllers
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi và trả về thông báo lỗi
                 LogHelper.InsertLogTelegram("UpSert - NewsController: " + ex);
                 return new JsonResult(new
                 {
                     isSuccess = false,
-                    message = ex.Message.ToString()
+                    message = ex.Message
                 });
             }
         }
+
 
         public async Task<IActionResult> ChangeArticleStatus(long Id, int articleStatus)
         {
@@ -255,10 +286,11 @@ namespace WEB.CMS.Controllers
                     // Tạo message để push vào queue
                     var j_param = new Dictionary<string, object>
                             {
-                                { "store_name", "SP_GetAllArticle" },
-                                { "index_es", "es_biolife_sp_get_article" },
-                                {"project_type", Convert.ToInt16(ProjectType.BIOLIFE) },
+                                  { "store_name", "Sp_GetAllArticle" },
+                                { "index_es", "es_hulotoys_sp_get_article" },
+                                {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
                                   {"id" , Id }
+
                             };
                     var _data_push = JsonConvert.SerializeObject(j_param);
                     // Push message vào queue
@@ -268,8 +300,7 @@ namespace WEB.CMS.Controllers
                     {
                         isSuccess = true,
                         message = _ActionName + " thành công",
-                        dataId = Id,
-                        //queueResponse = response_queue
+                        dataId = Id
                     });
                 }
                 else
@@ -303,13 +334,14 @@ namespace WEB.CMS.Controllers
                 {
                     //  clear cache article
                     ClearCacheArticle(Id, string.Join(",", Categories));
-                    //// Tạo message để push vào queue
+                    // Tạo message để push vào queue
                     //var j_param = new Dictionary<string, object>
                     //        {
-                    //            { "store_name", "SP_GetAllArticle" },
-                    //            { "index_es", "es_biolife_sp_get_article" },
-                    //            {"project_type", Convert.ToInt16(ProjectType.BIOLIFE) },
+                    //              { "store_name", "SP_GetAllArticle" },
+                    //            { "index_es", "es_hulotoys_sp_get_article" },
+                    //            {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
                     //              {"id" , "-1" }
+
                     //        };
                     //var _data_push = JsonConvert.SerializeObject(j_param);
                     //// Push message vào queue

@@ -725,19 +725,22 @@ button {
     justify-content: center;
     color: #fff;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 400;
     height: 40px;
     border-radius: 6px;
     padding: 0 24px;
     text-align: center;
-    background: #FF5B00;
+    background: #056BD3;
     transition: 0.2s all;
-    border: 1px solid #FF5B00;
+    border: 1px solid #056BD3;
     cursor: pointer;
+    &.round{
+        border-radius: 99px;
+    }
     &:hover {
         color: #fff;
-        background: #FD8F52;
-        border: 1px solid #FD8F52;
+        background: #0059A1;
+        border: 1px solid #0059A1;
     }
     &.full {
         width: 100%;
@@ -770,6 +773,7 @@ button {
     }
     &.none {
         background: none;
+        color: #474747;
         border: 1px solid rgba(255, 255, 255, 0.35);
         &:hover {
             background: #fff;
@@ -794,7 +798,7 @@ button {
     &.white {
         background: #fff;
         border: 1px solid #E4E4EB;
-        color: #00264D;
+        color: #4F4F4F;
         &:hover {
             color: #fff;
             background: #FD8F52;
@@ -807,8 +811,16 @@ button {
         color: #1254FF;
     }
     &.orange {
-        background: #D09111;
-        border: 1px solid #D09111;
+        background: #ED974A;
+        border: 1px solid #ED974A;
+        color: #fff;
+        &.line{
+            background: #fff;
+            color: #ED974A;
+            &.dashed{
+                border: 1px dashed #ED974A;
+            }
+        }
     }
     &.cancel {
         background: #F73B2F;

@@ -4,7 +4,7 @@
  * Author: Andrej Hristoliubov
  * email: anhr@mail.ru
  * About me: https://anhr.github.io/AboutMe/
- * Sources: https://github.com/anhr/resizer
+ * Course: https://github.com/anhr/resizer
  *          http://jsfiddle.net/3jMQD/ 
  *          http://stackoverflow.com/questions/8960193/how-to-make-html-element-resizable-using-pure-javascript
  * Thanks to: http://stackoverflow.com/users/27862/user123444555621

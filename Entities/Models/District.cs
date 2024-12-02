@@ -20,4 +20,6 @@ public partial class District
     public string ProvinceId { get; set; }
 
     public short? Status { get; set; }
+
+    public DateTime? CreatedDate { get; set; }
 }

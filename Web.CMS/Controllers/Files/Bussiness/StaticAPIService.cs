@@ -6,7 +6,7 @@ using System.Text;
 using Utilities;
 using Utilities.Contants;
 
-namespace Web.CMS.Controllers.Files.Bussiness
+namespace HuloToys_Front_End.Controllers.Files.Bussiness
 {
     public class StaticAPIService
     {

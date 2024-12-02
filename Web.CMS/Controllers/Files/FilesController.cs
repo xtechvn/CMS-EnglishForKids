@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Web.CMS.Controllers.Files.Bussiness;
+﻿using HuloToys_Front_End.Controllers.Files.Bussiness;
+using Microsoft.AspNetCore.Mvc;
 
-namespace WEB.CMS.Controllers.Files
+namespace HuloToys_Front_End.Controllers.Files
 {
     public class FilesController : Controller
     {
@@ -49,6 +49,7 @@ namespace WEB.CMS.Controllers.Files
             });
         }
         [HttpPost]
+        [RequestFormLimits(MultipartBodyLengthLimit = 100*1024*1024)]
         public async Task<IActionResult> SummitVideo(IFormFile request)
         {
             try

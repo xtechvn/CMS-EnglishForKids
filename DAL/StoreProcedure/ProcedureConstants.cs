@@ -11,6 +11,8 @@ namespace DAL.StoreProcedure
         public const string GET_LABEL_REVENU_DATE_RANGE = "sp_GetLabelRevenueByDateRange";
         public const string GET_LABEL_QUANTITY_DATE_RANGE = "sp_GetOrderCountForEachLabelByDateRange";
         public const string ARTICLE_SEARCH = "Article_Search";
+        public const string COURSE_SEARCH = "GetListCourses";
+
         public const string Campaign_Search = "Campaign_Search";
         public const string PriceDetail_Search_ByCampaignID = "PriceDetail_Search_ByCampaignID";
         public const string CampaignDetail_Search_ByCampaignID = "CampaignDetail_Search_ByCampaignID";     
