@@ -135,7 +135,7 @@
 
         <div class="col-md-6 mb10"> <label class="lbl mt5 mb0"> Nội dung <sup class="red">*</sup></label></div>
         <div class="col-md-12 mb10">
-            <input type="text" id="content" maxlength="500" name="name" placeholder="Nhập text(tối đa 500 kí tự)"
+            <input type="text" id="content" class="form-control" maxlength="500" name="name" placeholder="Nhập text(tối đa 500 kí tự)"
                    asp-for="@Model.Note" autocomplete="off" />
         </div>
 
@@ -180,7 +180,7 @@
                     <tr>
                         <th>STT</th>
                         <th>Mã đơn</th>
-                        <th style="min-width: 100px;">Ngày bắt đầu-Ngày kết thúc</th>
+            
                         <th>Trạng thái</th>
                         <th class="">Nhân viên chính</th>
                         <th class="">Ngày tạo</th>

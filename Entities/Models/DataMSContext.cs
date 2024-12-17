@@ -31,11 +31,24 @@ public partial class DataMSContext : DbContext
 
     public virtual DbSet<Article> Articles { get; set; }
 
+
     public virtual DbSet<ArticleCategory> ArticleCategories { get; set; }
 
     public virtual DbSet<ArticleRelated> ArticleRelateds { get; set; }
 
     public virtual DbSet<ArticleTag> ArticleTags { get; set; }
+
+    public virtual DbSet<Course> Course { get; set; }
+    public virtual DbSet<CourseCategory> CourseCategories { get; set; }
+
+    public virtual DbSet<CourseRelated> CourseRelateds { get; set; }
+
+    public virtual DbSet<CourseTag> CourseTags { get; set; }
+    public virtual DbSet<Chapters> Chapters { get; set; }
+
+    public virtual DbSet<Lessions> Lessions { get; set; }
+
+
 
     public virtual DbSet<AttachFile> AttachFiles { get; set; }
 
@@ -127,6 +140,8 @@ public partial class DataMSContext : DbContext
 
     public virtual DbSet<ProvinceHotel> ProvinceHotels { get; set; }
 
+    public virtual DbSet<Rating> Ratings { get; set; }
+
     public virtual DbSet<ReceivePromotion> ReceivePromotions { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
@@ -165,10 +180,37 @@ public partial class DataMSContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=103.163.216.41;Initial Catalog=Hulotoy;Persist Security Info=True;User ID=us;Password=us@585668;TrustServerCertificate=True");
+        => optionsBuilder.UseSqlServer("Data Source=103.163.216.41;Initial Catalog=educationDb;Persist Security Info=True;User ID=us;Password=us@585668;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Course>().ToTable("Sources"); // Ánh xạ Course tới bảng Source
+
+        modelBuilder.Entity< Chapters > ().ToTable("Chapters"); // Ánh xạ Course tới bảng Source
+        modelBuilder.Entity<Lessions>().ToTable("Lessions"); // Ánh xạ Course tới bảng Source
+
+
+        modelBuilder.Entity<CourseCategory>(entity =>
+        {
+            entity.ToTable("SourcesCategory");
+
+            //entity.Property(e => e.UpdateLast).HasColumnType("datetime");
+        });
+        modelBuilder.Entity<CourseTag>(entity =>
+        {
+            entity.ToTable("SourceTags");
+
+           // entity.Property(e => e.UpdateLast).HasColumnType("datetime");
+        });
+        modelBuilder.Entity<CourseRelated>(entity =>
+        {
+            entity.ToTable("SourceRelated");
+
+            //entity.Property(e => e.UpdateLast).HasColumnType("datetime");
+        });
+
+
+
         modelBuilder.Entity<AccountAccessApi>(entity =>
         {
             entity.ToTable("AccountAccessApi");
@@ -617,6 +659,7 @@ public partial class DataMSContext : DbContext
 
             entity.ToTable("District");
 
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DistrictId)
                 .IsRequired()
                 .HasMaxLength(5);
@@ -862,6 +905,7 @@ public partial class DataMSContext : DbContext
                 .HasMaxLength(50)
                 .IsFixedLength();
             entity.Property(e => e.ReceiverName).HasMaxLength(150);
+            entity.Property(e => e.ShippingCode).HasMaxLength(50);
             entity.Property(e => e.UpdateLast).HasColumnType("datetime");
             entity.Property(e => e.UserGroupIds).HasMaxLength(250);
             entity.Property(e => e.UtmMedium).HasMaxLength(250);
@@ -1084,6 +1128,7 @@ public partial class DataMSContext : DbContext
 
             entity.ToTable("Province");
 
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100);
@@ -1106,6 +1151,28 @@ public partial class DataMSContext : DbContext
 
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<Rating>(entity =>
+        {
+            entity.ToTable("Rating");
+
+            entity.Property(e => e.Comment).HasMaxLength(1000);
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.ImgLink)
+                .HasMaxLength(1000)
+                .IsUnicode(false);
+            entity.Property(e => e.ProductDetailId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.ProductId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Star).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            entity.Property(e => e.VideoLink)
+                .HasMaxLength(1000)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<ReceivePromotion>(entity =>
@@ -1444,6 +1511,7 @@ public partial class DataMSContext : DbContext
 
             entity.ToTable("Ward");
 
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DistrictId)
                 .IsRequired()
                 .HasMaxLength(5);

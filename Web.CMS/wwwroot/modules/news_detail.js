@@ -305,7 +305,6 @@ var _newsDetail = {
         });
 
         if (formvalid.valid()) {
-          
             var _body = tinymce.activeEditor.getContent();
             var _tags = $('#news-tag').tagsinput('items');
             var _categories = [];
@@ -323,8 +322,8 @@ var _newsDetail = {
                 });
             }
 
-            if ($('#mainCategoryId').val() < 0) {
-                _msgalert.error('Bạn phải chọn chuyên mục chính cho bài viết');
+            if (_categories.length <= 0) {
+                _msgalert.error('Bạn phải chọn chuyên mục cho bài viết');
                 return false;
             }
             if ($('#Lead').val().length >= 400) {
@@ -346,21 +345,20 @@ var _newsDetail = {
                 RelatedArticleIds: _articleIdList,
                 PublishDate: ConvertToJSONDateTime($('#PublishDate').val()),
                 DownTime: ConvertToJSONDateTime($('#DowntimeDate').val()),
-                Position: $('#Position').val(),
-                MainCategoryId: $('#mainCategoryId').val()
+                Position: $('#Position').val()
             }
             if (_model.ArticleType == 1) {
                 _model.Body = $('#link-video').attr('src') == undefined ? "" : $('#link-video').attr('src');
             }
 
-            if (_model.Image169 == "" && _model.Image43 == "" && _model.Image11 == "") {
-                _msgalert.error('Bạn phải upload ít nhất một ảnh đại diện cho tin bài');
-                return false;
-            }
-            if (img == "" ) {
-                _msgalert.error('Bạn phải upload ảnh đại diện cho tin bài ' + sizeImg);
-                return false;
-            }
+            //if (_model.Image169 == "" && _model.Image43 == "" && _model.Image11 == "") {
+            //    _msgalert.error('Bạn phải upload ít nhất một ảnh đại diện cho tin bài');
+            //    return false;
+            //}
+            //if (img == "" ) {
+            //    _msgalert.error('Bạn phải upload ảnh đại diện cho tin bài ' + sizeImg);
+            //    return false;
+            //}
             $.ajax({
                 url: '/news/upsert',
                 type: 'POST',
@@ -521,7 +519,7 @@ var _newsDetail = {
                     _msgalert.error(result.message);
                 }
             },
-            error: function (jqXHR) {
+            error: function (jqXHR) {   
 
             }
         });

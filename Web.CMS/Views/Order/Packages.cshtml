@@ -55,7 +55,7 @@
                                         <h6 class="bold" style="white-space: break-spaces;"> @detail.name</h6>
                                         <p class="cat mt-2">
                                             Mã sản phẩm: @(detail.code == null ? detail._id : detail.code)<br>
-                                            Phân loại: @(string.Join(",", detail.variation_detail.Select(s => s.name).ToList()))<br>
+                                            Phân loại: @(detail.variation_detail!=null?  string.Join(",", detail.variation_detail.Select(s => s.name).ToList()):"")<br>
                                             Mã SKU: @detail.sku
                                         </p>
                                     </div>

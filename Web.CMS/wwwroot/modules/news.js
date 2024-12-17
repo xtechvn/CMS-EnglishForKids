@@ -67,6 +67,7 @@ var _news = {
             }
         });
     },
+   
 
     OnPaging: function (value) {
         var objSearch = this.SearchParam;

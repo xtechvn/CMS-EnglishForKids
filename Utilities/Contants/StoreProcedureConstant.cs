@@ -304,6 +304,14 @@ namespace Utilities.Contants
         public static string SP_GetUserAgentByClientId = "SP_GetUserAgentByClientId";
         public static string Sp_UpdateOrder = "Sp_UpdateOrder";
 
+        public static string SP_GetListChapterLessionBySourceId = "SP_GetListLessionBySourceId";
+        public static string sp_InsertChapters = "sp_InsertChapters";
+        public static string sp_InsertLessions = "sp_InsertLessions";
+        public static string sp_UpdateChapters = "sp_UpdateChapters";
+        public static string sp_UpdateLessions = "sp_UpdateLessions";
+
+
+
 
         #region vin wonder
         public static string sp_InsertCampaign = "sp_InsertCampaign";

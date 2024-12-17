@@ -18,5 +18,6 @@ namespace Repositories.IRepositories
         Task<List<ListOrderDetailViewModel>> GetListOrderDetail(long orderid);
         Task<Order> GetOrderByOrderNo(string orderNo);
         Task<List<OrderViewModel>> GetByClientId(long clientId, int payId = 0, int status = 0);
+        Task<Order> GetByOrderId(long order_id);
     }
 }

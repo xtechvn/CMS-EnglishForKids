@@ -24,16 +24,16 @@
         display: none;
     }
     &:after {
-        font-family: 'iconfont';
-        content: '\ea16';
+        font-family: IcoFont;
+        content: '\eac8';
         font-weight: 400;
-        transform: rotate(90deg);
+        font-size: 20px;
     }
 }
 
 .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow {
     &:after {
-        transform: rotate(-90deg);
+        transform: rotate(180deg);
     }
 }
 

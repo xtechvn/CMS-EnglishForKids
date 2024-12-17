@@ -74,6 +74,56 @@ namespace DAL
             }
             return ListResult;
         }
+        //public async Task<List<int>> MultipleInsertTagCourse(List<string> TagList)
+        //{
+        //    var ListResult = new List<int>();
+        //    try
+        //    {
+        //        using (var _DbContext = new EntityDataContext(_connection))
+        //        {
+        //            using (var transaction = _DbContext.Database.BeginTransaction())
+        //            {
+        //                try
+        //                {
+        //                    if (TagList != null && TagList.Count >= 0)
+        //                    {
+        //                        foreach (var item in TagList)
+        //                        {
+        //                            var tagItemModel = await _DbContext.Tags.FirstOrDefaultAsync(s => s.TagName == item.Trim());
+        //                            if (tagItemModel == null)
+        //                            {
+        //                                var tagModel = new Tag()
+        //                                {
+        //                                    TagName = item,
+        //                                    CreatedOn = DateTime.Now
+        //                                };
+        //                                await _DbContext.Tags.AddAsync(tagModel);
+        //                                await _DbContext.SaveChangesAsync();
+        //                                ListResult.Add(tagModel.Id);
+        //                            }
+        //                            else
+        //                            {
+        //                                ListResult.Add(tagItemModel.Id);
+        //                            }
+        //                        }
+        //                    }
+        //                    transaction.Commit();
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    transaction.Rollback();
+        //                    return null;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogHelper.InsertLogTelegram("MultipleInsertTag - TagDAL: " + ex);
+        //        return null;
+        //    }
+        //    return ListResult;
+        //}
 
         public async Task<List<string>> GetSuggestionTag(string name)
         {

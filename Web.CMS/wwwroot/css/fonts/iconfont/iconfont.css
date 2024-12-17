@@ -3,11 +3,11 @@ iconfont Webfont
 */
 @font-face {
 	font-family: 'iconfont';
-	src: url('iconfont.eot?1717379622066');
-	src: url('iconfont.eot?#iefix-1717379622066') format('embedded-opentype'),
-		url('iconfont.woff2?1717379622066') format('woff2'),
-		url('iconfont.woff?1717379622066') format('woff'),
-		url('iconfont.ttf?1717379622066') format('truetype');
+	src: url('iconfont.eot?1732610067418');
+	src: url('iconfont.eot?#iefix-1732610067418') format('embedded-opentype'),
+		url('iconfont.woff2?1732610067418') format('woff2'),
+		url('iconfont.woff?1732610067418') format('woff'),
+		url('iconfont.ttf?1732610067418') format('truetype');
 	font-weight: normal;
 	font-style: normal;
 }
@@ -84,208 +84,212 @@ Glyphs list
 			content: '\ea0d';
 		}
 
-		 .iconfont-hair:before {
+		 .iconfont-FilePlus:before {
 			content: '\ea0e';
 		}
 
-		 .iconfont-hair2:before {
+		 .iconfont-hair:before {
 			content: '\ea0f';
 		}
 
-		 .iconfont-he-thong:before {
+		 .iconfont-hair2:before {
 			content: '\ea10';
 		}
 
-		 .iconfont-history:before {
+		 .iconfont-he-thong:before {
 			content: '\ea11';
 		}
 
-		 .iconfont-hotel:before {
+		 .iconfont-history:before {
 			content: '\ea12';
 		}
 
-		 .iconfont-mail:before {
+		 .iconfont-hotel:before {
 			content: '\ea13';
 		}
 
-		 .iconfont-map:before {
+		 .iconfont-mail:before {
 			content: '\ea14';
 		}
 
-		 .iconfont-menu:before {
+		 .iconfont-map:before {
 			content: '\ea15';
 		}
 
-		 .iconfont-next:before {
+		 .iconfont-menu:before {
 			content: '\ea16';
 		}
 
-		 .iconfont-next2:before {
+		 .iconfont-next:before {
 			content: '\ea17';
 		}
 
-		 .iconfont-notifi:before {
+		 .iconfont-next2:before {
 			content: '\ea18';
 		}
 
-		 .iconfont-Out:before {
+		 .iconfont-notifi:before {
 			content: '\ea19';
 		}
 
-		 .iconfont-payment:before {
+		 .iconfont-Out:before {
 			content: '\ea1a';
 		}
 
-		 .iconfont-plane:before {
+		 .iconfont-payment:before {
 			content: '\ea1b';
 		}
 
-		 .iconfont-prev2:before {
+		 .iconfont-plane:before {
 			content: '\ea1c';
 		}
 
-		 .iconfont-Question:before {
+		 .iconfont-prev2:before {
 			content: '\ea1d';
 		}
 
-		 .iconfont-quick-sale:before {
+		 .iconfont-Question:before {
 			content: '\ea1e';
 		}
 
-		 .iconfont-Refresh:before {
+		 .iconfont-quick-sale:before {
 			content: '\ea1f';
 		}
 
-		 .iconfont-search:before {
+		 .iconfont-Refresh:before {
 			content: '\ea20';
 		}
 
-		 .iconfont-send:before {
+		 .iconfont-search:before {
 			content: '\ea21';
 		}
 
-		 .iconfont-setting:before {
+		 .iconfont-send:before {
 			content: '\ea22';
 		}
 
-		 .iconfont-shipped:before {
+		 .iconfont-setting:before {
 			content: '\ea23';
 		}
 
-		 .iconfont-smartphone:before {
+		 .iconfont-shipped:before {
 			content: '\ea24';
 		}
 
-		 .iconfont-twiter:before {
+		 .iconfont-smartphone:before {
 			content: '\ea25';
 		}
 
-		 .iconfont-user:before {
+		 .iconfont-twiter:before {
 			content: '\ea26';
 		}
 
-		 .iconfont-user2:before {
+		 .iconfont-user:before {
 			content: '\ea27';
 		}
 
-		 .iconfont-user3:before {
+		 .iconfont-user2:before {
 			content: '\ea28';
 		}
 
-		 .iconfont-user4:before {
+		 .iconfont-user3:before {
 			content: '\ea29';
 		}
 
-		 .iconfont-user5:before {
+		 .iconfont-user4:before {
 			content: '\ea2a';
 		}
 
-		 .iconfont-vector:before {
+		 .iconfont-user5:before {
 			content: '\ea2b';
 		}
 
-		 .iconfont-web-crawler:before {
+		 .iconfont-vector:before {
 			content: '\ea2c';
 		}
 
-		 .iconfont-z-1-upload:before {
+		 .iconfont-web-crawler:before {
 			content: '\ea2d';
 		}
 
-		 .iconfont-z-10-chuongtrinh:before {
+		 .iconfont-z-1-upload:before {
 			content: '\ea2e';
 		}
 
-		 .iconfont-z-11-export:before {
+		 .iconfont-z-10-chuongtrinh:before {
 			content: '\ea2f';
 		}
 
-		 .iconfont-z-12-restore:before {
+		 .iconfont-z-11-export:before {
 			content: '\ea30';
 		}
 
-		 .iconfont-z-13-setting:before {
+		 .iconfont-z-12-restore:before {
 			content: '\ea31';
 		}
 
-		 .iconfont-z-14-news:before {
+		 .iconfont-z-13-setting:before {
 			content: '\ea32';
 		}
 
-		 .iconfont-z-15-option:before {
+		 .iconfont-z-14-news:before {
 			content: '\ea33';
 		}
 
-		 .iconfont-z-16-calculator:before {
+		 .iconfont-z-15-option:before {
 			content: '\ea34';
 		}
 
-		 .iconfont-z-17-ticket:before {
+		 .iconfont-z-16-calculator:before {
 			content: '\ea35';
 		}
 
-		 .iconfont-z-18-clipboard:before {
+		 .iconfont-z-17-ticket:before {
 			content: '\ea36';
 		}
 
-		 .iconfont-z-19-out:before {
+		 .iconfont-z-18-clipboard:before {
 			content: '\ea37';
 		}
 
-		 .iconfont-z-2-add-to-playlist:before {
+		 .iconfont-z-19-out:before {
 			content: '\ea38';
 		}
 
-		 .iconfont-z-20-filter:before {
+		 .iconfont-z-2-add-to-playlist:before {
 			content: '\ea39';
 		}
 
-		 .iconfont-z-3-print:before {
+		 .iconfont-z-20-filter:before {
 			content: '\ea3a';
 		}
 
-		 .iconfont-z-4-edit:before {
+		 .iconfont-z-3-print:before {
 			content: '\ea3b';
 		}
 
-		 .iconfont-z-5-order:before {
+		 .iconfont-z-4-edit:before {
 			content: '\ea3c';
 		}
 
-		 .iconfont-z-6-group:before {
+		 .iconfont-z-5-order:before {
 			content: '\ea3d';
 		}
 
-		 .iconfont-z-7-checklist:before {
+		 .iconfont-z-6-group:before {
 			content: '\ea3e';
 		}
 
-		 .iconfont-z-8-hoadon:before {
+		 .iconfont-z-7-checklist:before {
 			content: '\ea3f';
 		}
 
-		 .iconfont-z-9-report:before {
+		 .iconfont-z-8-hoadon:before {
 			content: '\ea40';
+		}
+
+		 .iconfont-z-9-report:before {
+			content: '\ea41';
 		}
 
 		

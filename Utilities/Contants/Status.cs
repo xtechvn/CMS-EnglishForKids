@@ -32,11 +32,11 @@ namespace Utilities.Contants
         public const int SAVE = 1; // BÀI LƯU TẠM
         public const int REMOVE = 2; // BÀI LƯU TẠM
     }
-
-    public struct GroupProductStatus
+    public struct CourseStatus
     {
         public const int PUBLISH = 0; // BÀI XUẤT BẢN
-        public const int REMOVE = 1; // BÀI LƯU TẠM
+        public const int SAVE = 1; // BÀI LƯU TẠM
+        public const int REMOVE = 2; // BÀI LƯU TẠM
     }
 
     public enum PAYMENT_REQUEST_STATUS

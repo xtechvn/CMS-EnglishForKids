@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Telegram.Bot.Requests.Abstractions;
 using Utilities;
 using Utilities.Contants;
 
@@ -29,7 +30,7 @@ namespace DAL
             try
             {
 
-                SqlParameter[] objParam = new SqlParameter[24];
+                SqlParameter[] objParam = new SqlParameter[25];
 
 
                 objParam[0] = (CheckDate(searchModel.CreateTime) == DateTime.MinValue) ? new SqlParameter("@CreateTime", DBNull.Value) : new SqlParameter("@CreateTime", CheckDate(searchModel.CreateTime));
@@ -120,6 +121,7 @@ namespace DAL
                 }
 
                 objParam[23] = new SqlParameter("@OrderId", searchModel.BoongKingCode);
+                objParam[24] = new SqlParameter("@CarrierId", searchModel.CarrierId);
 
 
                 return _DbWorker.GetDataTable(proc, objParam);
@@ -215,29 +217,41 @@ namespace DAL
             }
             return 0;
         }
-        public async Task<long> UpdateOrder(Order model)
+        public async Task<long> UpdateOrder(Order request)
         {
             try
             {
-                SqlParameter[] objParam = new SqlParameter[18];
-                objParam[0] = new SqlParameter("@OrderId", model.OrderId);
-                objParam[1] = new SqlParameter("@ClientId", model.ClientId == 0 ? DBNull.Value : model.ClientId);
-                objParam[2] = new SqlParameter("@OrderNo", model.OrderNo == null ? DBNull.Value : model.OrderNo);
-                objParam[3] = new SqlParameter("@Price", model.Price == null? DBNull.Value : model.Price);
-                objParam[4] = new SqlParameter("@Profit", model.Profit == null ? DBNull.Value : model.Profit);
-                objParam[5] = new SqlParameter("@Discount", model.Discount == null ? DBNull.Value : model.Discount);
-                objParam[6] = new SqlParameter("@Amount", model.Amount == null ? DBNull.Value : model.Amount);
-                objParam[7] = new SqlParameter("@Status", model.OrderStatus == 0 ? DBNull.Value : model.OrderStatus);
-                objParam[8] = new SqlParameter("@PaymentType", model.PaymentType == 0 ? DBNull.Value : model.PaymentType);
-                objParam[9] = new SqlParameter("@PaymentStatus", model.PaymentStatus == 0 ? DBNull.Value : model.PaymentStatus);
-                objParam[10] = new SqlParameter("@UtmSource", model.UtmSource == null ? DBNull.Value : model.UtmSource);
-                objParam[11] = new SqlParameter("@UtmMedium", model.UtmMedium == null ? DBNull.Value : model.UtmMedium);
-                objParam[12] = new SqlParameter("@Note", model.Note == null ? DBNull.Value : model.Note);
-                objParam[13] = new SqlParameter("@VoucherId", model.VoucherId == null ? DBNull.Value : model.VoucherId);
-                objParam[14] = new SqlParameter("@IsDelete", model.IsDelete == null ? DBNull.Value : model.IsDelete);
-                objParam[15] = new SqlParameter("@UserId", model.UserId == 0 ? DBNull.Value : model.UserId);
-                objParam[16] = new SqlParameter("@UserGroupIds", model.UserGroupIds == null ? DBNull.Value : model.UserGroupIds);
-                objParam[17] = new SqlParameter("@UserUpdateId", model.UserUpdateId == null ? DBNull.Value : model.UserUpdateId);
+                SqlParameter[] objParam = new SqlParameter[] {
+                     new SqlParameter("@OrderId", request.OrderId),
+                     new SqlParameter("@ClientId", request.ClientId),
+                     new SqlParameter("@OrderNo", request.OrderNo),
+                     new SqlParameter("@Price", request.Price),
+                     new SqlParameter("@Profit", request.Profit),
+                     new SqlParameter("@Discount", request.Discount),
+                     new SqlParameter("@Amount", request.Amount),
+                     new SqlParameter("@Status", request.OrderStatus),
+                     new SqlParameter("@PaymentType", request.PaymentType),
+                     new SqlParameter("@PaymentStatus", request.PaymentStatus),
+                     new SqlParameter("@UtmSource", request.UtmSource),
+                     new SqlParameter("@UtmMedium", request.UtmMedium),
+                     new SqlParameter("@Note", request.Note),
+                     new SqlParameter("@VoucherId", request.VoucherId),
+                     new SqlParameter("@IsDelete", request.IsDelete),
+                     new SqlParameter("@UserId", request.UserId),
+                     new SqlParameter("@UserGroupIds", request.UserGroupIds),
+                     new SqlParameter("@UserUpdateId", request.UserUpdateId),
+                     new SqlParameter("@ProvinceId", request.ProvinceId),
+                     new SqlParameter("@DistrictId", request.DistrictId),
+                     new SqlParameter("@WardId", request.WardId),
+                     new SqlParameter("@Address", request.Address),
+                     new SqlParameter("@ShippingFee", request.ShippingFee),
+                     new SqlParameter("@CarrierId", request.CarrierId),
+                     new SqlParameter("@ShippingType", request.ShippingType),
+                     new SqlParameter("@ShippingCode", request.ShippingCode),
+                     new SqlParameter("@ShippingStatus", request.ShippingStatus),
+                     new SqlParameter("@PackageWeight", request.PackageWeight),
+
+                };
 
                 return _DbWorker.ExecuteNonQuery(StoreProcedureConstant.Sp_UpdateOrder, objParam);
 
@@ -261,6 +275,22 @@ namespace DAL
             catch (Exception ex)
             {
                 LogHelper.InsertLogTelegram("GetByOrderNo - OrderDal: " + ex);
+                return null;
+            }
+        }
+        public Order GetByOrderId(long order_id)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+
+                    return _DbContext.Orders.AsNoTracking().FirstOrDefault(s => s.OrderId == order_id);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetByOrderId - OrderDal: " + ex);
                 return null;
             }
         }

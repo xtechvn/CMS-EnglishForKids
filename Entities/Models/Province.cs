@@ -16,4 +16,6 @@ public partial class Province
     public string Type { get; set; }
 
     public short? Status { get; set; }
+
+    public DateTime? CreatedDate { get; set; }
 }

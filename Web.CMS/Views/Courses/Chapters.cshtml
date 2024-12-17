@@ -1,0 +1,118 @@
+﻿
+    @using Utilities
+    @using Utilities.Contants
+    @using Entities.ViewModels
+    @model List<ChapterViewModel>
+<section class="main-container clearfix">
+    
+
+    <!-- Danh sách Chapter -->
+    <div id="chapter-list">
+        @if (Model != null && Model.Count > 0)
+        {
+            foreach (var chapter in Model)
+            {
+                <!-- Chapter Item -->
+                <div class="block-course accordion chapter-item" id="chapter-@chapter.Id">
+                    <div class="item">
+                        <div class="title" id="heading-@chapter.Id">
+                            <a data-toggle="collapse" data-target="#collapse-@chapter.Id">
+                                <input class="form-control" type="text" value="@chapter.Title" readonly />
+                                <span class="time">
+                                    @($"{chapter.Lessons?.Count ?? 0} bài giảng")
+                                </span>
+                            </a>
+                        </div>
+                        <!-- Lesson List -->
+                        <div id="collapse-@chapter.Id" class="collapse show" aria-labelledby="heading-@chapter.Id" data-parent="#chapter-list">
+                            <div class="card-body">
+                                <ul id="lesson-list-@chapter.Id" class="sortable">
+                                    @if (chapter.Lessons != null && chapter.Lessons.Count > 0)
+                                    {
+                                        foreach (var lesson in chapter.Lessons)
+                                        {
+                                            var fileExtension = System.IO.Path.GetExtension(lesson.Thumbnail)?.ToLower();
+                                            <li class="ui-state-default lesson-item" id="lesson-@lesson.Id">
+                                                <div class="d-flex align-items-center">
+                                                    <!-- Icon mở file/video -->
+                                                    @if (fileExtension == ".mp4")
+                                                    {
+                                                        <i class="play-circle lesson-icon"
+                                                           data-url="@lesson.Thumbnail"
+                                                           style="font-size: 24px; cursor: pointer;">
+                                                        </i>
+                                                    }
+                                                    else if (fileExtension == ".pdf")
+                                                    {
+                                                        <i class="fas fa-book lesson-icon"
+                                                           data-url="@lesson.Thumbnail"
+                                                           style="font-size: 24px; color: #17a2b8; cursor: pointer;">
+                                                        </i>
+                                                    }
+
+                                                    <!-- Lesson Title -->
+                                                    <span class="flex-tt ml-2">
+                                                        <input class="form-control lesson-title" type="text" value="@lesson.Title" readonly />
+                                                    </span>
+                                                </div>
+                                                <span class="time">@lesson.VideoDuration</span>
+                                            </li>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <li>Không có bài giảng nào.</li>
+                                    }
+
+                                   
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p>Chưa có tiết học nào được thêm.</p>
+        }
+    </div>
+
+    <!-- Nút Thêm Tiết Học -->
+    <a href="#edit-khoahoc-popup" class="open-popup btn btn-default orange line dashed round mb-3 mt-3" id="btn-add-chapter">Thêm Tiết Học</a>
+</section>
+
+<!-- Popup Thêm/Sửa Chapter -->
+<div id="edit-khoahoc-popup" class="edit-khoahoc-popup white-popup mfp-hide">
+    <div class="content_lightbox">
+        <div class="header">
+            <h4 class="modal-title text-uppercase mb-3" id="popup-title">Thêm tiết học</h4>
+            <button title="Close (Esc)" type="button" class="mfp-close"></button>
+        </div>
+        <div class="content">
+            <div class="block-course accordion" id="popup-chapter-list">
+                <div class="item">
+                    <div class="title title-add">
+                        <input class="form-control new-chapter-title" type="text" placeholder="Thêm tiết học" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-default">
+            <div class="flex align-items-center justify-end mt20 gap10">
+                <button type="button" class="btn btn-default none mfp-close round" style="margin: 0px 120px;">
+                    Hủy
+                </button>
+                <button type="button" id="save-chapters" class="btn btn-default orange round">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+   
+
+
+
+

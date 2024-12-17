@@ -165,7 +165,7 @@
                                     <input type="file" name="myFile">
                                     <div class="choose-content">
                                         <i class="icofont-video-alt"></i>
-                                        <span>Thêm hình ảnh <nw class="count">(@(product != null && product.videos != null && product.videos.Count > 0 ? product.videos.Count : "0")</nw>/1)</span>
+                                        <span>Thêm video <nw class="count">(@(product != null && product.videos != null && product.videos.Count > 0 ? product.videos.Count : "0")</nw>/1)</span>
                                     </div>
                                 </label>
                             </div>
@@ -248,7 +248,7 @@
                         <label class="label">Thương hiệu</label>
                         <div class="wrap_input">
                             <div class="form-group namesp">
-                                <input type="text" class="form-control spec-value" placeholder="Chọn Thương hiệu" @* data-value="@(brand!=null && brand._id!=null && brand.type_ids!="null"?brand.type_ids:"")" *@ value="@(brand!=null && brand._id!=null && brand.value!="null"?brand.value:"")">
+                                <input type="text" class="form-control spec-value" placeholder="Chọn Thương hiệu" data-value="@(brand!=null && brand._id!=null && brand.type_ids!="null"?brand.type_ids:"")" value="@(brand!=null && brand._id!=null && brand.value!="null"?brand.value:"")">
                                 <a href="javascript:;" class="edit"><i class="icofont-thin-down"></i></a>
                             </div>
                             <div class="select-option p-2" style="width:90%;display:none;">
@@ -303,7 +303,7 @@
                         <label class="label">Chất liệu</label>
                         <div class="wrap_input">
                             <div class="form-group namesp">
-                                <input type="text" class="form-control spec-value" placeholder="Chọn Chất liệu" @* data-value="@(material!=null && material._id!=null && material.type_ids!="null"?material.type_ids:"")" *@ value="@(material!=null && material._id!=null&& material.value!="null"?material.value:"")">
+                                <input type="text" class="form-control spec-value" placeholder="Chọn Chất liệu" data-value="@(material!=null && material._id!=null && material.type_ids!="null"?material.type_ids:"")" value="@(material!=null && material._id!=null&& material.value!="null"?material.value:"")">
                                 <a href="javascript:;" class="edit"><i class="icofont-thin-down"></i></a>
                             </div>
                             <div class="select-option p-2" style="width:90%;display:none;">
@@ -357,7 +357,7 @@
                         <label class="label">Độ tuổi khuyến nghị</label>
                         <div class="wrap_input">
                             <div class="form-group namesp">
-                                <input type="text" class="form-control spec-value" placeholder="Độ tuổi khuyến nghị" @*  data-value="@(age_restriction!=null && age_restriction._id!=null && age_restriction.type_ids!="null"?age_restriction.type_ids:"")" *@ value="@(age_restriction!=null && age_restriction._id!=null && age_restriction.value!="null"?age_restriction.value:"")">
+                                <input type="text" class="form-control spec-value" placeholder="Độ tuổi khuyến nghị"  data-value="@(age_restriction!=null && age_restriction._id!=null && age_restriction.type_ids!="null"?age_restriction.type_ids:"")" value="@(age_restriction!=null && age_restriction._id!=null && age_restriction.value!="null"?age_restriction.value:"")">
                                 <a href="javascript:;" class="edit"><i class="icofont-thin-down"></i></a>
                             </div>
                             <div class="select-option p-2" style="width:90%;display:none;">
@@ -412,7 +412,7 @@
                         <div class="wrap_input">
                             <div class="datepicker-wrap namesp">
                                 <input id="datepicker" placeholder="Vui lòng chọn"
-                                       class="datepicker-input form-control" type="text" @* data-value="@(date_manuafacter!=null && date_manuafacter._id!=null && date_manuafacter.type_ids!="null"?date_manuafacter.type_ids:"")" *@ value="@(date_manuafacter!=null && date_manuafacter._id!=null?date_manuafacter.value:"")">
+                                       class="datepicker-input form-control" type="text" data-value="@(date_manuafacter!=null && date_manuafacter._id!=null && date_manuafacter.type_ids!="null"?date_manuafacter.type_ids:"")" value="@(date_manuafacter!=null && date_manuafacter._id!=null?date_manuafacter.value:"")">
                             </div>
                         </div>
                     </div>
@@ -476,7 +476,7 @@
                         <label class="label">Địa chỉ tổ chức chịu trách nghiệm sản xuất</label>
                         <div class="wrap_input">
                             <div class="form-group namesp">
-                                <input type="text" class="form-control spec-value" placeholder="Địa chỉ tổ chức chịu trách nghiệm sản xuất" @* data-value="@(manuafacter_location!=null && manuafacter_location._id!=null && manuafacter_location.type_ids!="null"?manuafacter_location.type_ids:"")" *@ value="@(manuafacter_location!=null && manuafacter_location._id!=null&& manuafacter_location.value!="null"?manuafacter_location.value:"")">
+                                <input type="text" class="form-control spec-value" placeholder="Địa chỉ tổ chức chịu trách nghiệm sản xuất" data-value="@(manuafacter_location!=null && manuafacter_location._id!=null && manuafacter_location.type_ids!="null"?manuafacter_location.type_ids:"")" value="@(manuafacter_location!=null && manuafacter_location._id!=null&& manuafacter_location.value!="null"?manuafacter_location.value:"")">
                                 <a href="javascript:;" class="edit"><i class="icofont-thin-down"></i></a>
                             </div>
                             <div class="select-option p-2" style="width:90%;display:none;">
@@ -530,7 +530,7 @@
                         <label class="label">Sản phẩm đặt theo yêu cầu</label>
                         <div class="wrap_input">
                             <div class="form-group namesp">
-                                <input type="text" class="form-control spec-value" placeholder="Sản phẩm đặt theo yêu cầu" @* data-value="@(specific_requirement != null && specific_requirement._id != null && specific_requirement.type_ids != "null" ? specific_requirement.type_ids : "")" *@ value="@(specific_requirement!=null && specific_requirement._id!=null&& specific_requirement.value!="null"?specific_requirement.value:"")">
+                                <input type="text" class="form-control spec-value" placeholder="Sản phẩm đặt theo yêu cầu" data-value="@(specific_requirement != null && specific_requirement._id != null && specific_requirement.type_ids != "null" ? specific_requirement.type_ids : "")" value="@(specific_requirement!=null && specific_requirement._id!=null&& specific_requirement.value!="null"?specific_requirement.value:"")">
                                 <a href="javascript:;" class="edit"><i class="icofont-thin-down"></i></a>
                             </div>
                             <div class="select-option p-2" style="width:90%;display:none;">
@@ -766,7 +766,7 @@
                                                 <input type="text" class="form-control input-price" placeholder="Kho hàng">
                                             </div>
                                         </td>
-                                       @*  <td class="td-weight" style="@(product!=null && (product.is_one_weight==false ||product.is_one_weight==null)?"display:none;":"")">
+                                        <td class="td-weight" style="@(product!=null && (product.is_one_weight==false ||product.is_one_weight==null)?"display:none;":"")">
                                             <div class="form-group mb-0">
                                                 <input type="text" class="form-control input-price" placeholder="Cân nặng">
                                             </div>
@@ -786,7 +786,7 @@
                                                     <span class="note">C (cm)</span>
                                                 </div>
                                             </div>
-                                        </td> *@
+                                        </td>
                                         <td class="td-sku">
                                             <div class="form-group mb-0">
                                                 <input type="text" class="form-control"
@@ -937,13 +937,13 @@
                 </div>
             </div>
         </div>
-     @*    <div id="single-weight" class="box-info bg-white p-3 mb-3">
+        <div id="single-weight" class="box-info bg-white p-3 mb-3">
             <h5 class="title-box mb-2 text-uppercase">Vận chuyển</h5>
             <div class="item flex flex-lg-nowrap gap10 mb-2 w-100">
                 <label class="label">Thiết lập cân nặng & kích thước cho từng phân loại</label>
                 <div class="wrap_input">
                     <label class="switch no-text switch-active">
-                        <input type="checkbox" class="switch-weight" @(product!=null && product.is_one_weight==true? "checked":"")>
+                        <input type="checkbox" class="switch-weight" @(product != null && product.is_one_weight == false ? "checked" : "")>
                         <span class="slider round"></span>
                     </label>
 
@@ -956,7 +956,7 @@
                         <div class="row">
                             <div class="col-lg-4 col-md-6">
                                 <div class="form-group mb-0 price">
-                                    <input type="text" class="form-control input-price weight" placeholder="Nhập cân nặng" value="@(product!=null && product.weight!=null? ((float)product.weight).ToString("N0"):"")" @(product != null && product.is_one_weight == true ? "readonly" : "")>
+                                    <input type="text" class="form-control input-price weight" placeholder="Nhập cân nặng" value="@(product!=null && product.weight!=null? ((float)product.weight).ToString("N0"):"")" @(product != null && product.is_one_weight == true ? "" : "readonly")>
                                     <span class="note">gr</span>
                                 </div>
                                 <p class="mt-1">Sau khi đóng gói</p>
@@ -970,19 +970,19 @@
                         <div class="row">
                             <div class="col-lg-3 col-md-4">
                                 <div class="form-group mb-0 price">
-                                    <input type="text" class="form-control input-price dismenssion-height" placeholder="Nhập kích thước" value="@(product!=null && product.package_height!=null? ((float)product.package_height).ToString("N0"):"")" @(product != null && product.is_one_weight == true ? "readonly" : "")>
+                                    <input type="text" class="form-control input-price dismenssion-height" placeholder="Nhập kích thước" value="@(product!=null && product.package_height!=null? ((float)product.package_height).ToString("N0"):"")" @(product != null && product.is_one_weight == true ? "" : "readonly")>
                                     <span class="note">cm</span>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-4">
                                 <div class="form-group mb-0 price">
-                                    <input type="text" class="form-control input-price dismenssion-width" placeholder="Nhập kích thước" value="@(product!=null && product.package_width!=null? ((float)product.package_width).ToString("N0"):"")" @(product != null && product.is_one_weight == true ? "readonly" : "")>
+                                    <input type="text" class="form-control input-price dismenssion-width" placeholder="Nhập kích thước" value="@(product!=null && product.package_width!=null? ((float)product.package_width).ToString("N0"):"")" @(product != null && product.is_one_weight == true ? "" : "readonly")>
                                     <span class="note">cm</span>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-4">
                                 <div class="form-group mb-0 price">
-                                    <input type="text" class="form-control input-price dismenssion-depth" placeholder="Nhập kích thước input-price" value="@(product!=null && product.package_depth!=null? ((float)product.package_depth).ToString("N0"):"")" @(product != null && product.is_one_weight == true ? "readonly" : "")>
+                                    <input type="text" class="form-control input-price dismenssion-depth" placeholder="Nhập kích thước input-price" value="@(product!=null && product.package_depth!=null? ((float)product.package_depth).ToString("N0"):"")" @(product != null && product.is_one_weight == true ? "" : "readonly")>
                                     <span class="note">cm</span>
                                 </div>
                             </div>
@@ -991,8 +991,8 @@
                     </div>
                 </div>
             </div>
-        </div> *@
-        @* <div id="other-information" class="box-info bg-white p-3 mb-3" style="display:none;">
+        </div>
+        <div id="other-information" class="box-info bg-white p-3 mb-3">
             <h5 class="title-box mb-2 text-uppercase">Thông tin khác</h5>
             <div class="row">
                 <div class="col-md-6">
@@ -1066,7 +1066,7 @@
                 </div>
             </div>
 
-        </div> *@
+        </div>
         <div class="action-form">
             <a id="product-detail-cancel" href="javascript:;" class="btn btn-round btn-outline-base btn-cancel">Hủy</a>
             @*<a id="product-detail-hide" href="javascript:;" class="btn btn-round btn-outline-base btn-hide">Ẩn</a>*@
@@ -1162,5 +1162,5 @@
     <script src="/js/Sortable.min.js" ></script>
 
     <script src="/modules/product/common.js"></script>
-    <script src="/modules/product/detail_new.js"></script>
+    <script src="/modules/product/detail.js"></script>
 }

@@ -7,10 +7,95 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\images\graphics\logo-a.svg" />
+    <None Include="wwwroot\images\graphics\logo-white.svg" />
+    <None Include="wwwroot\images\graphics\logo.svg" />
+    <None Include="wwwroot\images\graphics\warning.svg" />
+    <None Include="wwwroot\images\icons\amazon.svg" />
+    <None Include="wwwroot\images\icons\box.svg" />
+    <None Include="wwwroot\images\icons\changer.svg" />
+    <None Include="wwwroot\images\icons\elite.svg" />
+    <None Include="wwwroot\images\icons\icon-dola.svg" />
+    <None Include="wwwroot\images\icons\icon-donhang.svg" />
+    <None Include="wwwroot\images\icons\icon-percent.svg" />
+    <None Include="wwwroot\images\icons\icon-user.svg" />
+    <None Include="wwwroot\images\icons\icon.svg" />
+    <None Include="wwwroot\images\icons\payment.svg" />
+    <None Include="wwwroot\images\icons\plane.svg" />
+    <None Include="wwwroot\images\icons\shipped.svg" />
+    <None Include="wwwroot\images\icons\web-crawler.svg" />
+    <None Include="wwwroot\images\symbols\elements\address.svg" />
+    <None Include="wwwroot\images\symbols\elements\bang-gia.svg" />
+    <None Include="wwwroot\images\symbols\elements\bao-cao.svg" />
+    <None Include="wwwroot\images\symbols\elements\box.svg" />
+    <None Include="wwwroot\images\symbols\elements\Calendar.svg" />
+    <None Include="wwwroot\images\symbols\elements\car.svg" />
+    <None Include="wwwroot\images\symbols\elements\CaretDown.svg" />
+    <None Include="wwwroot\images\symbols\elements\close.svg" />
+    <None Include="wwwroot\images\symbols\elements\compass.svg" />
+    <None Include="wwwroot\images\symbols\elements\crawl.svg" />
+    <None Include="wwwroot\images\symbols\elements\dashbroad.svg" />
+    <None Include="wwwroot\images\symbols\elements\elite.svg" />
+    <None Include="wwwroot\images\symbols\elements\face.svg" />
+    <None Include="wwwroot\images\symbols\elements\FilePlus.svg" />
+    <None Include="wwwroot\images\symbols\elements\hair.svg" />
+    <None Include="wwwroot\images\symbols\elements\hair2.svg" />
+    <None Include="wwwroot\images\symbols\elements\he-thong.svg" />
+    <None Include="wwwroot\images\symbols\elements\history.svg" />
+    <None Include="wwwroot\images\symbols\elements\hotel.svg" />
+    <None Include="wwwroot\images\symbols\elements\mail.svg" />
+    <None Include="wwwroot\images\symbols\elements\map.svg" />
+    <None Include="wwwroot\images\symbols\elements\menu.svg" />
+    <None Include="wwwroot\images\symbols\elements\next.svg" />
+    <None Include="wwwroot\images\symbols\elements\next2.svg" />
+    <None Include="wwwroot\images\symbols\elements\notifi.svg" />
+    <None Include="wwwroot\images\symbols\elements\Out.svg" />
+    <None Include="wwwroot\images\symbols\elements\payment.svg" />
+    <None Include="wwwroot\images\symbols\elements\plane.svg" />
+    <None Include="wwwroot\images\symbols\elements\prev2.svg" />
+    <None Include="wwwroot\images\symbols\elements\Question.svg" />
+    <None Include="wwwroot\images\symbols\elements\quick-sale.svg" />
+    <None Include="wwwroot\images\symbols\elements\Refresh.svg" />
+    <None Include="wwwroot\images\symbols\elements\search.svg" />
+    <None Include="wwwroot\images\symbols\elements\send.svg" />
+    <None Include="wwwroot\images\symbols\elements\setting.svg" />
+    <None Include="wwwroot\images\symbols\elements\shipped.svg" />
+    <None Include="wwwroot\images\symbols\elements\smartphone.svg" />
+    <None Include="wwwroot\images\symbols\elements\twiter.svg" />
+    <None Include="wwwroot\images\symbols\elements\user.svg" />
+    <None Include="wwwroot\images\symbols\elements\user2.svg" />
+    <None Include="wwwroot\images\symbols\elements\user3.svg" />
+    <None Include="wwwroot\images\symbols\elements\user4.svg" />
+    <None Include="wwwroot\images\symbols\elements\user5.svg" />
+    <None Include="wwwroot\images\symbols\elements\vector.svg" />
+    <None Include="wwwroot\images\symbols\elements\web-crawler.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-1-upload.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-10-chuongtrinh.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-11-export.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-12-restore.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-13-setting.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-14-news.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-15-option.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-16-calculator.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-17-ticket.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-18-clipboard.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-19-out.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-2-add-to-playlist.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-20-filter.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-3-print.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-4-edit.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-5-order.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-6-group.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-7-checklist.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-8-hoadon.svg" />
+    <None Include="wwwroot\images\symbols\elements\z-9-report.svg" />
+    <None Include="wwwroot\images\symbols\sprite.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.4" />
     <PackageReference Include="MongoDB.Driver" Version="2.28.0" />
     <PackageReference Include="Otp.NET" Version="1.4.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
   </ItemGroup>
 
   <ItemGroup>

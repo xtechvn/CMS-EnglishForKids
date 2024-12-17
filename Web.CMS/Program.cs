@@ -1,10 +1,12 @@
 ﻿using Caching.RedisWorker;
 using Entities.ConfigModels;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
 using Repositories.IRepositories;
 using Repositories.Repositories;
 using WEB.CMS.Customize;
+using WEB.CMS.RabitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,9 +30,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         SameSite = SameSiteMode.Lax,
         SecurePolicy = CookieSecurePolicy.SameAsRequest
     };
-
+    
 });
 var Configuration = builder.Configuration;
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 100*1024*1024; // Set the limit to 1 GB
+});
 builder.Services.Configure<DataBaseConfig>(Configuration.GetSection("DataBaseConfig"));
 builder.Services.Configure<MailConfig>(Configuration.GetSection("MailConfig"));
 builder.Services.Configure<DomainConfig>(Configuration.GetSection("DomainConfig"));
@@ -49,6 +55,8 @@ builder.Services.AddTransient<INoteRepository, NoteRepository>();
 builder.Services.AddTransient<IAllCodeRepository, AllCodeRepository>();
 builder.Services.AddTransient<IAttachFileRepository, AttachFileRepository>();
 builder.Services.AddTransient<IArticleRepository, ArticleRepository>();
+builder.Services.AddTransient<ICourseRepository, CourseRepository>();
+
 builder.Services.AddTransient<IProvinceRepository, ProvinceRepository>();
 builder.Services.AddTransient<IDistrictRepository, DistrictRepository>();
 builder.Services.AddTransient<IWardRepository, WardRepository>();
@@ -76,6 +84,9 @@ builder.Services.AddTransient<IPaymentRequestRepository, PaymentRequestRepositor
 builder.Services.AddTransient<IIdentifierServiceRepository, IdentifierServiceRepository>();
 builder.Services.AddTransient<IPaymentAccountRepository, PaymentAccountRepository>();
 builder.Services.AddTransient<IDepositHistoryRepository, DepositHistoryRepository>();
+// Đăng ký QueueService
+builder.Services.AddScoped<QueueService>();
+
 
 
 // Setting Redis                     

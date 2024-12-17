@@ -229,6 +229,17 @@ namespace Repositories.Repositories
             }
             return new List<OrderViewModel>();
         }
-
+        public async Task<Order> GetByOrderId(long order_id)
+        {
+            try
+            {
+                return _OrderDal.GetByOrderId(order_id);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetByOrderId - OrderRepository: " + ex);
+            }
+            return null;
+        }
     }
 }

@@ -422,6 +422,38 @@ var _magnific = {
             removalDelay: 300
         });
     },
+    OpenLargerPopupCallback: function (title, url, param,callback) {
+        let elPopup = $('#magnific-popup-large');
+        let elTitle = elPopup.find('.magnific-title');
+        let elBody = elPopup.find('.magnific-body');
+        elTitle.html(title);
+
+        $.ajax({
+            url: url,
+            type: "post",
+            data: param,
+            success: function (result) {
+                elBody.html(result);
+                callback()
+            }
+        });
+
+        jQuery.magnificPopup.open({
+            items: {
+                src: elPopup
+            },
+            type: 'inline',
+            midClick: true,
+            mainClass: 'mfp-with-zoom',
+            fixedContentPos: false,
+            fixedBgPos: true,
+            overflowY: 'auto',
+            closeBtnInside: true,
+            closeOnBgClick: false,
+            preloader: false,
+            removalDelay: 300
+        });
+    },
 
     OpenSmallPopup: function (title, url, param) {
         let elPopup = $('#magnific-popup-small');

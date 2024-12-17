@@ -113,7 +113,7 @@ var _product_constants = {
         StaticDomain: `https://static-image.adavigo.com`,
         ImageExtension: ['jpeg', 'jpg', 'png', 'bmp'],
         VideoExtension: ['mp4'],
-
+        VideoMaxSize: 31457280
     },
     HTML: {
         Product: `
@@ -469,8 +469,8 @@ var _product_constants = {
 
 var _product_constants_2 = {
     Values: {
-        GroupProduct: 32,
-        GroupProductName: 'BioLife',
+        GroupProduct: 1,
+        GroupProductName: 'Hulotoy',
 
     },
     Attributes: {

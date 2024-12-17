@@ -1,4 +1,6 @@
-﻿using Caching.Elasticsearch;
+﻿using APP_CHECKOUT.MongoDb;
+using Caching.Elasticsearch;
+using Caching.RedisWorker;
 using Entities.ViewModels.ElasticSearch;
 using Entities.ViewModels.OrderManual;
 using ENTITIES.ViewModels.ElasticSearch;
@@ -9,8 +11,10 @@ using System.Security.Claims;
 using Utilities;
 using Utilities.Contants;
 using WEB.Adavigo.CMS.Service;
+using WEB.CMS.Controllers.Order.Bussiness;
 using WEB.CMS.Customize;
 using WEB.CMS.Models;
+using WEB.CMS.Service.Carriers;
 
 namespace WEB.CMS.Controllers.Order
 {
@@ -21,11 +25,14 @@ namespace WEB.CMS.Controllers.Order
         private readonly IOrderRepository _orderRepository;
         private readonly IIdentifierServiceRepository _identifierServiceRepository;
         private readonly IAccountClientRepository _accountClientRepository;
+        private readonly IClientRepository _clientRepository;
         private UserESRepository _userESRepository;
         private readonly IUserRepository _userRepository;
         private OrderESRepository _orderESRepository;
+        private ShippingCarrierService _shippingCarrierService;
+        private RedisConn _redisConn;
         public OrderManualController(IConfiguration configuration, IAllCodeRepository allCodeRepository, IOrderRepository orderRepository, IIdentifierServiceRepository identifierServiceRepository,
-            IAccountClientRepository accountClientRepository, IUserRepository userRepository)
+            IAccountClientRepository accountClientRepository, IUserRepository userRepository, IClientRepository clientRepository, RedisConn redisConn)
         {
             _configuration = configuration;
             _allCodeRepository = allCodeRepository;
@@ -34,7 +41,11 @@ namespace WEB.CMS.Controllers.Order
             _accountClientRepository = accountClientRepository;
             _userESRepository = new UserESRepository(_configuration["DataBaseConfig:Elastic:Host"], configuration);
             _userRepository = userRepository;
+            _clientRepository = clientRepository;
             _orderESRepository = new OrderESRepository(_configuration["DataBaseConfig:Elastic:Host"], configuration);
+            _redisConn = redisConn;
+            _redisConn.Connect();
+            _shippingCarrierService = new ShippingCarrierService(configuration, _redisConn);
         }
         [HttpPost]
         public IActionResult CreateOrderManual()
@@ -98,11 +109,15 @@ namespace WEB.CMS.Controllers.Order
                 }
                 if (txt_search != null)
                 {
-                    data = await _orderESRepository.GetOrderNoSuggesstion(txt_search);
+               data = await _orderESRepository.GetOrderNoSuggesstion(txt_search);
+                    var result = data.Select(o => new {
+                        id = o.orderid,  // assuming OrderId is the ID you want
+                        orderno = o.orderno
+                    }).ToList();
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
-                        data = data,
+                        data = result,
                         selected = _UserId
                     });
                 }
@@ -125,6 +140,58 @@ namespace WEB.CMS.Controllers.Order
                 });
             }
 
+        } 
+        [HttpPost]
+        public async Task<IActionResult> SendToCarrier(long id)
+        {
+
+            try
+            {
+                long _UserId = 0;
+                var data = new List<OrderElasticsearchViewModel>();
+                if (HttpContext.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+                {
+                    _UserId = Convert.ToInt64(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                }
+                if (id <= 0 || _UserId <= 0)
+                {
+                    return Ok(new
+                    {
+                        is_success = false,
+                        msg = "ID đơn không chính xác / Người dùng chưa được xác thực, vui lòng thử lại / liên hệ bộ phận IT"
+                    });
+                }
+
+                var order = await _orderRepository.GetByOrderId(id);
+                if(order!=null && order.OrderId > 0)
+                {
+                    var client = await _clientRepository.GetClientDetailByClientId(order.ClientId);
+                    var shipping_code=await _shippingCarrierService.PushOrderToCarrier(order,client);
+                    if (shipping_code != null) {
+                        order.ShippingCode = shipping_code;
+                        await _orderRepository.UpdateOrder(order);
+                        return Ok(new
+                        {
+                            is_success = true,
+                            msg = "Đơn hàng chuyển cho ĐVVC thành công, mã vận đơn: " + shipping_code
+                        });
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("OrderNoSuggestion - OrderManualController: " + ex.ToString());
+              
+            }
+            return Ok(new
+            {
+                is_success = true,
+                msg = "Xử lý đơn hàng không thành công, vui lòng liên hệ bộ phận IT"
+            });
+
         }
+
+
     }
 }

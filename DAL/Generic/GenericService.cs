@@ -56,6 +56,23 @@ namespace DAL.Generic
                 return 0;
             }
         }
+        public async Task<int> CreateAsyncCourse(TEntity entity)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    await _DbContext.Set<TEntity>().AddAsync(entity);
+                    await _DbContext.SaveChangesAsync();
+                    return Convert.ToInt32(entity.GetType().GetProperty("Id").GetValue(entity, null));
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("CreateAsync in GenericService: " + JsonConvert.SerializeObject(entity) + " => " + ex.ToString());
+                return 0;
+            }
+        }
 
 
         public void Delete(object id)
