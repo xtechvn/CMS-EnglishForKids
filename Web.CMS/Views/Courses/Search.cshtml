@@ -35,7 +35,7 @@
                         <td>
                             <img width="35" src="@(item.Thumbnail)" onerror="_imageError(this)">
                             <div><a href="/courses/detail/@item.Id">@item.Title</a></div>
-                            <a href="#" class="italic blue">@item.CourseCategoryName</a>
+                            @* <a href="#" class="italic blue">@item.CourseCategoryName</a> *@
                         </td>
                         <td>@(item.CreatedDate != DateTime.MinValue ? item.CreatedDate.Value.ToString("dd/MM/yyyy HH:mm") : string.Empty)</td>
                         @* <td>@(item.UpdatedDate != DateTime.MinValue ? item.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm") : string.Empty)</td>
@@ -43,7 +43,7 @@
                         <td>@item.AuthorName</td> *@
                         <td id="pv_@item.Id" class="center">0</td>
                         <td id="pv_@item.Id" class="center">0</td>
-                        <td>@item.StatusName</td>
+                        <td>@(item.Status == 0 ? "Đã Xuất bản" : "Nháp") </td>
                         <td id="pv_@item.Id" class="center">0</td>
 
                     </tr>

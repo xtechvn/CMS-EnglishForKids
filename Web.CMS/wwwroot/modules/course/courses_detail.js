@@ -183,19 +183,26 @@ function addNewChapter() {
             </ul>
         </div>
     </div>`;
+    // Xóa nút Thêm Tiết Học hiện tại và thêm Chapter mới
+    $("#popup-chapter-list #add-new-chapter-btn").remove();
     $("#popup-chapter-list").append(newChapterHtml);
+
+    // Thêm lại nút Thêm Tiết Học ở dưới cùng
+    addNewChapterButton();
+
     chapterCounter++;
 }
 
 // Thêm nút "Thêm Tiết Học" vào Popup
 function addNewChapterButton() {
     const addChapterButtonHtml = `
-        <div class="text-center mt-3">
+        <div class="text-center mt-3" id="add-new-chapter-btn">
             <button type="button" class="btn btn-primary" id="add-new-chapter">+ Thêm Tiết Học</button>
         </div>`;
+    // Đảm bảo nút luôn nằm ở cuối
     $("#popup-chapter-list").append(addChapterButtonHtml);
 }
-// Sự kiện cho nút Thêm Tiết Học
+// Sự kiện cho nút Thêm Tiết Học 
 $(document).on("click", "#add-new-chapter", function () {
     addNewChapter();
 });
@@ -253,6 +260,7 @@ function renderChaptersToPopup(chapters) {
         $chapterList.append(chapterHtml);
 
     });
+    $("#popup-chapter-list #add-new-chapter-btn").remove();
     // Thêm nút Thêm Tiết Học cho tất cả popup
     addNewChapterButton();
 
