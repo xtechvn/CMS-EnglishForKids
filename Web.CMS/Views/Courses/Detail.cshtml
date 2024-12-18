@@ -1,4 +1,5 @@
-﻿@using Utilities
+﻿
+@using Utilities
 @using Utilities.Contants
 @using Entities.ViewModels
 
@@ -195,16 +196,32 @@
                             </div>
                         </div>
                     </div>
-                    @* <div class="bg-white rounded10 p-3 border mb-3">
+
+                    <div class="bg-white rounded10 p-3 border mb20">
                         <h4>Intro</h4>
-                        <p>Kích thước tối đa 1mb</p>
-                        <div class="nothumb-add">
-                            <input type="file" />
-                            <svg class="icon-svg">
-                                <use xlink:href="images/icons/icon.svg#FilePlus"></use>
-                            </svg>
+                        <p>Kích thước tối đa của video là 100MB</p>
+                        <div class="nothumb-add text-center position-relative">
+                            <!-- Input ẩn để chọn video -->
+                            <input type="file" id="video_intro_file" accept="video/*" style="display: none;" />
+
+                            <!-- Icon SVG để chọn file -->
+                            <label for="video_intro_file" style="cursor: pointer;">
+                               
+                                    <img class="lesson-icon1"
+                                         src="/images/icons/Vector.svg"
+                                         />
+                               
+                            </label>
+
+                            <!-- Video Preview -->
+                            <video id="video_intro_preview" controls style="max-width: 100%; display: none; margin-top: 10px;">
+                                <source id="video_intro_src" src="" type="video/mp4">
+                                Trình duyệt của bạn không hỗ trợ video.
+                            </video>
                         </div>
-                    </div> *@
+                    </div>
+
+                   
                     <div class="mb20 form-default2">
                         <div class="form-group none-flex" style="border: 1px solid #CCCCCC;padding:15px">
                             <h4>Thông tin khóa học</h4>

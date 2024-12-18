@@ -114,6 +114,7 @@ namespace Repositories.Repositories
                     model.Thumbnail = _UrlStaticImage + model.Thumbnail;
                 }
                 #endregion
+                
 
                 #region date
                 if (model.Status == CourseStatus.PUBLISH && model.CreatedDate==DateTime.MinValue)

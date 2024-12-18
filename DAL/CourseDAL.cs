@@ -92,10 +92,13 @@ namespace DAL
                     entity.Title = model.Title;
                     entity.Description = model.Description; // Updated to match the model
                     entity.Thumbnail = model.Thumbnail ?? string.Empty; // Assuming it's related to "Thumbnail"
+                    entity.VideoIntro = model.VideoIntro ?? string.Empty; // Assuming it's related to "Thumbnail"
+
                     entity.Status = model.Status;
                     entity.Benefif = model.Benefif ?? string.Empty; // Fix potential typo: Benefit?
                     entity.Price = model.Price;
                     entity.OriginalPrice = model.OriginalPrice;
+                    
 
                     entity.Type = model.Type;
                     entity.AuthorId = model.AuthorId;
@@ -118,6 +121,8 @@ namespace DAL
                         Title = model.Title,
                         Description = model.Description, // Updated to match the model
                         Thumbnail = model.Thumbnail ?? string.Empty, // Assuming it's related to "Thumbnail"
+                        VideoIntro = model.VideoIntro ?? string.Empty, // Assuming it's related to "Thumbnail"
+
                         Status = model.Status,
                         Benefif = model.Benefif ?? string.Empty, // Fix potential typo: Benefit?
                         Price = model.Price,

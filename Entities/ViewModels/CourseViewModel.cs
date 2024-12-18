@@ -28,6 +28,7 @@ namespace Entities.ViewModels
         public string Description { get; set; }
 
         public string Thumbnail { get; set; }
+        public string VideoIntro { get; set; }
 
         public int Status { get; set; } // Giả sử Status là boolean
 
