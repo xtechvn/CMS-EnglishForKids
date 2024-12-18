@@ -37,17 +37,16 @@
                                                     <!-- Icon mở file/video -->
                                                     @if (fileExtension == ".mp4")
                                                     {
-                                                        <i class="play-circle lesson-icon"
-                                                           data-url="@lesson.Thumbnail"
-                                                           style="font-size: 24px; cursor: pointer;">
-                                                        </i>
+                                                        <img class="lesson-icon"
+                                                             data-url="@lesson.Thumbnail"
+                                                             style="font-size: 24px; cursor: pointer;" src="/images/icons/PlayCircle.svg">
+                                                        
                                                     }
                                                     else if (fileExtension == ".pdf")
                                                     {
-                                                        <i class="fas fa-book lesson-icon"
-                                                           data-url="@lesson.Thumbnail"
-                                                           style="font-size: 24px; color: #17a2b8; cursor: pointer;">
-                                                        </i>
+                                                        <img class="lesson-icon"
+                                                             data-url="@lesson.Thumbnail"
+                                                             style="font-size: 24px; cursor: pointer;" src="/images/icons/BookOpenText.svg">
                                                     }
 
                                                     <!-- Lesson Title -->

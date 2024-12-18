@@ -31,14 +31,14 @@ $(document).ready(function () {
 
         $('#video-preview').hide();
     };
-    
+
     _wrapperImage.lightGallery();
     var News_Status = $('#News_Status').val();
     if (News_Status == 0) {
         _newsDetail1.disabledView();
-       
+
     }
-    
+
     const activeTab = localStorage.getItem("activeTab");
     if (activeTab) {
         $(`.tab-link[data-tab="${activeTab}"]`).click();
@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const toggle = document.getElementById("free-course-toggle");
     const priceInput = document.getElementById("price-input");
     const originalPriceInput = document.getElementById("original-price-input");
-    
+
 
     toggle.addEventListener("change", function () {
         if (this.checked) {
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
             originalPriceInput.value = "";
         }
     });
-    
+
 });
 const toggleDisplayWebsite = document.getElementById("display-toggle");
 
@@ -158,7 +158,56 @@ $(document).on("click", "#btn-edit-chapters", function () {
 });
 
 // Thêm Chapter mới
+
+// Sự kiện click vào icon để mở trình chọn file
+$(document).on("click", ".lesson-icon1", function () {
+    const fileInput = $(this).siblings(".lesson-file"); // Lấy input file liên quan
+    fileInput.trigger("click"); // Kích hoạt trình chọn file
+});
+
+// Hiển thị tên file khi người dùng chọn file
+$(document).on("change", ".lesson-file", function () {
+    const file = this.files[0]; // Lấy file được chọn
+    const lessonIcon = $(this).siblings(".lesson-icon1"); // Lấy icon liên quan
+
+    if (file) {
+        const fileType = file.type; // Kiểm tra kiểu file
+        if (fileType.startsWith("video")) {
+            // Nếu là video, đổi icon thành PlayCircle
+            lessonIcon.attr("src", "/images/icons/PlayCircle.svg");
+        } else if (fileType === "application/pdf") {
+            // Nếu là PDF, đổi icon thành BookOpenText
+            lessonIcon.attr("src", "/images/icons/BookOpenText.svg");
+        } else {
+            // Mặc định nếu không đúng loại file
+            lessonIcon.attr("src", "/images/icons/FilePlus.svg");
+        }
+    } else {
+        // Nếu không chọn file, đưa về trạng thái ban đầu
+        lessonIcon.attr("src", "/images/icons/FilePlus.svg");
+    }
+});
+
+
+//=================================================================
 function addNewChapter() {
+
+    // Kiểm tra các Chapter hiện tại đã có Lesson chưa
+    let canAddChapter = true;
+
+
+    $("#popup-chapter-list .item").each(function () {
+        const chapterTitle = $(this).find(".chapter-title").val().trim();
+        const hasLesson = $(this).find("li.ui-state-default").length > 0;
+
+        if (!chapterTitle || !hasLesson) {
+            canAddChapter = false;
+        }
+    });
+    if (!canAddChapter) {
+        Swal.fire("Lỗi", "Vui lòng hoàn thành Chapter và thêm ít nhất một bài học trước khi tạo Chapter mới!", "error");
+        return;
+    }
     const newCollapseId = `collapse-new-${chapterCounter}`;
     const lessonListId = `lessons-new-${chapterCounter}`;
 
@@ -170,16 +219,30 @@ function addNewChapter() {
         </div>
         <div id="${newCollapseId}" class="collapse show">
             <ul class="lesson-list" id="${lessonListId}">
-                <li class="ui-state-default" data-lesson-id="0">
-                    <div class="thumb-video">
-
-                    <span class="flex-tt"> <input class="form-control lesson-title" type="text" placeholder="Vui lòng nhập tên bài giảng" /></span>   
-                        <input type="file" class="lesson-file" name="files" accept="video/*,application/pdf" />
-                        <span class="file-info">Chưa có file</span>
-                    </div>
-                    </div>
-                    
-                </li>
+                <li class="ui-state-default" style="
+    padding: 10px 0;
+    background: none;
+    border: none;">
+                <div class="thumb-video" style="display:flex;width: 100%;">
+                <img class="lesson-icon1"
+             src="/images/icons/FilePlus.svg"
+             style="font-size: 24px; cursor: pointer; padding-left: 10px;" />
+        <input type="file" class="lesson-file" name="files" accept="video/*,application/pdf" style="display: none;" />
+        <span class="flex-tt" style="
+    
+    width: 100%;
+    display: flex;
+">
+            <input class="form-control w-100 lesson-title" style="
+    background: none;
+    border: none;
+"F type="text" placeholder="Vui lòng nhập tên bài giảng" />
+        </span>
+                                            
+                                            
+                </div>
+               
+            </li>
             </ul>
         </div>
     </div>`;
@@ -220,20 +283,18 @@ function renderChaptersToPopup(chapters) {
         // Render các bài giảng (Lesson) trong Chapter
         const lessonsHtml = chapter.lessons.map((lesson, lessonIndex) => `
        
-           <li class="ui-state-default" data-lesson-id="${lesson.id || 0}">
-                <div class="thumb-video">
-                    <span class="flex-tt">
-                        <input class="form-control lesson-title" 
-                               type="text" 
-                               value="${lesson.title || ''}" 
-                               placeholder="Nhập tên bài giảng" />
-                               <input type="file" class="lesson-file" name="files" accept="video/*,application/pdf" />
-                               <span class="file-info">${lesson.thumbnailName || 'Chưa có file'}</span>
+           <li class="ui-state-default" data-lesson-id="${lesson.id || 0}" style="padding: 10px 0; background: none; border: none;">
+                <div class="thumb-video" style="display: flex; width: 100%;">
+                    <img class="lesson-icon1"
+                         src="${lesson.thumbnailName ? (lesson.thumbnailName.endsWith('.pdf') ? '/images/icons/BookOpenText.svg' : '/images/icons/PlayCircle.svg') : '/images/icons/FilePlus.svg'}"
+                         style="font-size: 24px; cursor: pointer; padding-left: 10px; width: auto; height: auto;" />
+                    <input type="file" class="lesson-file" name="files" accept="video/*,application/pdf" style="display: none;" />
+                    <span class="flex-tt" style="width: 100%; display: flex;">
+                        <input class="form-control w-100 lesson-title" style="background: none; border: none;" 
+                               type="text" value="${lesson.title || ''}" placeholder="Vui lòng nhập tên bài giảng" />
                     </span>
-                    </span>
+                   
                 </div>
-                
-               
             </li>
         `).join("");
 
@@ -275,20 +336,34 @@ let lessonCounter = 1; // Đếm số lượng Lesson để tạo ID duy nhất 
 // Gắn sự kiện cho nút thêm Lesson trong Chapter
 $(document).on("click", ".add-lesson", function () {
     debugger
-    
+
     const chapterIndex = $(this).data("chapter-index");
     const lessonListId = `#lessons-${chapterIndex}`; // Tạo selector cho danh sách Lesson
 
     const newLesson = `
-            <li class="ui-state-default">
-                <div class="thumb-video">
-                    <span class="flex-tt">
-                        <input class="form-control lesson-title" type="text" placeholder="Vui lòng nhập tên bài giảng" />
-                        <input type="file" class="lesson-file" name="files" accept="video/*,application/pdf" />
-                         <span class="file-info">Chưa có file</span>
-                    </span>
+            <li class="ui-state-default" style="
+    padding: 10px 0;
+    background: none;
+    border: none;">
+                <div class="thumb-video" style="display:flex;width: 100%;">
+                <img class="lesson-icon1"
+             src="/images/icons/FilePlus.svg"
+             style="font-size: 24px; cursor: pointer; padding-left: 10px; width: auto;
+    height: auto;" />
+        <input type="file" class="lesson-file" name="files" accept="video/*,application/pdf" style="display: none;" />
+        <span class="flex-tt" style="
+
+    width: 100%;
+    display: flex;
+">
+            <input class="form-control w-100 lesson-title" style="
+    background: none;
+    border: none;" type="text" placeholder="Vui lòng nhập tên bài giảng" />
+        </span>
+
+
                 </div>
-               
+
             </li>
         `;
 
@@ -300,7 +375,7 @@ $(document).on("click", ".add-lesson", function () {
 
 /// Gắn sự kiện lưu Chapter và Lessons
 $(document).on("click", "#save-chapters", function () {
-     debugger
+    debugger
     const chapters = [];
     const formData = new FormData();
     let isValid = true;
@@ -337,7 +412,7 @@ $(document).on("click", "#save-chapters", function () {
                 Id: lessonId,
                 Title: lessonTitle,
                 Thumbnail: lessonFile ? lessonFile.name : null,
-                ThumbnailName: lessonFile? lessonFile.name : null
+                ThumbnailName: lessonFile ? lessonFile.name : null
             });
         });
 
@@ -383,7 +458,7 @@ $(document).on("click", "#save-chapters", function () {
 _common.tinyMce('#text-editor');
 
 $(document).on("click", ".tab-link", function (event) {
-   debugger
+    debugger
     event.preventDefault(); // Ngăn hành động mặc định
 
     const targetTab = $(this).data("tab"); // Lấy tab được chỉ định
@@ -452,7 +527,7 @@ function loadChapters(courseId) {
     });
 }
 
-  
+
 $('#detail-cate-panel .btn-toggle-cate').click(function () {
     var seft = $(this);
     if (seft.hasClass("plus")) {
@@ -652,6 +727,31 @@ $('#thumbnail_file').on('change', function (event) {
     }
 });
 
+// Upload Video
+// Sự kiện chọn file video
+$("#video_intro_file").on("change", function () {
+    const file = this.files[0];
+    const maxFileSize = 100 * 1024 * 1024; // 100MB
+
+    if (file) {
+        // Kiểm tra kích thước và định dạng video
+        if (!file.type.startsWith('video/')) {
+            alert("Vui lòng chọn đúng định dạng video!");
+            return;
+        }
+
+        if (file.size > maxFileSize) {
+            alert("Kích thước video không được vượt quá 100MB!");
+            return;
+        }
+
+        // Hiển thị video xem trước
+        const videoSrc = URL.createObjectURL(file);
+        $("#video_intro_src").attr("src", videoSrc);
+        $("#video_intro_preview").show();
+    }
+});
+
 
 
 var _newsDetail1 = {
@@ -670,6 +770,12 @@ var _newsDetail1 = {
 
     OnSave: function (articleStatus) {
         debugger
+        const formData = new FormData();
+        const videoFile = $('#video_intro_file')[0].files[0];
+
+        if (videoFile) {
+            formData.append("VideoIntro", videoFile);
+        }
         let formvalid = $('#form-news');
         var max_pos = $('#ArticleType:checked').val() == "0" ? 7 : 8;
         formvalid.validate({
@@ -735,11 +841,12 @@ var _newsDetail1 = {
                 Title: $('#Title').val(),
                 Description: $('#Description').val(),
                 Thumbnail: $('#img_16x9').attr('src') == undefined ? "" : $('#img_16x9').attr('src'),
+                //VideoIntro: videoFile,
                 Benefif: _body,  // Giả sử là "Benefit" mà bạn cần sử dụng
                 Status: displayStatus,  // Status of course (Published/Unpublished)
                 Price: $('#Price').val(),
                 OriginalPrice: $('#OriginalPrice').val(),
-                
+
                 Type: $('#ArticleType:checked').val(),
                 //AuthorId: $('#AuthorId').val(),
                 //CreatedBy: $('#CreatedBy').val(),
@@ -750,7 +857,7 @@ var _newsDetail1 = {
                 Categories: _categories,
                 RelatedCourseTagIds: _relatedCourseTagIds,
                 Position: $('#Position').val(),
-                
+
                 //PublishDate: $('#PublishDate').val(),
                 //DownTime: $('#DownTime').val()
             }
@@ -762,25 +869,36 @@ var _newsDetail1 = {
                 _msgalert.error('Bạn phải upload  ảnh đại diện cho tin bài');
                 return false;
             }
+            // Đưa dữ liệu JSON vào FormData
+            formData.append("data", JSON.stringify(_model));
 
             $.ajax({
+                
                 url: '/courses/upsert',
                 type: 'POST',
-                data: JSON.stringify(_model),
+                data: formData,
                 dataType: 'JSON',
-                contentType: "application/json",
+                contentType: false,
+                processData: false,    // Không xử lý dữ liệu FormData
                 traditional: true,
                 // data: { model: _model },
                 success: function (result) {
+                    debugger
                     if (result.isSuccess) {
                         _msgalert.success(result.message);
                         $('#Id').val(result.dataId); // Gán lại ID khóa học
                         // Kiểm tra nếu là lưu để chuyển sang Tiết Học
-                       
-                            setTimeout(function () {
-                                window.location.href = `/courses/detail/${result.dataId}`;
-                            }, 300);
-                        
+
+                        // Hiển thị video thành công từ server
+                        if (result.videoPath) {
+                            $("#video_intro_src").attr("src", result.videoPath);
+                            $("#video_intro_preview").show();
+                        }
+
+                        setTimeout(function () {
+                            window.location.href = `/courses/detail/${result.dataId}`;
+                        }, 300);
+
                     } else {
                         _msgalert.error(result.message);
                     }
@@ -793,7 +911,7 @@ var _newsDetail1 = {
             _msgalert.error('Bạn phải nhập thông tin đầy đủ và chính xác cho bài viết');
         }
     },
-    
+
 
 
     OnChangeArticleStatus: function (id, status) {
@@ -939,7 +1057,7 @@ var _newsDetail1 = {
             }
         });
     },
-    
+
     EditNewDetail: function (id, status) {
         let title = 'Xác nhận hạ bài viết';
         let description = 'Bài viết đang hiển thị ngoài mặt trang sẽ bị hạ.Bạn có đồng ý không?';

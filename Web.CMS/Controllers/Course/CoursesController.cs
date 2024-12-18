@@ -98,7 +98,7 @@ namespace Web.CMS.Controllers.Course
             return View(model);
         }
         [HttpPost]
-        public async Task<IActionResult> UpSert([FromBody] object data)
+        public async Task<IActionResult> UpSert([FromForm] string data , IFormFile VideoIntro)
         {
             try
             {
@@ -146,6 +146,12 @@ namespace Web.CMS.Controllers.Course
                         isSuccess = false,
                         message = "Phần Mô tả không được vượt quá 400 ký tự"
                     });
+                }
+               
+                if (VideoIntro != null)
+                {
+                    var fileUrl = await UpLoadHelper.UploadFileOrImage(VideoIntro, model.Id, 35); // chapterId = 0
+                    model.VideoIntro = fileUrl; // Gán đường dẫn video vào model
                 }
 
                 // Lưu bài viết và lấy ID của bài viết đã được lưu

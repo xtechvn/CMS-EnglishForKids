@@ -33,8 +33,23 @@
                         <td class="center">@counter</td>
                         
                         <td>
-                            <img width="35" src="@(item.Thumbnail)" onerror="_imageError(this)">
-                            <div><a href="/courses/detail/@item.Id">@item.Title</a></div>
+                            <div class="block-khoahoc">
+                                <div class="ava">
+                                    <span class="thumb_img thumb_5x3">
+                                        <img  src="@(item.Thumbnail)" onerror="_imageError(this)">
+                                    </span>
+                                </div>
+                                <div class="title">
+                                    <p class="mb-2">@item.Title</p>
+                                    <div class="flex gap10">
+                                        <a href="/courses/detail/@item.Id"><i class="icofont-edit"></i></a>
+                                        <a href="/courses/detail/@item.Id"><i class="icofont-video-alt"></i></a>
+                                       @*  <a href=""><i class="icofont-trash"></i></a> *@
+                                    </div>
+                                </div>
+                            </div>
+                           
+                           
                             @* <a href="#" class="italic blue">@item.CourseCategoryName</a> *@
                         </td>
                         <td>@(item.CreatedDate != DateTime.MinValue ? item.CreatedDate.Value.ToString("dd/MM/yyyy HH:mm") : string.Empty)</td>
@@ -50,27 +65,6 @@
                 }
 
             }
-        </tbody>
-    </table>
-</div>
-
-@await Component.InvokeAsync("Paging", new
-    {
-        pageModel = new Paging()
-    {
-        TotalRecord = Model.TotalRecord,
-        TotalPage = Model.TotalPage,
-        CurrentPage = Model.CurrentPage,
-        PageSize = Model.PageSize,
-        RecordName = "bài viết",
-        PageAction = "_news.OnPaging({0})"
-    }
-    })
-<script>
-    _news.LoadPageView(@id);
-</script>
-
-                   
         </tbody>
     </table>
 </div>
