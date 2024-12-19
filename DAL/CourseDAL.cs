@@ -261,6 +261,7 @@ namespace DAL
                                 Status = course.Status,
                                 Type = course.Type,
                                 Thumbnail = course.Thumbnail,
+                                VideoIntro=course.VideoIntro,
                                 CreatedDate = course.CreatedDate ?? DateTime.MinValue,
                                 //DownTime = course.DownTime ?? DateTime.MinValue,
                                 Position = course.Position ?? 0
