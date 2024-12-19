@@ -1,5 +1,4 @@
-﻿
-@using Utilities
+﻿@using Utilities
 @using Utilities.Contants
 @using Entities.ViewModels
 
@@ -79,7 +78,7 @@
                                 <a href="javascript:void(0)" class="tab-link" data-tab="chapters-tab">Tiết học</a>
 
                             </div>
-                          
+
                             <div class="flex-edit">
                                 <span class="text-nowrap">Hiển thị trên website</span>
                                 <label class="switch">
@@ -206,22 +205,31 @@
 
                             <!-- Icon SVG để chọn file -->
                             <label for="video_intro_file" style="cursor: pointer;">
-                               
-                                    <img class="lesson-icon1"
-                                         src="/images/icons/Vector.svg"
-                                         />
-                               
+
+                                <img class="lesson-icon1"
+                                     src="/images/icons/Vector.svg" />
+
                             </label>
 
-                            <!-- Video Preview -->
-                            <video id="video_intro_preview" controls style="max-width: 100%; display: none; margin-top: 10px;">
-                                <source id="video_intro_src" src="" type="video/mp4">
-                                Trình duyệt của bạn không hỗ trợ video.
-                            </video>
+                            <!-- Hiển thị video -->
+                            @if (!string.IsNullOrEmpty(Model.VideoIntro))
+                            {
+                                <video id="video_intro_preview" controls style="max-width: 100%; margin-top: 10px;">
+                                    <source id="video_intro_src" src="@Model.VideoIntro" type="video/mp4">
+                                    Trình duyệt của bạn không hỗ trợ video.
+                                </video>
+                            }
+                            else
+                            {
+                                <video id="video_intro_preview" controls style="max-width: 100%; display: none; margin-top: 10px;">
+                                    <source id="video_intro_src" src="" type="video/mp4">
+                                    Trình duyệt của bạn không hỗ trợ video.
+                                </video>
+                            }
                         </div>
                     </div>
 
-                   
+
                     <div class="mb20 form-default2">
                         <div class="form-group none-flex" style="border: 1px solid #CCCCCC;padding:15px">
                             <h4>Thông tin khóa học</h4>

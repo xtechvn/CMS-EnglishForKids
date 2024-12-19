@@ -184,7 +184,9 @@ namespace Web.CMS.Controllers.Course
                     {
                         isSuccess = true,
                         message = "Cập nhật thành công",
-                        dataId = courseId
+                        dataId = courseId,
+                        videoPath = model.VideoIntro
+
                     });
                 }
                 else
