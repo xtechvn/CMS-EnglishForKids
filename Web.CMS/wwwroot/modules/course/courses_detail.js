@@ -238,7 +238,9 @@ function addNewChapter() {
     border: none;
 "F type="text" placeholder="Vui lòng nhập tên bài giảng" />
         </span>
-                                            
+         
+                  <img class="delete-lesson" src="/images/icons/Trash.svg" 
+alt="Xóa" style="cursor: pointer; width: 24px;  margin: 0px 10px;" />                                 
                                             
                 </div>
                
@@ -293,6 +295,8 @@ function renderChaptersToPopup(chapters) {
                         <input class="form-control w-100 lesson-title" style="background: none; border: none;" 
                                type="text" value="${lesson.title || ''}" placeholder="Vui lòng nhập tên bài giảng" />
                     </span>
+                     <img class="delete-lesson" src="/images/icons/Trash.svg" 
+             alt="Xóa" style="cursor: pointer; width: 24px;  margin: 0px 10px;" data-lesson-id="${lesson.id || 0}" />
                    
                 </div>
             </li>
@@ -360,6 +364,8 @@ $(document).on("click", ".add-lesson", function () {
     background: none;
     border: none;" type="text" placeholder="Vui lòng nhập tên bài giảng" />
         </span>
+                <img class="delete-lesson" src="/images/icons/Trash.svg"
+alt="Xóa" style="cursor: pointer; width: 24px;  margin: 0px 10px;" />
 
 
                 </div>
@@ -371,6 +377,53 @@ $(document).on("click", ".add-lesson", function () {
     $(lessonListId).append(newLesson);
 
     lessonCounter++; // Tăng bộ đếm Lesson
+});
+// Xử lý sự kiện xóa bài giảng
+$(document).on("click", ".delete-lesson", function () {
+    const $lessonItem = $(this).closest("li.ui-state-default");
+    const lessonId = $(this).data("lesson-id");
+    const $chapter = $(this).closest(".item"); // Phần tử DOM của chapter
+    if (!lessonId) {
+        Swal.fire("Lỗi", "Không thể xóa bài giảng không hợp lệ!", "error");
+        return;
+    }
+
+    if (lessonId) {
+        Swal.fire({
+            title: "Bạn có chắc chắn muốn xóa bài giảng này?",
+            text: "Bài giảng sẽ bị xóa vĩnh viễn!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Có",
+            cancelButtonText: "Không",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/Courses/DeleteLesson/${lessonId}`,
+                    type: "DELETE",
+                    success: function (response) {
+                        if (response.isSuccess) {
+                            Swal.fire("Thành công", response.message, "success").then(() => {
+                                $lessonItem.remove(); // Xóa bài giảng khỏi giao diện
+
+                                // Kiểm tra nếu không còn bài giảng trong chapter
+                                if ($chapter.find("li.ui-state-default").length === 0) {
+                                    $chapter.remove(); // Xóa chapter khỏi giao diện
+                                }
+                            });
+                        } else {
+                            Swal.fire("Lỗi", response.message, "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Lỗi", "Không thể xóa bài giảng. Vui lòng thử lại sau.", "error");
+                    },
+                });
+            }
+        });
+    } else {
+        $lessonItem.remove();
+    }
 });
 
 /// Gắn sự kiện lưu Chapter và Lessons
@@ -841,7 +894,7 @@ var _newsDetail1 = {
                 Title: $('#Title').val(),
                 Description: $('#Description').val(),
                 Thumbnail: $('#img_16x9').attr('src') == undefined ? "" : $('#img_16x9').attr('src'),
-                //VideoIntro: videoFile,
+                VideoIntro: videoFile,
                 Benefif: _body,  // Giả sử là "Benefit" mà bạn cần sử dụng
                 Status: displayStatus,  // Status of course (Published/Unpublished)
                 Price: $('#Price').val(),
@@ -866,14 +919,18 @@ var _newsDetail1 = {
             }
 
             if (_model.Thumbnail == "") {
-                _msgalert.error('Bạn phải upload  ảnh đại diện cho tin bài');
+                _msgalert.error('Bạn phải upload  ảnh  cho khóa học');
+                return false;
+            }
+            if (_model.VideoIntro == "") {
+                _msgalert.error('Bạn phải upload  Video cho khóa học');
                 return false;
             }
             // Đưa dữ liệu JSON vào FormData
             formData.append("data", JSON.stringify(_model));
 
             $.ajax({
-                
+
                 url: '/courses/upsert',
                 type: 'POST',
                 data: formData,

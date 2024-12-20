@@ -234,8 +234,115 @@ namespace DAL
             return Convert.ToInt32(parameters.Last().Value); // Lấy ID từ OUTPUT parameter
         }
 
+        public async Task<Lessions> GetLessonByIdAsync(int id)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    return await _DbContext.Lessions.FirstOrDefaultAsync(l => l.Id == id);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Ghi log hoặc xử lý ngoại lệ
+                Console.WriteLine($"Error fetching lesson by ID: {ex.Message}");
+                throw;
+            }
+        }
 
-      
+        public async Task<int> DeleteLessonAsync(int id)
+        {
+
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    using (var transaction = _DbContext.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                           
+
+                            var lesson = await _DbContext.Lessions.FindAsync(id);
+                            _DbContext.Lessions.Remove(lesson);
+                            await _DbContext.SaveChangesAsync();
+
+                            transaction.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.InsertLogTelegram("DeleteLesson - Transaction Rollback " + ex);
+                            transaction.Rollback();
+                            return -1;
+                        }
+                    }
+                }
+                return id;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("DeleteArticle - ArticleDAL: " + ex);
+                return -1;
+            }
+        }
+
+        public async Task<int> DeleteChapterAsync(int chapterId)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    using (var transaction = _DbContext.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            var chapter = await _DbContext.Chapters.FindAsync(chapterId);
+                            if (chapter == null)
+                            {
+                                return -1; // Chapter không tồn tại
+                            }
+
+                            _DbContext.Chapters.Remove(chapter);
+                            await _DbContext.SaveChangesAsync();
+                            transaction.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.InsertLogTelegram("DeleteChapter - Transaction Rollback: " + ex);
+                            transaction.Rollback();
+                            return -1;
+                        }
+                    }
+                }
+                return chapterId;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("DeleteChapter - Error: " + ex);
+                return -1;
+            }
+        }
+        public async Task<List<Lessions>> GetLessonsByChapterIdAsync(int chapterId)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    return await _DbContext.Lessions
+                        .Where(l => l.ChapterId == chapterId)
+                        .ToListAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetLessonsByChapterIdAsync - Error: " + ex);
+                throw;
+            }
+        }
+
+
+
 
 
         public async Task<CourseModel> GetCourseDetail(int Id)
@@ -319,6 +426,7 @@ namespace DAL
             }
             return null;
         }
+
 
         public async Task<int> MultipleInsertCourseTag(int CourseId, List<long> ListTagId)
         {

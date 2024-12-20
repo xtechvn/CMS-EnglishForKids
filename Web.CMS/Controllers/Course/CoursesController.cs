@@ -348,7 +348,48 @@ namespace Web.CMS.Controllers.Course
             }
         }
 
+        public async Task<IActionResult> DeleteLesson(int id)
+        {
+            try
+            {
+                var lesson = await _CourseRepository.GetLessonByIdAsync(id); // Lấy thông tin bài giảng
+                if (lesson == null)
+                {
+                    return Json(new
+                    {
+                        isSuccess = false,
+                        message = "Bài giảng không tồn tại!"
+                    });
+                }
+                var chapterId = lesson.ChapterId; // Lấy ChapterId của bài giảng
 
+                await _CourseRepository.DeleteLessonAsync(id); // Xóa bài giảng
+                                                               // Kiểm tra nếu chapter không còn bài giảng nào
+                var remainingLessons = await _CourseRepository.GetLessonsByChapterIdAsync(chapterId);
+                if (remainingLessons.Count == 0)
+                {
+                    await _CourseRepository.DeleteChapterAsync(chapterId); // Xóa chapter nếu không còn bài giảng
+                    return Json(new
+                    {
+                        isSuccess = true,
+                        message = "Bài giảng và chương liên quan đã được xóa!"
+                    });
+                }
+                return Json(new
+                {
+                    isSuccess = true,
+                    message = "Xóa bài giảng thành công!"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    isSuccess = false,
+                    message = "Đã xảy ra lỗi khi xóa bài giảng!"
+                });
+            }
+        }
 
         public async Task<IActionResult> ChangeArticleStatus(int Id, int articleStatus)
         {

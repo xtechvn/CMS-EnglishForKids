@@ -17,6 +17,11 @@ namespace Repositories.IRepositories
         Task<int> SaveLesson(Lessions model);
         //string ServerFile(CourseModel model);
         Task<CourseModel> GetCourseDetail(int Id);
+        Task<Lessions> GetLessonByIdAsync(int id);
+        Task<int> DeleteLessonAsync(int id);
+
+        Task<int> DeleteChapterAsync(int id);
+        Task<List<Lessions>> GetLessonsByChapterIdAsync(int chapterid);
         Task<int> ChangeCourseStatus(int Id, int Status);
         //Task<List<string>> GetSuggestionTag(string name);
         //Task<List<CourseViewModel>> GetCourseListByCategoryId(int cate_id);

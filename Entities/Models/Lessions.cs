@@ -14,7 +14,7 @@ namespace Entities.Models
         public string VideoDuration { get; set; }
         public string Thumbnail { get; set; }
         public string ThumbnailName { get; set; }
-        public int? FileIndex { get; set; } // Dùng để mapping file
+        //public int FileIndex { get; set; } // Dùng để mapping file
         public int View { get; set; }
         public int ChapterId { get; set; } // Không có liên kết khóa ngoại
     }
