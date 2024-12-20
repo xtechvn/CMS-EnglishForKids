@@ -15,7 +15,7 @@ public class Chapters
     [StringLength(255)]
     public string Title { get; set; }
 
-    public string Description { get; set; }
+    
 
     [Column("SourceId")]
     public int CourseId { get; set; }
