@@ -187,6 +187,7 @@ public partial class DataMSContext : DbContext
         modelBuilder.Entity<Course>().ToTable("Sources"); // Ánh xạ Course tới bảng Source
 
         modelBuilder.Entity< Chapters > ().ToTable("Chapters"); // Ánh xạ Course tới bảng Source
+
         modelBuilder.Entity<Lessions>().ToTable("Lessions"); // Ánh xạ Course tới bảng Source
 
 

@@ -4,6 +4,7 @@ using Entities.Models;
 using Entities.ViewModels;
 using Entities.ViewModels.Invoice;
 using Microsoft.Extensions.Options;
+using Nest;
 using Repositories.IRepositories;
 using System;
 using System.Collections.Generic;
@@ -224,6 +225,26 @@ namespace Repositories.Repositories
             }
         }
 
+        public async Task<Lessions> GetLessonByIdAsync(int id)
+        {
+            return await _CourseDAL.GetLessonByIdAsync(id);
+        }
+
+        public async Task<int> DeleteLessonAsync(int id)
+        {
+            
+            return await _CourseDAL.DeleteLessonAsync(id);
+        }
+
+        public async Task<int> DeleteChapterAsync(int id)
+        {
+            return await _CourseDAL.DeleteChapterAsync(id); 
+        }
+
+        public async Task<List<Lessions>> GetLessonsByChapterIdAsync(int chapterid)
+        {
+            return await _CourseDAL.GetLessonsByChapterIdAsync(chapterid);
+        }
 
 
 
@@ -323,7 +344,9 @@ namespace Repositories.Repositories
             }
         }
 
-       
+        
+
+
 
 
 
