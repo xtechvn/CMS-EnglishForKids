@@ -163,7 +163,7 @@ namespace DAL
                 {
             new SqlParameter("@Id", model.Id),
             new SqlParameter("@Title", model.Title ?? (object)DBNull.Value),
-            new SqlParameter("@Description", model.Description ?? (object)DBNull.Value),
+            
             new SqlParameter("@SourceId", model.CourseId),
             //new SqlParameter("@UpdatedBy", model.UpdatedBy ?? (object)DBNull.Value),
             //new SqlParameter("@Identity", SqlDbType.Int) { Direction = ParameterDirection.Output }
@@ -176,7 +176,7 @@ namespace DAL
                 parameters = new SqlParameter[]
         {
             new SqlParameter("@Title", model.Title ?? (object)DBNull.Value),
-            new SqlParameter("@Description", model.Description ?? (object)DBNull.Value),
+            
             new SqlParameter("@SourceId", model.CourseId),
             //new SqlParameter("@CreatedBy", model.CreatedBy ?? (object)DBNull.Value),
             //new SqlParameter("@Identity", SqlDbType.Int) { Direction = ParameterDirection.Output }

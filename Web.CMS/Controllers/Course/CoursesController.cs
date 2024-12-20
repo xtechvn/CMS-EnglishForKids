@@ -287,7 +287,7 @@ namespace Web.CMS.Controllers.Course
                     {
                         Id = chapter.Id,
                         Title = chapter.Title,
-                        Description = chapter.Description,
+                        
                         CourseId = chapter.CourseId,
                         CreatedDate = DateTime.Now
                     });

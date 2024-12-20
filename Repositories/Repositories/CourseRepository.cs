@@ -201,7 +201,7 @@ namespace Repositories.Repositories
                     {
                         Id = group.Key,
                         Title = group.FirstOrDefault()?.Field<string>("ChapterTile"),
-                        Description = group.FirstOrDefault()?.Field<string>("Description"),
+                        
                         //CourseId = group.FirstOrDefault()?.Field<int>("SourceId"), // Ánh xạ SourceId vào CourseId
                         Lessons = group.Select(row => new LessonViewModel
                         {
