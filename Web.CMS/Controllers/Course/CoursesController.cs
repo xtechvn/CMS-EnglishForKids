@@ -148,11 +148,7 @@ namespace Web.CMS.Controllers.Course
                     });
                 }
                
-                if (VideoIntro != null)
-                {
-                    var fileUrl = await UpLoadHelper.UploadFileOrImage(VideoIntro, model.Id, 35); // chapterId = 0
-                    model.VideoIntro = fileUrl; // Gán đường dẫn video vào model
-                }
+               
 
                 // Lưu bài viết và lấy ID của bài viết đã được lưu
                 var courseId = await _CourseRepository.SaveCourse(model);
@@ -160,6 +156,12 @@ namespace Web.CMS.Controllers.Course
                 // Kiểm tra xem quá trình lưu bài viết có thành công không
                 if (courseId > 0)
                 {
+                    if (VideoIntro != null)
+                    {
+                        var fileUrl = await UpLoadHelper.UploadFileOrImage(VideoIntro, courseId, 35); // chapterId = 0
+                        model.VideoIntro = fileUrl; // Gán đường dẫn video vào model
+                        await _CourseRepository.UpdateVideoIntro(courseId, fileUrl); // Cập nhật lại VideoIntro vào DB
+                    }
                     // Xóa cache của bài viết sau khi cập nhật
                     var strCategories = string.Empty;
                     if (model.Categories != null && model.Categories.Count > 0)

@@ -221,7 +221,7 @@ namespace WEB.CMS.Controllers
                                  { "store_name", "Sp_GetAllArticle" },
                                 { "index_es", "es_hulotoys_sp_get_article" },
                                 {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
-                                  {"id" , model.Id }
+                                  {"id" ,articleId }
 
                             };
                     var _data_push = JsonConvert.SerializeObject(j_param);

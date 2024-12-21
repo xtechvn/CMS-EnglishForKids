@@ -151,6 +151,20 @@ namespace DAL
             }
         }
 
+        public async Task UpdateVideoIntro(int courseId, string videoUrl)
+        {
+            using (var _DbContext = new EntityDataContext(_connection))
+            {
+                var course = await _DbContext.Course.FindAsync(courseId);
+                if (course != null)
+                {
+                    course.VideoIntro = videoUrl;
+                    course.UpdatedDate = DateTime.Now;
+                    await _DbContext.SaveChangesAsync();
+                }
+            }
+        }
+
         public async Task<int> SaveChapter(Chapters model)
         {
 
