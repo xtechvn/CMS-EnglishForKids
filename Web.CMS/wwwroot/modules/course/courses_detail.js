@@ -296,7 +296,7 @@ function renderChaptersToPopup(chapters) {
                                type="text" value="${lesson.title || ''}" placeholder="Vui lòng nhập tên bài giảng" />
                     </span>
                      <img class="delete-lesson" src="/images/icons/Trash.svg" 
-             alt="Xóa" style="cursor: pointer; width: 24px;  margin: 0px 10px;" data-lesson-id="${lesson.id || 0}" />
+             alt="Xóa" style="cursor: pointer; width: 24px; height: 24px;  margin: 0px 10px;" data-lesson-id="${lesson.id || 0}" />
                    
                 </div>
             </li>
@@ -942,7 +942,7 @@ var _newsDetail1 = {
                 success: function (result) {
                     debugger
                     if (result.isSuccess) {
-                        _msgalert.success(result.message);
+                       /* _msgalert.success(result.message);*/
                         $('#Id').val(result.dataId); // Gán lại ID khóa học
                         // Kiểm tra nếu là lưu để chuyển sang Tiết Học
 
@@ -951,10 +951,13 @@ var _newsDetail1 = {
                             $("#video_intro_src").attr("src", result.videoPath);
                             $("#video_intro_preview").show();
                         }
+                        Swal.fire("Thành công", result.message, "success").then(() => {
+                           
+                                window.location.href = `/courses/detail/${result.dataId}`;
+                           
+                        });
 
-                        setTimeout(function () {
-                            window.location.href = `/courses/detail/${result.dataId}`;
-                        }, 300);
+                       
 
                     } else {
                         _msgalert.error(result.message);
