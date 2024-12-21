@@ -110,7 +110,7 @@ namespace Web.CMS.Controllers.Course
                 };
 
                 // Deserialize dữ liệu từ request body
-                var model = JsonConvert.DeserializeObject<CourseModel>(data.ToString(), settings);
+                var model = JsonConvert.DeserializeObject<CourseModel>(data, settings);
 
                 // Lấy giá trị mặc định của NEWS_CATEGORY_ID từ cấu hình
                 var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);

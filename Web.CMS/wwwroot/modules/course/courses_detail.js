@@ -894,7 +894,7 @@ var _newsDetail1 = {
                 Title: $('#Title').val(),
                 Description: $('#Description').val(),
                 Thumbnail: $('#img_16x9').attr('src') == undefined ? "" : $('#img_16x9').attr('src'),
-                VideoIntro: videoFile,
+                //VideoIntro: videoFile,
                 Benefif: _body,  // Giả sử là "Benefit" mà bạn cần sử dụng
                 Status: displayStatus,  // Status of course (Published/Unpublished)
                 Price: $('#Price').val(),
