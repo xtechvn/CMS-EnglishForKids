@@ -12,7 +12,8 @@ namespace Repositories.IRepositories
         GenericViewModel<CourseViewModel> GetPagingList(CourseSearchModel searchModel, int currentPage, int pageSize);
             
         List<ChapterViewModel> GetListChapterLessionBySourceId(int courseId);
-        Task<long> SaveCourse(CourseModel model);
+        Task<int> SaveCourse(CourseModel model);
+        Task UpdateVideoIntro(int courseId, string videoUrl);
         Task<int> SaveChapter(Chapters model);
         Task<int> SaveLesson(Lessions model);
         //string ServerFile(CourseModel model);

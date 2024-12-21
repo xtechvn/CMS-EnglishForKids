@@ -80,7 +80,7 @@ namespace Repositories.Repositories
             }
             return model;
         }
-        public async Task<long> SaveCourse(CourseModel model)
+        public async Task<int> SaveCourse(CourseModel model)
         {
             try
             {
@@ -155,6 +155,11 @@ namespace Repositories.Repositories
             }
         }
 
+        public async Task UpdateVideoIntro(int courseId, string videoUrl)
+        {
+            // Gọi xuống DAL để cập nhật thông tin VideoIntro
+            await _CourseDAL.UpdateVideoIntro(courseId, videoUrl);
+        }
 
         public Task<int> SaveChapter(Chapters model)
         {
@@ -345,6 +350,8 @@ namespace Repositories.Repositories
         }
 
         
+
+
 
 
 
