@@ -168,18 +168,18 @@ namespace Web.CMS.Controllers.Course
                         strCategories = string.Join(",", model.Categories);
 
                     ClearCacheArticle(courseId, strCategories);
+                     
+                    var j_param = new Dictionary<string, object>
+                            {
+                                 { "store_name", "SP_GetListLessionBySourceId" },
+                                { "index_es", "education_sp_get_source" },
+                                {"project_type", Convert.ToInt16(ProjectType.EDUCATION) },
+                                  {"id" , courseId }
 
-                    //var j_param = new Dictionary<string, object>
-                    //        {
-                    //             { "store_name", "Sp_GetAllArticle" },
-                    //            { "index_es", "es_hulotoys_sp_get_article" },
-                    //            {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
-                    //              {"id" , model.Id }
-
-                    //        };
-                    //var _data_push = JsonConvert.SerializeObject(j_param);
-                    //// Push message vào queue
-                    //var response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
+                            };
+                    var _data_push = JsonConvert.SerializeObject(j_param);
+                    // Push message vào queue
+                    var response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
 
                     // Trả về kết quả thành công với ID của bài viết
                     return new JsonResult(new
