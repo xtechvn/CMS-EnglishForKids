@@ -365,7 +365,7 @@ $(document).on("click", ".add-lesson", function () {
     border: none;" type="text" placeholder="Vui lòng nhập tên bài giảng" />
         </span>
                 <img class="delete-lesson" src="/images/icons/Trash.svg"
-alt="Xóa" style="cursor: pointer; width: 24px;  margin: 0px 10px;" />
+alt="Xóa" style="cursor: pointer; width: 24px; height:24px;  margin: 0px 10px;" />
 
 
                 </div>

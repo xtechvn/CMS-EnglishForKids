@@ -92,7 +92,7 @@ namespace DAL
                     entity.Title = model.Title;
                     entity.Description = model.Description; // Updated to match the model
                     entity.Thumbnail = model.Thumbnail ?? string.Empty; // Assuming it's related to "Thumbnail"
-                    entity.VideoIntro = model.VideoIntro ?? string.Empty; // Assuming it's related to "Thumbnail"
+                    entity.VideoIntro = model.VideoIntro ?? entity.VideoIntro; // Assuming it's related to "Thumbnail"
 
                     entity.Status = model.Status;
                     entity.Benefif = model.Benefif ?? string.Empty; // Fix potential typo: Benefit?
