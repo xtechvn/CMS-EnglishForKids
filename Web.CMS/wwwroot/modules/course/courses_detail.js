@@ -940,7 +940,7 @@ var _newsDetail1 = {
                 traditional: true,
                 // data: { model: _model },
                 success: function (result) {
-                    debugger
+                   
                     if (result.isSuccess) {
                        /* _msgalert.success(result.message);*/
                         $('#Id').val(result.dataId); // Gán lại ID khóa học
