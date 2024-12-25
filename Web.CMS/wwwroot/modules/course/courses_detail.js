@@ -896,7 +896,7 @@ var _newsDetail1 = {
                     required: true,
                     maxlength: 300
                 },
-                Lead: {
+                Description: {
                     required: true,
                     maxlength: 400
                 },
@@ -911,7 +911,7 @@ var _newsDetail1 = {
                     required: "Vui lòng nhập tiêu đề cho bài viết",
                     maxlength: "Tiêu đề cho bài viết không được vượt quá 300 ký tự"
                 },
-                Lead: {
+                Description: {
                     required: "Vui lòng nhập mô tả ngắn cho bài viết",
                     maxlength: "Tiêu đề cho bài viết không được vượt quá 400 ký tự"
                 },
