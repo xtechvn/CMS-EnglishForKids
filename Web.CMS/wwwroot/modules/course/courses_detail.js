@@ -90,19 +90,64 @@ toggleDisplayWebsite.addEventListener("change", function () {
 });
 
 
+// Khởi tạo Magnific Popup
+ $('.lesson-icon').magnificPopup({
+        type: 'iframe',
+        mainClass: 'mfp-fade', // Hiệu ứng fade
+        removalDelay: 300, // Thời gian chuyển động
+        preloader: false, // Tắt preloader
+        fixedContentPos: true, // Đảm bảo popup giữ nguyên vị trí
+        iframe: {
+            patterns: {
+                youtube: {
+                    index: 'youtube.com/',
+                    id: 'v=',
+                    src: '//www.youtube.com/embed/%id%?autoplay=1'
+                },
+                vimeo: {
+                    index: 'vimeo.com/',
+                    id: '/',
+                    src: '//player.vimeo.com/video/%id%?autoplay=1'
+                },
+                default: {
+                    src: '%id%' // Đường dẫn trực tiếp (direct link)
+                }
+            }
+        },
+        callbacks: {
+            open: function () {
+                console.log("Popup đã mở");
+            },
+            close: function () {
+                console.log("Popup đã đóng");
+            }
+        }
+    });
+
 // Sự kiện click vào icon
 $(document).on("click", ".lesson-icon", function (event) {
-    event.stopPropagation(); // Ngăn click lan sang các phần tử khác
+    event.preventDefault();
 
     const fileUrl = $(this).data("url"); // Lấy URL của file/video
+    const fileExtension = fileUrl.split('.').pop().toLowerCase(); // Lấy phần mở rộng file
 
-    // Mở URL trong tab mới
-    if (fileUrl) {
+    if (fileExtension === "mp4") {
+        // Mở video dạng MP4
+        $.magnificPopup.open({
+            items: {
+                src: fileUrl
+            },
+            type: 'iframe'
+        });
+    } else if (fileExtension === "pdf") {
+        // Mở PDF
         window.open(fileUrl, "_blank");
     } else {
-        console.error("URL file/video không tồn tại.");
+        console.error("File không hỗ trợ hoặc không tồn tại!");
     }
 });
+
+
 // Mở popup Thêm Tiết Học
 $(document).on("click", "#btn-add-chapter", function () {
     isEditing = false; // Đặt trạng thái là "Thêm mới"
@@ -780,28 +825,36 @@ $('#thumbnail_file').on('change', function (event) {
     }
 });
 
+$("#choose_video_button").on("click", function () {
+    $("#video_intro_file").trigger("click");
+});
 // Upload Video
 // Sự kiện chọn file video
 $("#video_intro_file").on("change", function () {
-    const file = this.files[0];
+      
+    const file = this.files[0]; 
     const maxFileSize = 100 * 1024 * 1024; // 100MB
 
     if (file) {
         // Kiểm tra kích thước và định dạng video
         if (!file.type.startsWith('video/')) {
             alert("Vui lòng chọn đúng định dạng video!");
+            this.value = ""; // Xóa giá trị file
             return;
         }
 
         if (file.size > maxFileSize) {
             alert("Kích thước video không được vượt quá 100MB!");
+            this.value = ""; // Xóa giá trị file
             return;
         }
 
         // Hiển thị video xem trước
         const videoSrc = URL.createObjectURL(file);
-        $("#video_intro_src").attr("src", videoSrc);
-        $("#video_intro_preview").show();
+        $("#video_intro_src").attr("src", videoSrc); // Gán URL mới vào video
+        $("#video_intro_preview").show(); // Hiển thị video
+        $("#video_placeholder").hide(); // Ẩn placeholder (nếu có)
+        $("#video_intro_preview")[0].load(); // Load lại video để đảm bảo hiển thị
     }
 });
 
@@ -826,8 +879,14 @@ var _newsDetail1 = {
         const formData = new FormData();
         const videoFile = $('#video_intro_file')[0].files[0];
 
-        if (videoFile) {
-            formData.append("VideoIntro", videoFile);
+        // Nếu không có video mới, sử dụng video hiện tại (video cũ)
+        if (!videoFile) {
+            const currentVideoPath = $("#video_intro_src").attr("src");
+            if (currentVideoPath) {
+                formData.append("CurrentVideoPath", currentVideoPath); // Lưu đường dẫn video hiện tại
+            }
+        } else {
+            formData.append("VideoIntro", videoFile); // Lưu video mới
         }
         let formvalid = $('#form-news');
         var max_pos = $('#ArticleType:checked').val() == "0" ? 7 : 8;
