@@ -43,6 +43,16 @@
     .check-list {
         display: inline-block !important;
     }
+
+    #video_preview_container {
+        position: relative;
+    }
+
+    #choose_video_button {
+        margin-top: 10px;
+        display: inline-block;
+    }
+
 </style>
 
 <section class="main-container clearfix">
@@ -198,36 +208,32 @@
 
                     <div class="bg-white rounded10 p-3 border mb20">
                         <h4>Intro</h4>
-                        <p>Kích thước tối đa của video là 100MB</p>
-                        <div class="nothumb-add text-center position-relative">
-                            <!-- Input ẩn để chọn video -->
-                            <input type="file" id="video_intro_file" accept="video/*" style="display: none;" />
+                        <p class="text-secondary">Kích thước tối đa của video là 100MB</p>
 
-                            <!-- Icon SVG để chọn file -->
-                            <label for="video_intro_file" style="cursor: pointer;">
-
-                                <img class="lesson-icon1"
-                                     src="/images/icons/Vector.svg" />
-
-                            </label>
-
-                            <!-- Hiển thị video -->
+                        <!-- Hiển thị video -->
+                        <div id="video_preview_container" style="text-align: center; margin-bottom: 15px;">
                             @if (!string.IsNullOrEmpty(Model.VideoIntro))
                             {
-                                <video id="video_intro_preview" controls style="max-width: 100%; margin-top: 10px;">
+                                <video id="video_intro_preview" controls style="max-width: 100%; max-height: 300px; border: 1px solid #ddd; border-radius: 5px;">
                                     <source id="video_intro_src" src="@Model.VideoIntro" type="video/mp4">
                                     Trình duyệt của bạn không hỗ trợ video.
                                 </video>
                             }
                             else
                             {
-                                <video id="video_intro_preview" controls style="max-width: 100%; display: none; margin-top: 10px;">
-                                    <source id="video_intro_src" src="" type="video/mp4">
-                                    Trình duyệt của bạn không hỗ trợ video.
-                                </video>
+                                <p id="video_placeholder" style="color: #888; font-style: italic;">Hiện chưa có video được chọn.</p>
                             }
                         </div>
+
+                        <!-- Input ẩn để chọn video -->
+                        <input type="file" id="video_intro_file" accept="video/*" style="display: none;" />
+
+                        <!-- Nút chọn video -->
+                        <div style="text-align: center;">
+                            <button type="button" id="choose_video_button" class="btn btn-primary">Chọn video</button>
+                        </div>
                     </div>
+
 
 
                     <div class="mb20 form-default2">

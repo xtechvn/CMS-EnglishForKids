@@ -18,160 +18,171 @@ using Caching.RedisWorker;
 
 namespace Web.CMS.Controllers.Course
 {
-        [CustomAuthorize]
-        public class CoursesController : Controller
+    [CustomAuthorize]
+    public class CoursesController : Controller
+    {
+        private const int NEWS_CATEGORY_ID = 10;
+        private const int VIDEO_NEWS_CATEGORY_ID = 1;
+        private readonly IGroupProductRepository _GroupProductRepository;
+        private readonly IArticleRepository _ArticleRepository;
+        private readonly ICourseRepository _CourseRepository;
+        private readonly IUserRepository _UserRepository;
+        private readonly ICommonRepository _CommonRepository;
+        private readonly IWebHostEnvironment _WebHostEnvironment;
+        private readonly IConfiguration _configuration;
+        private readonly WorkQueueClient work_queue;
+        private readonly QueueService _queueService;
+        private readonly RedisConn _redisConn;
+        private readonly int db_index = 13;
+
+        public CoursesController(IConfiguration configuration, RedisConn redisConn, IArticleRepository articleRepository, IUserRepository userRepository, ICommonRepository commonRepository, IWebHostEnvironment hostEnvironment, QueueService queueService,
+            IGroupProductRepository groupProductRepository, ICourseRepository courseRepository)
         {
-            private const int NEWS_CATEGORY_ID = 10;
-            private const int VIDEO_NEWS_CATEGORY_ID = 1;
-            private readonly IGroupProductRepository _GroupProductRepository;
-            private readonly IArticleRepository _ArticleRepository;
-            private readonly ICourseRepository _CourseRepository;
-            private readonly IUserRepository _UserRepository;
-            private readonly ICommonRepository _CommonRepository;
-            private readonly IWebHostEnvironment _WebHostEnvironment;
-            private readonly IConfiguration _configuration;
-            private readonly WorkQueueClient work_queue;
-            private readonly QueueService _queueService;
-            private readonly RedisConn _redisConn;
-            private readonly int db_index = 13;
+            _ArticleRepository = articleRepository;
+            _CourseRepository = courseRepository;
+            _CommonRepository = commonRepository;
+            _UserRepository = userRepository;
+            _WebHostEnvironment = hostEnvironment;
+            _configuration = configuration;
+            _GroupProductRepository = groupProductRepository;
+            work_queue = new WorkQueueClient(configuration);
+            _queueService = queueService;
+            _redisConn = redisConn;
+            _redisConn.Connect();
 
-            public CoursesController(IConfiguration configuration, RedisConn redisConn, IArticleRepository articleRepository, IUserRepository userRepository, ICommonRepository commonRepository, IWebHostEnvironment hostEnvironment, QueueService queueService,
-                IGroupProductRepository groupProductRepository , ICourseRepository courseRepository)
+
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
+            ViewBag.ListArticleStatus = await _CommonRepository.GetAllCodeByType(AllCodeType.ARTICLE_STATUS);
+            ViewBag.StringTreeViewCate = await _GroupProductRepository.GetListTreeViewCheckBox(NEWS_CATEGORY_ID, -1);
+            ViewBag.ListAuthor = await _UserRepository.GetUserSuggestionList(string.Empty);
+            return View();
+        }
+
+        /// <summary>
+        /// Search News
+        /// </summary>
+        /// <param name="searchModel"></param>
+        /// <param name="currentPage"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public IActionResult Search(CourseSearchModel searchModel, int currentPage = 1, int pageSize = 20)
+        {
+            var model = new GenericViewModel<CourseViewModel>();
+            try
             {
-                _ArticleRepository = articleRepository;
-                _CourseRepository = courseRepository;
-                _CommonRepository = commonRepository;
-                _UserRepository = userRepository;
-                _WebHostEnvironment = hostEnvironment;
-                _configuration = configuration;
-                _GroupProductRepository = groupProductRepository;
-                work_queue = new WorkQueueClient(configuration);
-                _queueService = queueService;
-                _redisConn = redisConn;
-                _redisConn.Connect();
-
+                model = _CourseRepository.GetPagingList(searchModel, currentPage, pageSize);
+                ViewBag.ListID = (model != null && model.ListData != null && model.ListData.Select(x => x.Id).ToList() != null && model.ListData.Select(x => x.Id).ToList().Count > 0) ? JsonConvert.SerializeObject(model.ListData.Select(x => x.Id).ToList()) : "";
+            }
+            catch
+            {
 
             }
+            return PartialView(model);
+        }
 
-            public async Task<IActionResult> Index()
+        public async Task<IActionResult> Detail(int Id)
+        {
+            var model = new CourseModel();
+            var size_img = ReadFile.LoadConfig().SIZE_IMG;
+            ViewBag.size_img = size_img;
+            if (Id > 0)
             {
+                model = await _CourseRepository.GetCourseDetail(Id);
+            }
+            else
+            {
+                model.Status = ArticleStatus.SAVE;
+            }
+            var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
+            ViewBag.StringTreeViewCate = await _GroupProductRepository.GetListTreeViewCheckBox(NEWS_CATEGORY_ID, -1, model.Categories);
+            return View(model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> UpSert([FromForm] string data, IFormFile VideoIntro, [FromForm] string CurrentVideoPath)
+        {
+            try
+            {
+                // Thiết lập cài đặt Json để bỏ qua các giá trị null và các thành phần thiếu
+                var settings = new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    MissingMemberHandling = MissingMemberHandling.Ignore
+                };
+
+                // Deserialize dữ liệu từ request body
+                var model = JsonConvert.DeserializeObject<CourseModel>(data, settings);
+
+                // Lấy giá trị mặc định của NEWS_CATEGORY_ID từ cấu hình
                 var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
-                ViewBag.ListArticleStatus = await _CommonRepository.GetAllCodeByType(AllCodeType.ARTICLE_STATUS);
-                ViewBag.StringTreeViewCate = await _GroupProductRepository.GetListTreeViewCheckBox(NEWS_CATEGORY_ID, -1);
-                ViewBag.ListAuthor = await _UserRepository.GetUserSuggestionList(string.Empty);
-                return View();
-            }
 
-            /// <summary>
-            /// Search News
-            /// </summary>
-            /// <param name="searchModel"></param>
-            /// <param name="currentPage"></param>
-            /// <param name="pageSize"></param>
-            /// <returns></returns>
-            [HttpPost]
-            public IActionResult Search(CourseSearchModel searchModel, int currentPage = 1, int pageSize = 20)
-            {
-                var model = new GenericViewModel<CourseViewModel>();
-                try
+                // Nếu bài viết có danh mục và danh mục là GroupHeader, thêm NEWS_CATEGORY_ID vào danh mục
+                if (await _GroupProductRepository.IsGroupHeader(model.Categories))
                 {
-                    model = _CourseRepository.GetPagingList(searchModel, currentPage, pageSize);
-                    ViewBag.ListID = (model != null && model.ListData != null && model.ListData.Select(x => x.Id).ToList() != null && model.ListData.Select(x => x.Id).ToList().Count > 0) ? JsonConvert.SerializeObject(model.ListData.Select(x => x.Id).ToList()) : "";
+                    model.Categories.Add(NEWS_CATEGORY_ID);
                 }
-                catch
-                {
 
+                // Lấy thông tin AuthorId từ token người dùng đăng nhập
+                if (model != null && HttpContext.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+                {
+                    model.AuthorId = int.Parse(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 }
-                return PartialView(model);
-            }
 
-            public async Task<IActionResult> Detail(int Id)
-            {
-                var model = new CourseModel();
-                var size_img = ReadFile.LoadConfig().SIZE_IMG;
-                ViewBag.size_img = size_img;
-                if (Id > 0)
+                // Kiểm tra xem nội dung bài viết có trống không
+                model.Benefif = ArticleHelper.HighLightLinkTag(model.Benefif);
+                if (string.IsNullOrWhiteSpace(model.Benefif) || string.IsNullOrWhiteSpace(model.Title) || string.IsNullOrWhiteSpace(model.Description))
                 {
-                    model = await _CourseRepository.GetCourseDetail(Id);
+                    return new JsonResult(new
+                    {
+                        isSuccess = false,
+                        message = "Phần Tiêu đề, Mô tả và Nội dung bài viết không được để trống"
+                    });
                 }
-                else
+
+                // Kiểm tra giới hạn độ dài của phần Lead
+                if (model.Description.Length >= 400)
                 {
-                    model.Status = ArticleStatus.SAVE;
+                    return new JsonResult(new
+                    {
+                        isSuccess = false,
+                        message = "Phần Mô tả không được vượt quá 400 ký tự"
+                    });
                 }
-                var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
-                ViewBag.StringTreeViewCate = await _GroupProductRepository.GetListTreeViewCheckBox(NEWS_CATEGORY_ID, -1, model.Categories);
-                return View(model);
-            }
-            [HttpPost]
-            public async Task<IActionResult> UpSert([FromForm] string data , IFormFile VideoIntro)
-            {
-                try
-                {
-                    // Thiết lập cài đặt Json để bỏ qua các giá trị null và các thành phần thiếu
-                    var settings = new JsonSerializerSettings
-                    {
-                        NullValueHandling = NullValueHandling.Ignore,
-                        MissingMemberHandling = MissingMemberHandling.Ignore
-                    };
 
-                    // Deserialize dữ liệu từ request body
-                    var model = JsonConvert.DeserializeObject<CourseModel>(data, settings);
 
-                    // Lấy giá trị mặc định của NEWS_CATEGORY_ID từ cấu hình
-                    var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
 
-                    // Nếu bài viết có danh mục và danh mục là GroupHeader, thêm NEWS_CATEGORY_ID vào danh mục
-                    if (await _GroupProductRepository.IsGroupHeader(model.Categories))
-                    {
-                        model.Categories.Add(NEWS_CATEGORY_ID);
-                    }
-
-                    // Lấy thông tin AuthorId từ token người dùng đăng nhập
-                    if (model != null && HttpContext.User.FindFirst(ClaimTypes.NameIdentifier) != null)
-                    {
-                        model.AuthorId = int.Parse(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-                    }
-
-                    // Kiểm tra xem nội dung bài viết có trống không
-                    model.Benefif = ArticleHelper.HighLightLinkTag(model.Benefif);
-                    if (string.IsNullOrWhiteSpace(model.Benefif) || string.IsNullOrWhiteSpace(model.Title) || string.IsNullOrWhiteSpace(model.Description))
-                    {
-                        return new JsonResult(new
-                        {
-                            isSuccess = false,
-                            message = "Phần Tiêu đề, Mô tả và Nội dung bài viết không được để trống"
-                        });
-                    }
-
-                    // Kiểm tra giới hạn độ dài của phần Lead
-                    if (model.Description.Length >= 400)
-                    {
-                        return new JsonResult(new
-                        {
-                            isSuccess = false,
-                            message = "Phần Mô tả không được vượt quá 400 ký tự"
-                        });
-                    }
-               
+                // Lưu bài viết và lấy ID của bài viết đã được lưu
+                var courseId = await _CourseRepository.SaveCourse(model);
                
 
-                    // Lưu bài viết và lấy ID của bài viết đã được lưu
-                    var courseId = await _CourseRepository.SaveCourse(model);
-                    // Serialize model to JSON for Redis
-                    var courseData = JsonConvert.SerializeObject(model);
-
-                    // Kiểm tra xem quá trình lưu bài viết có thành công không
-                    if (courseId > 0)
+                // Kiểm tra xem quá trình lưu bài viết có thành công không
+                if (courseId > 0)
+                {
+                    if (VideoIntro != null)
                     {
-                        if (VideoIntro != null)
+                       
+
+                        var fileUrl = await UpLoadHelper.UploadFileOrImage(VideoIntro, courseId, 35);
+                        if (string.IsNullOrEmpty(fileUrl))
                         {
-                            var fileUrl = await UpLoadHelper.UploadFileOrImage(VideoIntro, courseId, 35); // chapterId = 0
-                            model.VideoIntro = fileUrl; // Gán đường dẫn video vào model
-                            await _CourseRepository.UpdateVideoIntro(courseId, fileUrl); // Cập nhật lại VideoIntro vào DB
+                            return new JsonResult(new { isSuccess = false, message = "Lỗi upload video." });
                         }
 
+                        model.VideoIntro = fileUrl; // Cập nhật video mới vào model
+                        await _CourseRepository.UpdateVideoIntro(courseId, fileUrl);
+                    }
+                    else if (!string.IsNullOrEmpty(CurrentVideoPath))
+                    {
+                        // Nếu không có video mới, giữ nguyên video cũ
+                        model.VideoIntro = CurrentVideoPath;
+                    }
+
                     // Lấy danh sách chapters và lessons
-                    var chapters =  _CourseRepository.GetListChapterLessionBySourceId(courseId);
+                    var chapters = _CourseRepository.GetListChapterLessionBySourceId(courseId);
 
                     // Chuẩn bị dữ liệu để lưu vào Redis
                     var redisData = new
@@ -186,7 +197,7 @@ namespace Web.CMS.Controllers.Course
                             SourceBenefif = model.Benefif,
                             VideoIntro = model.VideoIntro,
                             Price = model.Price,
-                            OriginalPrice= model.OriginalPrice, 
+                            OriginalPrice = model.OriginalPrice,
                             Status = model.Status,
                         },
                         chapters = chapters.Select(chapter => new
@@ -207,21 +218,21 @@ namespace Web.CMS.Controllers.Course
                     var redisJson = JsonConvert.SerializeObject(redisData);
                     // Xử lý trạng thái hiển thị
                     if (model.Status == 0) // Hiển thị
-                        {
-                             _redisConn.Set(CacheName.COURSE_DETAIL + model.Id, redisJson, db_index);
-                        }
-                        else if (model.Status == 2) // Ẩn
-                        {
-                            await _redisConn.DeleteCacheByKeyword(CacheName.COURSE_DETAIL + model.Id, db_index);
-                        }
-                        // Xóa cache của bài viết sau khi cập nhật
-                        var strCategories = string.Empty;
-                        if (model.Categories != null && model.Categories.Count > 0)
-                            strCategories = string.Join(",", model.Categories);
+                    {
+                        _redisConn.Set(CacheName.COURSE_DETAIL + model.Id, redisJson, db_index);
+                    }
+                    else if (model.Status == 2) // Ẩn
+                    {
+                        await _redisConn.DeleteCacheByKeyword(CacheName.COURSE_DETAIL + model.Id, db_index);
+                    }
+                    // Xóa cache của bài viết sau khi cập nhật
+                    var strCategories = string.Empty;
+                    if (model.Categories != null && model.Categories.Count > 0)
+                        strCategories = string.Join(",", model.Categories);
 
-                        ClearCacheArticle(courseId, strCategories);
-                     
-                        var j_param = new Dictionary<string, object>
+                    ClearCacheArticle(courseId, strCategories);
+
+                    var j_param = new Dictionary<string, object>
                                 {
                                      { "store_name", "SP_GetAllSource" },
                                     { "index_es", "education_sp_get_source" },
@@ -229,300 +240,300 @@ namespace Web.CMS.Controllers.Course
                                       {"id" , -1 }
 
                                 };
-                        var _data_push = JsonConvert.SerializeObject(j_param);
-                        // Push message vào queue
-                        var response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
+                    var _data_push = JsonConvert.SerializeObject(j_param);
+                    // Push message vào queue
+                    var response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
 
-                        // Trả về kết quả thành công với ID của bài viết
-                        return new JsonResult(new
-                        {
-                            isSuccess = true,
-                            message = "Cập nhật thành công",
-                            dataId = courseId,
-                            videoPath = model.VideoIntro
-
-                        });
-                    }
-                    else
+                    // Trả về kết quả thành công với ID của bài viết
+                    return new JsonResult(new
                     {
-                        return new JsonResult(new
-                        {
-                            isSuccess = false,
-                            message = "Cập nhật thất bại"
-                        });
-                    }
+                        isSuccess = true,
+                        message = "Cập nhật thành công",
+                        dataId = courseId,
+                        videoPath = model.VideoIntro
+
+                    });
                 }
-                catch (Exception ex)
+                else
                 {
-                    // Ghi log lỗi và trả về thông báo lỗi
-                    LogHelper.InsertLogTelegram("UpSert - NewsController: " + ex);
                     return new JsonResult(new
                     {
                         isSuccess = false,
-                        message = ex.Message
+                        message = "Cập nhật thất bại"
                     });
                 }
             }
-
-        
-
-            public async Task<IActionResult> RelationArticle(long Id)
+            catch (Exception ex)
             {
-                var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
-                ViewBag.StringTreeViewCate = await _GroupProductRepository.GetListTreeViewCheckBox(NEWS_CATEGORY_ID, -1);
-                ViewBag.ListAuthor = await _UserRepository.GetUserSuggestionList(string.Empty);
-                return PartialView();
+                // Ghi log lỗi và trả về thông báo lỗi
+                LogHelper.InsertLogTelegram("UpSert - NewsController: " + ex);
+                return new JsonResult(new
+                {
+                    isSuccess = false,
+                    message = ex.Message
+                });
             }
-            [HttpGet]
-            public async Task<IActionResult> GetChapterDetails(int courseId)
-            {
-                if (courseId <= 0)
-                {
-                    return Json(new { isSuccess = false, message = "ID khóa học không hợp lệ!" });
-                }
+        }
 
-                try
-                {
-                    var chapters = _CourseRepository.GetListChapterLessionBySourceId(courseId);
-                    return Json(new { isSuccess = true, data = chapters });
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { isSuccess = false, message = ex.Message });
-                }
+
+
+        public async Task<IActionResult> RelationArticle(long Id)
+        {
+            var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
+            ViewBag.StringTreeViewCate = await _GroupProductRepository.GetListTreeViewCheckBox(NEWS_CATEGORY_ID, -1);
+            ViewBag.ListAuthor = await _UserRepository.GetUserSuggestionList(string.Empty);
+            return PartialView();
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetChapterDetails(int courseId)
+        {
+            if (courseId <= 0)
+            {
+                return Json(new { isSuccess = false, message = "ID khóa học không hợp lệ!" });
             }
 
-            public async Task<IActionResult> Chapters(int courseId)
+            try
             {
-                if (courseId <= 0)
-                {
-                    return RedirectToAction("Detail");
-                }
-                var ChapterLesson =   _CourseRepository.GetListChapterLessionBySourceId(courseId);
-            
-
-          
-                ViewBag.CourseId = courseId;
-                return PartialView("Chapters", ChapterLesson);
+                var chapters = _CourseRepository.GetListChapterLessionBySourceId(courseId);
+                return Json(new { isSuccess = true, data = chapters });
             }
-        
-            [HttpPost]
-            public async Task<IActionResult> UpsertChapterAndLesson([FromForm] string chapters, [FromForm] List<IFormFile> files, [FromForm] List<string> fileKeys)
+            catch (Exception ex)
             {
-                try
+                return Json(new { isSuccess = false, message = ex.Message });
+            }
+        }
+
+        public async Task<IActionResult> Chapters(int courseId)
+        {
+            if (courseId <= 0)
+            {
+                return RedirectToAction("Detail");
+            }
+            var ChapterLesson = _CourseRepository.GetListChapterLessionBySourceId(courseId);
+
+
+
+            ViewBag.CourseId = courseId;
+            return PartialView("Chapters", ChapterLesson);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpsertChapterAndLesson([FromForm] string chapters, [FromForm] List<IFormFile> files, [FromForm] List<string> fileKeys)
+        {
+            try
+            {
+                var model = JsonConvert.DeserializeObject<List<ChapterWithLessonsModel>>(chapters);
+                if (model == null || !model.Any())
                 {
-                    var model = JsonConvert.DeserializeObject<List<ChapterWithLessonsModel>>(chapters);
-                    if (model == null || !model.Any())
+                    return new JsonResult(new
+                    {
+                        isSuccess = false,
+                        message = "Dữ liệu tiết học không được để trống!"
+                    });
+                }
+
+                var createdBy = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                for (var chapterIndex = 0; chapterIndex < model.Count; chapterIndex++)
+                {
+                    var chapter = model[chapterIndex];
+
+                    if (string.IsNullOrWhiteSpace(chapter.Title))
                     {
                         return new JsonResult(new
                         {
                             isSuccess = false,
-                            message = "Dữ liệu tiết học không được để trống!"
+                            message = "Tên tiết học không được để trống!"
                         });
                     }
 
-                    var createdBy = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                    for (var chapterIndex = 0; chapterIndex < model.Count; chapterIndex++)
+                    // Lưu Chapter
+                    var chapterId = await _CourseRepository.SaveChapter(new Chapters
                     {
-                        var chapter = model[chapterIndex];
+                        Id = chapter.Id,
+                        Title = chapter.Title,
 
-                        if (string.IsNullOrWhiteSpace(chapter.Title))
+                        CourseId = chapter.CourseId,
+                        CreatedDate = DateTime.Now
+                    });
+
+                    // Lưu các bài giảng (Lessons) trong Chapter
+                    if (chapterId > 0 && chapter.Lessions != null && chapter.Lessions.Any())
+                    {
+                        for (var lessonIndex = 0; lessonIndex < chapter.Lessions.Count; lessonIndex++)
                         {
-                            return new JsonResult(new
+                            var lesson = chapter.Lessions[lessonIndex];
+                            var fileKey = $"chapter-{chapterIndex}-lesson-{lessonIndex}";
+
+                            // Tìm file tương ứng với fileKey
+                            var fileIndex = fileKeys.FindIndex(fk => fk == fileKey);
+                            var file = (fileIndex >= 0 && fileIndex < files.Count) ? files[fileIndex] : null;
+
+                            if (file != null)
                             {
-                                isSuccess = false,
-                                message = "Tên tiết học không được để trống!"
+                                // Upload file và gán đường dẫn vào lesson
+                                var fileUrl = await UpLoadHelper.UploadFileOrImage(file, chapterId, 35);
+                                lesson.Thumbnail = fileUrl;
+                                lesson.ThumbnailName = file.FileName;
+                            }
+
+                            // Lưu bài giảng vào database
+                            await _CourseRepository.SaveLesson(new Lessions
+                            {
+                                Id = lesson.Id,
+                                Title = lesson.Title,
+                                Author = lesson.Author,
+                                VideoDuration = lesson.VideoDuration,
+                                Thumbnail = lesson.Thumbnail,
+                                ThumbnailName = lesson.ThumbnailName,
+                                ChapterId = chapterId,
+                                //CreatedDate = DateTime.Now
                             });
                         }
-
-                        // Lưu Chapter
-                        var chapterId = await _CourseRepository.SaveChapter(new Chapters
-                        {
-                            Id = chapter.Id,
-                            Title = chapter.Title,
-                        
-                            CourseId = chapter.CourseId,
-                            CreatedDate = DateTime.Now
-                        });
-
-                        // Lưu các bài giảng (Lessons) trong Chapter
-                        if (chapterId > 0 && chapter.Lessions != null && chapter.Lessions.Any())
-                        {
-                            for (var lessonIndex = 0; lessonIndex < chapter.Lessions.Count; lessonIndex++)
-                            {
-                                var lesson = chapter.Lessions[lessonIndex];
-                                var fileKey = $"chapter-{chapterIndex}-lesson-{lessonIndex}";
-
-                                // Tìm file tương ứng với fileKey
-                                var fileIndex = fileKeys.FindIndex(fk => fk == fileKey);
-                                var file = (fileIndex >= 0 && fileIndex < files.Count) ? files[fileIndex] : null;
-
-                                if (file != null)
-                                {
-                                    // Upload file và gán đường dẫn vào lesson
-                                    var fileUrl = await UpLoadHelper.UploadFileOrImage(file, chapterId, 35);
-                                    lesson.Thumbnail = fileUrl;
-                                    lesson.ThumbnailName = file.FileName;
-                                }
-
-                                // Lưu bài giảng vào database
-                                await _CourseRepository.SaveLesson(new Lessions
-                                {
-                                    Id = lesson.Id,
-                                    Title = lesson.Title,
-                                    Author = lesson.Author,
-                                    VideoDuration = lesson.VideoDuration,
-                                    Thumbnail = lesson.Thumbnail,
-                                    ThumbnailName = lesson.ThumbnailName,
-                                    ChapterId = chapterId,
-                                    //CreatedDate = DateTime.Now
-                                });
-                            }
-                        }
                     }
-
-
-                    return new JsonResult(new
-                    {
-                        isSuccess = true,
-                        message = "Lưu tiết học và bài giảng thành công!"
-                    });
                 }
-                catch (Exception ex)
+
+
+                return new JsonResult(new
                 {
-                    // Log lỗi nếu cần thiết
-                    Console.WriteLine($"UpsertChapterAndLesson Error: {ex.Message}");
-
-                    return new JsonResult(new
-                    {
-                        isSuccess = false,
-                        message = "Đã xảy ra lỗi khi lưu tiết học và bài giảng!"
-                    });
-                }
+                    isSuccess = true,
+                    message = "Lưu tiết học và bài giảng thành công!"
+                });
             }
-
-            public async Task<IActionResult> DeleteLesson(int id)
+            catch (Exception ex)
             {
-                try
-                {
-                    var lesson = await _CourseRepository.GetLessonByIdAsync(id); // Lấy thông tin bài giảng
-                    if (lesson == null)
-                    {
-                        return Json(new
-                        {
-                            isSuccess = false,
-                            message = "Bài giảng không tồn tại!"
-                        });
-                    }
-                    var chapterId = lesson.ChapterId; // Lấy ChapterId của bài giảng
+                // Log lỗi nếu cần thiết
+                Console.WriteLine($"UpsertChapterAndLesson Error: {ex.Message}");
 
-                    await _CourseRepository.DeleteLessonAsync(id); // Xóa bài giảng
-                                                                   // Kiểm tra nếu chapter không còn bài giảng nào
-                    var remainingLessons = await _CourseRepository.GetLessonsByChapterIdAsync(chapterId);
-                    if (remainingLessons.Count == 0)
-                    {
-                        await _CourseRepository.DeleteChapterAsync(chapterId); // Xóa chapter nếu không còn bài giảng
-                        return Json(new
-                        {
-                            isSuccess = true,
-                            message = "Bài giảng và chương liên quan đã được xóa!"
-                        });
-                    }
-                    return Json(new
-                    {
-                        isSuccess = true,
-                        message = "Xóa bài giảng thành công!"
-                    });
-                }
-                catch (Exception ex)
+                return new JsonResult(new
+                {
+                    isSuccess = false,
+                    message = "Đã xảy ra lỗi khi lưu tiết học và bài giảng!"
+                });
+            }
+        }
+
+        public async Task<IActionResult> DeleteLesson(int id)
+        {
+            try
+            {
+                var lesson = await _CourseRepository.GetLessonByIdAsync(id); // Lấy thông tin bài giảng
+                if (lesson == null)
                 {
                     return Json(new
                     {
                         isSuccess = false,
-                        message = "Đã xảy ra lỗi khi xóa bài giảng!"
+                        message = "Bài giảng không tồn tại!"
                     });
                 }
-            }
+                var chapterId = lesson.ChapterId; // Lấy ChapterId của bài giảng
 
-            public async Task<IActionResult> ChangeArticleStatus(int Id, int articleStatus)
-            {
-                try
+                await _CourseRepository.DeleteLessonAsync(id); // Xóa bài giảng
+                                                               // Kiểm tra nếu chapter không còn bài giảng nào
+                var remainingLessons = await _CourseRepository.GetLessonsByChapterIdAsync(chapterId);
+                if (remainingLessons.Count == 0)
                 {
-                    var _ActionName = string.Empty;
-
-                    switch (articleStatus)
+                    await _CourseRepository.DeleteChapterAsync(chapterId); // Xóa chapter nếu không còn bài giảng
+                    return Json(new
                     {
-                        case ArticleStatus.PUBLISH:
-                            _ActionName = "Đăng bài viết";
-                            break;
-
-                        case ArticleStatus.REMOVE:
-                            _ActionName = "Hạ bài viết";
-                            break;
-                    }
-
-                    var rs = await _CourseRepository.ChangeCourseStatus(Id, articleStatus);
-
-                    if (rs > 0)
-                    {
-                        //  clear cache article
-                        var Categories = await _CourseRepository.GetCourseCategoryIdList(Id);
-                        ClearCacheArticle(Id, string.Join(",", Categories));
-
-                        // Tạo message để push vào queue
-                        //var j_param = new Dictionary<string, object>
-                        //        {
-                        //              { "store_name", "Sp_GetAllArticle" },
-                        //            { "index_es", "es_hulotoys_sp_get_article" },
-                        //            {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
-                        //              {"id" , Id }
-
-                        //        };
-                        //var _data_push = JsonConvert.SerializeObject(j_param);
-                        //// Push message vào queue
-                        //var response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
-
-                        return new JsonResult(new
-                        {
-                            isSuccess = true,
-                            message = _ActionName + " thành công",
-                            dataId = Id
-                        });
-                    }
-                    else
-                    {
-                        return new JsonResult(new
-                        {
-                            isSuccess = false,
-                            message = _ActionName + " thất bại"
-                        });
-                    }
+                        isSuccess = true,
+                        message = "Bài giảng và chương liên quan đã được xóa!"
+                    });
                 }
-                catch (Exception ex)
+                return Json(new
                 {
-                    LogHelper.InsertLogTelegram("ChangeArticleStatus - NewsController: " + ex);
+                    isSuccess = true,
+                    message = "Xóa bài giảng thành công!"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    isSuccess = false,
+                    message = "Đã xảy ra lỗi khi xóa bài giảng!"
+                });
+            }
+        }
+
+        public async Task<IActionResult> ChangeArticleStatus(int Id, int articleStatus)
+        {
+            try
+            {
+                var _ActionName = string.Empty;
+
+                switch (articleStatus)
+                {
+                    case ArticleStatus.PUBLISH:
+                        _ActionName = "Đăng bài viết";
+                        break;
+
+                    case ArticleStatus.REMOVE:
+                        _ActionName = "Hạ bài viết";
+                        break;
+                }
+
+                var rs = await _CourseRepository.ChangeCourseStatus(Id, articleStatus);
+
+                if (rs > 0)
+                {
+                    //  clear cache article
+                    var Categories = await _CourseRepository.GetCourseCategoryIdList(Id);
+                    ClearCacheArticle(Id, string.Join(",", Categories));
+
+                    // Tạo message để push vào queue
+                    //var j_param = new Dictionary<string, object>
+                    //        {
+                    //              { "store_name", "Sp_GetAllArticle" },
+                    //            { "index_es", "es_hulotoys_sp_get_article" },
+                    //            {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
+                    //              {"id" , Id }
+
+                    //        };
+                    //var _data_push = JsonConvert.SerializeObject(j_param);
+                    //// Push message vào queue
+                    //var response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
+
+                    return new JsonResult(new
+                    {
+                        isSuccess = true,
+                        message = _ActionName + " thành công",
+                        dataId = Id
+                    });
+                }
+                else
+                {
                     return new JsonResult(new
                     {
                         isSuccess = false,
-                        message = ex.Message.ToString()
+                        message = _ActionName + " thất bại"
                     });
                 }
             }
-            public async Task<string> GetSuggestionTag(string name)
+            catch (Exception ex)
             {
-                try
+                LogHelper.InsertLogTelegram("ChangeArticleStatus - NewsController: " + ex);
+                return new JsonResult(new
                 {
-                    var tagList = await _ArticleRepository.GetSuggestionTag(name);
-                    return JsonConvert.SerializeObject(tagList);
-                }
-                catch
-                {
-                    return null;
-                }
+                    isSuccess = false,
+                    message = ex.Message.ToString()
+                });
             }
+        }
+        public async Task<string> GetSuggestionTag(string name)
+        {
+            try
+            {
+                var tagList = await _ArticleRepository.GetSuggestionTag(name);
+                return JsonConvert.SerializeObject(tagList);
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
-        
+
 
 
 
@@ -542,7 +553,7 @@ namespace Web.CMS.Controllers.Course
         }
 
 
-        
+
 
         public async Task<IActionResult> DeleteArticle(long Id)
         {
