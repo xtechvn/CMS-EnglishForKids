@@ -61,14 +61,7 @@
 
     <div class="flex row-main-head">
         <h2 class="title_page">ĐĂNG BÀI VIẾT</h2>
-        <div class="btn-right text-right">
-            @if (Model.Status == ArticleStatus.PUBLISH)
-            {
-                <a href="javascripts:;" class="btn" onclick="_newsDetail1.EditNewDetail('@Model.Id','@ArticleStatus.REMOVE')">
-                    Sửa bài viết
-                </a>
-            }
-        </div>
+       
 
     </div>
     <ol class="breadcrumb">
@@ -128,7 +121,7 @@
                             </textarea>
                         </div>
                         <div class="block-content">
-                            <h3>Thêm từ khoá cho bài viết</h3>
+                            <h3>Thêm từ khoá cho khóa học liên quan</h3>
                             <input type="text" class="form-control" id="news-tag" value="@(Model.Tags != null && Model.Tags.Count> 0 ?string.Join(",",Model.Tags) : string.Empty)" placeholder="Nhập từ khóa cho bài viết...">
                         </div>
                         <div class="add-tags" style="min-height:83px;">
