@@ -913,7 +913,7 @@ var _newsDetail1 = {
                 },
                 Description: {
                     required: "Vui lòng nhập mô tả ngắn cho bài viết",
-                    maxlength: "Tiêu đề cho bài viết không được vượt quá 400 ký tự"
+                    maxlength: "Mô tả cho bài viết không được vượt quá 400 ký tự"
                 },
                 Position: {
                     min: "Vị trí bài viết phải trong khoảng 0 đến " + max_pos,
@@ -945,7 +945,7 @@ var _newsDetail1 = {
                 return false;
             }
             if ($('#Description').val().length >= 400) {
-                _msgalert.error('Tiêu đề cho bài viết không được vượt quá 400 ký tự');
+                _msgalert.error('Mô tả cho bài viết không được vượt quá 400 ký tự');
                 return false;
             }
             var _model = {
