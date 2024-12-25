@@ -237,7 +237,7 @@ namespace Web.CMS.Controllers.Course
                                      { "store_name", "SP_GetAllSource" },
                                     { "index_es", "education_sp_get_source" },
                                     {"project_type", Convert.ToInt16(ProjectType.EDUCATION) },
-                                      {"id" , -1 }
+                                      {"id" , courseId }
 
                                 };
                     var _data_push = JsonConvert.SerializeObject(j_param);
