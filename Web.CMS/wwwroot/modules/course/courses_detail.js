@@ -56,6 +56,7 @@ $(document).ready(function () {
 // ===============================================================
 //Click Toogle
 document.addEventListener("DOMContentLoaded", function () {
+   
     const toggle = document.getElementById("free-course-toggle");
     const priceInput = document.getElementById("price-input");
     const originalPriceInput = document.getElementById("original-price-input");
@@ -956,8 +957,8 @@ var _newsDetail1 = {
                 //VideoIntro: videoFile,
                 Benefif: _body,  // Giả sử là "Benefit" mà bạn cần sử dụng
                 Status: displayStatus,  // Status of course (Published/Unpublished)
-                Price: $('#Price').val(),
-                OriginalPrice: $('#OriginalPrice').val(),
+                Price: $('#price-input').val(),
+                OriginalPrice: $('#original-price-input').val(),
 
                 Type: $('#ArticleType:checked').val(),
                 //AuthorId: $('#AuthorId').val(),

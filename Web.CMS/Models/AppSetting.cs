@@ -74,8 +74,11 @@ namespace WEB.CMS.Models
         public string KEY_TOKEN_API { get; set; }
         public string KEY_TOKEN_CMS { get; set; }
         public string API_SYNC_ARTICLE { get; set; }
+        public string API_SYNC_COURSE { get; set; }
         public string API_SYNC_CATEGORY { get; set; }
         public string API_URL { get; set; }
+        public string API_URL2 { get; set; }
+
         public string ROLE_ADMIN { get; set; }
         public string LoginURL { get; set; }
         public string SIZE_IMG { get; set; }
