@@ -356,7 +356,7 @@ public partial class DataMSContext : DbContext
         {
             entity.ToTable("ArticleCategory");
 
-            entity.Property(e => e.UpdateLast).HasColumnType("datetime");
+            //entity.Property(e => e.UpdateLast).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<ArticleRelated>(entity =>

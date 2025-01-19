@@ -1,7 +1,7 @@
 
 .section-main {
     background: #F1F5F9;
-    padding-left: 100px;
+    padding-left: 55px;
     min-height: 100vh;
     transition: 0.2s all;
     @media (max-width: 600px) {
@@ -247,7 +247,7 @@
 .topnav {
     background: #fff;
     z-index: 10;
-    height: 73px;
+    height: 72px;
     border-bottom: 1px solid #E3EBF3;
     padding: 0 24px;
     display: flex;
@@ -602,13 +602,14 @@
     }
 }
 .menu-left {
-    width: 100px;
+    width: 55px;
     background: #0F2842;
     position: fixed;
-    z-index: 9;
+    z-index: 9999;
     top: 0;
     bottom: 0;
     left: 0;
+    overflow-x: hidden;
     transition: 0.2s all;
     .btn_control_menu{
         background: #2983CE;
@@ -628,10 +629,10 @@
     .logo {
         background: #fff;
         padding: 10px 5px;
-        text-align: center;
+        text-align: left;
         margin-bottom: 0;
         img {
-            height: 50px;
+            width: 45px;
         }
         .after{
             display: none
@@ -649,6 +650,7 @@
             border-radius: 4px;
         }
         ul {
+            width: 200px;
             &>li {
                 margin-bottom: 0;
                 position: relative;
@@ -657,9 +659,10 @@
                     align-items: center;
                     position: relative;
                     text-align: center;
-                    padding: 10px 10px;
-                    display: block;
+                    padding: 10px 12px;
+                    display: flex;
                     font-size: 13px;
+                    gap: 20px;
                     svg{
                         width: 20px;
                         height: 20px;
@@ -670,6 +673,7 @@
                     span{
                         display: block;
                         margin-top: 3px;
+                        opacity: 0;
                     }
                     &.active,&:hover {
                         background: #135591;
@@ -717,18 +721,26 @@
     .out {
         text-align: center;
         color: rgba(255, 255, 255, 0.85);
-        padding: 6px 10px;
-        display: block;
+        padding: 6px 15px;
+        display: flex;
         position: absolute;
         bottom: 20px;
-        width: 100%;
+        gap: 20px;
+        width: 200px;
         svg{
             width: 24px;
             height: 24px;
         }
         span{
             display: block;
+            opacity: 0;
             margin-top: 4px;
+        }
+    }
+    &:hover{
+        width: 200px;
+        .nav-left ul>li>a span, .out span{
+            opacity: 1;
         }
     }
     @media (max-width: 768px) {
