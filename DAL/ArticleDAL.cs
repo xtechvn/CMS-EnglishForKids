@@ -271,7 +271,7 @@ namespace DAL
                                 foreach (var item in ExistList)
                                 {
                                     var deleteModel = await _DbContext.ArticleCategories.FindAsync(item.Id);
-                                    deleteModel.UpdateLast = DateTime.Now;
+                                    //deleteModel.UpdateLast = DateTime.Now;
                                     deleteModel.CategoryId = deleteModel.CategoryId * -1;
                                     deleteModel.ArticleId = deleteModel.ArticleId * -1;
                                     _DbContext.ArticleCategories.Update(deleteModel);
@@ -287,7 +287,7 @@ namespace DAL
                                     {
                                         CategoryId = item,
                                         ArticleId = ArticleId,
-                                        UpdateLast = DateTime.Now
+                                        //UpdateLast = DateTime.Now
                                     };
                                     await _DbContext.ArticleCategories.AddAsync(model);
                                     await _DbContext.SaveChangesAsync();

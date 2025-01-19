@@ -1,4 +1,5 @@
 ﻿using Amazon.Runtime.Internal.Transform;
+using Entities.Models;
 using Entities.ViewModels;
 using Entities.ViewModels.News;
 using Microsoft.AspNetCore.Hosting;
@@ -218,9 +219,9 @@ namespace WEB.CMS.Controllers
                     // Tạo message để push vào queue
                     var j_param = new Dictionary<string, object>
                             {
-                                 { "store_name", "Sp_GetAllArticle" },
-                                { "index_es", "es_hulotoys_sp_get_article" },
-                                {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
+                                 { "store_name", "SP_GetAllArticle" },
+                                { "index_es", "education_sp_getallarticle" },
+                                {"project_type", Convert.ToInt16(ProjectType.EDUCATION) },
                                   {"id" ,articleId }
 
                             };
@@ -283,13 +284,13 @@ namespace WEB.CMS.Controllers
                     var Categories = await _ArticleRepository.GetArticleCategoryIdList(Id);
                     ClearCacheArticle(Id, string.Join(",", Categories));
 
-                    // Tạo message để push vào queue
+                    //// Tạo message để push vào queue
                     var j_param = new Dictionary<string, object>
                             {
-                                  { "store_name", "Sp_GetAllArticle" },
-                                { "index_es", "es_hulotoys_sp_get_article" },
-                                {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
-                                  {"id" , Id }
+                                  { "store_name", "SP_GetAllArticle" },
+                                { "index_es", "education_sp_getallarticle" },
+                                {"project_type", Convert.ToInt16(ProjectType.EDUCATION) },
+                                  {"id" ,Id }
 
                             };
                     var _data_push = JsonConvert.SerializeObject(j_param);

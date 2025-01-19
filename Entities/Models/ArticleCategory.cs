@@ -11,5 +11,5 @@ public partial class ArticleCategory
 
     public long? ArticleId { get; set; }
 
-    public DateTime? UpdateLast { get; set; }
+    //public DateTime? UpdateLast { get; set; }
 }

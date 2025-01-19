@@ -725,7 +725,7 @@ label.radio {
   }
   h3, h4{
     color: #163E64;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 700;
     line-height: 150%; /* 21px */
     margin-bottom: 10px; 
@@ -923,10 +923,11 @@ label.switch {
   position: sticky;
   bottom: 0;
   left: 0;
+  z-index: 1100;
   background: #fff;
   padding-top: 10px;
   padding-bottom: 10px;
-
+  border-top: 1px solid #eee;
   .form-group {
     margin-bottom: 0;
   }
@@ -955,7 +956,22 @@ label.switch {
     }
   }
 }
-
+.tab-khoahoc{
+ 
+  li{
+    padding: 5px;
+    &.active{
+      background: #eee;
+      border-left: 3px solid #000;
+    }
+  }
+  i{
+    font-size: 18px;
+    margin-right: 5px;
+    position: relative;
+    top: 1px;
+  }
+}
 .page-item {
   .page-link {
     color: #474747;
