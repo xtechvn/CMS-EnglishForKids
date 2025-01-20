@@ -381,14 +381,15 @@ namespace WEB.CMS.Controllers
             try
             {
                 var api = new APIService2(_configuration);
-                var apiPrefix = ReadFile.LoadConfig().API_URL + ReadFile.LoadConfig().API_SYNC_ARTICLE;
+                var apiPrefix = ReadFile.LoadConfig().API_URL+ ReadFile.LoadConfig().API_SYNC_ARTICLE;
                 var key_token_api = ReadFile.LoadConfig().KEY_TOKEN_API;
                 HttpClient httpClient = new HttpClient();
                 var j_param = new Dictionary<string, string> {
+                    
                     { "article_id", articleId.ToString() },
-                    { "category_id",ArrCategoryId }
+                    { "category_id","-1" }
                 };
-                api.POST(ReadFile.LoadConfig().API_SYNC_ARTICLE, j_param);
+                api.POST(_configuration["API:Api_get_list_by_article"], j_param);
                 var category_list_id = ArrCategoryId.Split(",");
                 foreach (var item in category_list_id)
                 {
