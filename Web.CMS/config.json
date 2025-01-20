@@ -9,7 +9,7 @@
   "API_SYNC_COURSE": "/api/caching/sync-course.json",
 
   "API_SYNC_CATEGORY": "/api/caching/sync-category.json",
-  "API_URL": "http://qc-api-hulotoy.x-tech.vn",
+  "API_URL": "http://qc-api.truonghoctot.vn",
   "API_URL2": "https://localhost:52596",
   "ROLE_ADMIN": "1",
   "LoginURL": "/Account/Login",
