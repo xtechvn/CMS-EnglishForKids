@@ -27,19 +27,20 @@
     }
 }
 
-<section class="menu-left"style="width:77px !important">
+<section class="menu-left">
 
     @*<a class="btn_control_menu" href="javascripts:;">
         <svg class="icon-svg">
             <use xlink:href="/images/icons/icon.svg#menu"></use>
         </svg>
     </a>*@
-    <h1 class="logo" title="new-ca" href="/">
-        <a href="/" class="before"><img src="/images/menu/Logo_gọn.png" alt=""></a>
-        <a href="/" class="after"><img src="/images/graphics/logo-a.svg" alt=""></a>
+    <h1 class="logo" title="new-ca">
+        <a href="/" class="before"><img src="~/images/graphics/logo.svg" alt=""></a>
+        <a href="/" class="after"><img src="~/images/graphics/logo.svg" alt=""></a>
+
     </h1>
     <div class="nav-left">
-        <ul class="accordion">
+        <ul>
             @*<li class="accordion-item ">
                     <a href="/Order/Index"><i class="fa fa-newspaper-o"></i><span>Đơn hàng</span></a>
                     <span class="click open"></span>
@@ -58,8 +59,8 @@
                     var first_child = _ListMenu.FirstOrDefault(s => s.ParentId == parent.Id && !string.IsNullOrEmpty(s.Link));
                     parent_link = first_child.Link;
                 }
-            <li class="accordion-item " style="margin-bottom: 0 !important">
-                <a class="@(parent.Id == ActivedParentId ? "active" : string.Empty)" href="@parent_link"style="padding:0 !important">
+            <li class="accordion-item " >
+                    <a style="padding:10px 12px;" class="@(parent.Id == ActivedParentId ? "active" : string.Empty)" href="@parent_link" >
                     <img src="@parent.Icon" style="width:24px;"> <span>@parent.Name</span>
                 </a>
                 @if (childDatas!=null && childDatas.Any())

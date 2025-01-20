@@ -1,0 +1,335 @@
+﻿@using Utilities
+@using Utilities.Contants
+@using Entities.ViewModels
+
+@model CourseModel
+
+<!-- CSS Dependencies -->
+<link href="~/lib/tags-input/bootstrap-tagsinput.css" rel="stylesheet" />
+<style>
+    .bootstrap-tagsinput .tag {
+        display: inline-block;
+        margin: 5px 2px 5px 0px;
+        color: #000;
+        background: #D9D9D9;
+        padding: 5px 5px 5px 10px;
+    }
+
+    .bootstrap-tagsinput {
+        width: 100%;
+    }
+
+    .user-hierarchy-tag ul .lever2 {
+        padding-left: 15px;
+    }
+
+    .loading {
+        position: absolute;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.479);
+    }
+
+        .loading img {
+            width: 2rem;
+        }
+
+    .check-list {
+        display: inline-block !important;
+    }
+
+    #video_preview_container {
+        position: relative;
+    }
+
+    #choose_video_button {
+        margin-top: 10px;
+        display: inline-block;
+    }
+
+    <style >
+    /* Container chứa Tabs và Nội dung */
+    .tab-content-container {
+        display: flex; /* Bố trí Tabs và Nội dung ngang hàng */
+        flex-wrap: nowrap; /* Không cho phép thành phần con xuống dòng */
+    }
+
+    /* Tabs bên trái */
+    .side-left {
+        flex: 0 0 250px; /* Tabs có chiều rộng cố định */
+        max-width: 250px;
+        padding: 10px;
+        border-right: 1px solid #ccc; /* Đường kẻ ngăn cách Tabs và Nội dung */
+    }
+
+    /* Nội dung bên phải */
+    .tab-content {
+        flex: 1; /* Chiếm toàn bộ phần còn lại của container */
+        padding: 20px;
+        display: none; /* Ẩn tất cả nội dung mặc định */
+    }
+
+        /* Tab hiển thị */
+        .tab-content.active {
+            display: block;
+        }
+
+    /* Tab được chọn */
+    .tab-link.active label {
+        font-weight: bold;
+        color: #007bff;
+    }
+
+</style>
+
+
+<div id="course-info" class="col-lg-10 col-md-9 box-thongtin tab-content active">
+    <!-- Header Section -->
+    <div class="line-bottom" style="padding-bottom: 0;">
+        <h2>Trang tổng quan khóa học</h2>
+        <p>
+            Khi bạn hoàn thành phần này, hãy nghĩ đến việc tạo Trang tổng quan khóa học hấp dẫn thể hiện lý do ai đó muốn ghi danh khóa học của bạn.
+            Tìm hiểu thêm về <a href="#" class="underline">cách tạo trang tổng quan khóa học của bạn</a> và
+            <a href="#" class="underline">các tiêu chuẩn tiêu đề khóa học</a>.
+        </p>
+    </div>
+
+    <!-- Course Information Form -->
+    <div class="box-thongtin">
+        <input type="hidden" asp-for="@Model.Id" />
+
+        <!-- Course Title -->
+        <div class="block-content">
+            <h3>Tiêu đề khóa học</h3>
+            <div class="custom-input">
+                <input type="text" class="form-control" asp-for="@Model.Title"
+                       placeholder="Nhập tiêu đề khóa học..." maxlength="300">
+                <label class="custom-label">0/300</label>
+            </div>
+            <p class="color-gray">
+                Tiêu đề của bạn không những phải thu hút sự chú ý, chứa nhiều thông tin mà còn được tối ưu hóa để dễ tìm kiếm
+            </p>
+        </div>
+
+        <!-- Course Summary -->
+        <div class="block-content">
+            <h3>Tóm tắt khóa học</h3>
+            <div class="custom-input">
+                <textarea class="form-control" asp-for="@Model.Description"
+                          placeholder="Nhập tóm tắt khóa học..." maxlength="400"></textarea>
+                <label class="custom-label">0/400</label>
+            </div>
+            <p class="color-gray">
+                Sử dụng 1 hoặc 2 từ khóa có liên quan và đề cập đến 3-4 lĩnh vực quan trọng nhất mà bạn đã đề cập trong khóa học của bạn.
+            </p>
+        </div>
+
+        <!-- Course Details -->
+        <div class="block-content">
+            <h3>Mô tả khóa học</h3>
+            <textarea rows="4" class="form-control" id="text-editor" asp-for="@Model.Benefif"></textarea>
+            <p class="color-gray">Mô tả phải dài ít nhất là 200 từ.</p>
+        </div>
+
+        <!-- Course Tags -->
+            @* <div class="block-content">
+        <h3>Thêm từ khoá cho khóa học</h3>
+        <input type="text" class="form-control" id="news-tag"
+        value="@(Model.Tags != null && Model.Tags.Count > 0 ? string.Join(",", Model.Tags) : string.Empty)"
+        placeholder="Nhập từ khóa và nhấn Enter...">
+        </div> *@
+
+        <!-- Course Category -->
+            @* <div class="block-content">
+        <h3>Thông tin cơ bản</h3>
+        <div class="user-hierarchy-tag" style="border: 1px solid #CCCCCC;border-radius: 3px;padding:15px;margin:0">
+        <div class="scrollbar-inner">
+        <ul class="user-hierarchy-ul mb0" id="detail-cate-panel">
+        @Html.Raw(_StrTreeViewCate)
+        </ul>
+        </div>
+        </div>
+        </div> *@
+
+
+        <div class="block-content">
+            <h3>Thông tin cơ bản</h3>
+            <div class="row">
+                <!-- Danh mục cha -->
+                <div class="col-md-5">
+                    <select id="parent-category" class="select2 w-100">
+                        <option value="">- Chọn thể loại -</option>
+                            @foreach (var category in ViewBag.MainCategories)
+                            {
+                            <option value="@category.Id" selected="@(ViewBag.SelectedParentCategory == category.Id ? "selected" : null)">
+                                    @category.Name
+                            </option>
+                            }
+                    </select>
+                </div>
+
+                <!-- Danh mục con -->
+                <div class="col-md-7">
+                    <select id="child-category" class="select2 w-100">
+                        <option value="">- Chọn thể loại con -</option>
+                            @if (ViewBag.ChildCategories != null)
+                            {
+                                foreach (var subCategory in ViewBag.ChildCategories)
+                                {
+                                <option value="@subCategory.Id" selected="@(ViewBag.SelectedChildCategory == subCategory.Id ? "selected" : null)">
+                                        @subCategory.Name
+                                </option>
+                                }
+                            }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <div class="block-content">
+            <h3>Hình ảnh khóa học</h3>
+            <div class="row">
+                <div class="col-md-5">
+                    <!-- Khung hiển thị ảnh -->
+                    <div id="image_preview_container" class="border p-3 text-center" style="width: 100%; max-width: 750px;">
+                        <!-- Croppie sẽ hiển thị tại đây -->
+                        <div id="croppie-container" style="display: none;"></div>
+                        <!-- Ảnh đã cắt hoặc gốc -->
+                        <img id="img_16x9" src="@Model.Thumbnail" alt="Course Thumbnail" style="max-width: 100%; border: 1px solid #ddd; display: @(!string.IsNullOrEmpty(Model.Thumbnail) ? "block" : "none");">
+                        <!-- Placeholder khi chưa chọn ảnh -->
+                        <p id="image_placeholder" style="color: #888; font-style: italic; display: @(!string.IsNullOrEmpty(Model.Thumbnail) ? "none" : "block");">
+                            Hiện chưa có ảnh được chọn.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <p class="mb-0">
+                        Tải hình ảnh khóa học lên tại đây. Để được chấp nhận, hình ảnh phải đáp ứng
+                        <a href="#" class="text-primary">tiêu chuẩn chất lượng hình ảnh khóa học</a>.
+                    </p>
+                    <p>Kích thước tối đa: 1 MB. Định dạng: jpg, jpeg, png, bmp, gif.</p>
+                    <div class="custom-file mt-3">
+                        <input type="file" class="custom-file-input" id="image_file" accept="image/*">
+                        <label class="custom-file-label" for="image_file">Không có file nào được chọn</label>
+                    </div>
+                    <div class="mt-3">
+                        <button type="button" id="btn-cropimage" class="btn btn-primary" style="display: none;">Cắt bớt hình ảnh</button>
+                        <button type="button" id="btn-cancel-crop" class="btn btn-secondary" style="display: none;">Hủy bỏ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+        <!-- Course Video -->
+        <div class="block-content">
+            <h3>Video giới thiệu</h3>
+            <div class="row">
+                <div class="col-md-5">
+                    <div id="video_preview_container" style="text-align: center; margin-bottom: 15px;">
+                            @if (!string.IsNullOrEmpty(Model.VideoIntro))
+                            {
+                            <video id="video_intro_preview" controls style="max-width: 100%; max-height: 300px;">
+                                <source id="video_intro_src" src="@Model.VideoIntro" type="video/mp4">
+                                Trình duyệt của bạn không hỗ trợ video.
+                            </video>
+                            }
+                            else
+                            {
+                            <p id="video_placeholder" style="color: #888; font-style: italic;">
+                                Hiện chưa có video được chọn.
+                            </p>
+                            }
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <p class="mb-0">
+                        Video quảng cáo của bạn là một cách nhanh chóng và hấp dẫn để học viên xem trước những gì họ sẽ học.
+                        <a href="#" class="text-primary">Tìm hiểu cách tạo video quảng cáo thu hút!</a>
+                    </p>
+                    <p>Kích thước tối đa của video là 100MB.</p>
+                    <div class="custom-file mt-3">
+                        <input type="file" class="custom-file-input" id="video_intro_file" accept="video/*">
+                        <label class="custom-file-label" for="video_intro_file">Không có video nào được chọn</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!-- Form Actions -->
+<div class="bottom-action flex align-items-center justify-content-center mt20 gap10">
+
+    @if (Model.Status != ArticleStatus.PUBLISH)
+    {
+        if (Model.Id <= 0)
+        {
+
+            <button type="button" class="btn btn-default orange line round" onclick="_newsDetail1.OnSave('@ArticleStatus.SAVE')">
+                <i class="fa fa-floppy-o"></i>Lưu bản nháp
+            </button>
+
+            <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@ArticleStatus.PUBLISH')">
+                <i class="fa fa-clipboard"></i>Lưu
+            </button>
+        }
+        else
+        {
+
+
+
+            <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@ArticleStatus.PUBLISH')">
+                <i class="fa fa-clipboard"></i>Lưu
+            </button>
+        }
+    }
+
+
+    @*  <button type="button" class="btn btn-default gray" onsubmit="return false" onclick="_newsDetail1.OnOpenRelationForm('@Model.Id')">
+    Thêm tin liên quan
+    </button> *@
+    @if (Model.Status == ArticleStatus.PUBLISH)
+    {
+        @*  <button type="button" id="ha_bai_viet" class="btn btn-default red open-popup" onclick="_newsDetail1.OnChangeArticleStatus('@Model.Id','@ArticleStatus.REMOVE')">
+    Hạ bài viết
+    </button> *@
+
+        @if (Model.Status == ArticleStatus.REMOVE || Model.Status == ArticleStatus.SAVE)
+        {
+            <button type="button" class="btn btn-default orange line dashed round" onclick="_newsDetail1.OnDelete('@Model.Id')">
+                Xóa bài viết
+            </button>
+        }
+
+        <button type="button" class="btn btn-default orange line round" onclick="_newsDetail1.OnSave('@ArticleStatus.SAVE')">
+            <i class="fa fa-floppy-o"></i>Lưu bản nháp
+        </button>
+
+        <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@ArticleStatus.PUBLISH')">
+            <i class="fa fa-clipboard"></i>Lưu
+        </button>
+    }
+
+
+
+</div>
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/lib/tags-input/bootstrap-tagsinput.js"></script>
+    <script src="~/lib/tags-input/typeahead.js"></script>
+    <script src="~/modules/course/courses_detail.js"></script>
+
+}
