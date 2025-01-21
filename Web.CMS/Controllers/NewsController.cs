@@ -387,7 +387,7 @@ namespace WEB.CMS.Controllers
                 var j_param = new Dictionary<string, string> {
                     
                     { "article_id", articleId.ToString() },
-                    { "category_id","-1" }
+                    { "category_id",ArrCategoryId }
                 };
                 api.POST(_configuration["API:Api_get_list_by_article"], j_param);
                 var category_list_id = ArrCategoryId.Split(",");
