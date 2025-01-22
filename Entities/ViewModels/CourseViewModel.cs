@@ -60,6 +60,8 @@ namespace Entities.ViewModels
         public List<int> Categories { get; set; }
         public List<int> RelatedCourseTagIds { get; set; }
         public List<CourseRelationModel> RelatedCourseList { get; set; }
+        //public int MainCategoryId { get; set; }
+        //public int? SubCategoryId { get; set; } // Danh mục phụ
         public DateTime PublishDate { get; set; }
         
         public DateTime? DownTime { get; set; }

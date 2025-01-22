@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Entities.Models;
+using Entities.ViewModels.Attachment;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +17,9 @@ namespace Entities.ViewModels
         public string VideoDuration { get; set; } // Thời lượng bài giảng (vd: "1 giờ 20 phút")
         public string Thumbnail { get; set; }
         public string ThumbnailName { get; set; }
+        public int? IsDelete { get; set; }
+
+        public List<AttachFile> Files { get; set; }
 
         public int View {  get; set; }
         public  string Author { get; set; }

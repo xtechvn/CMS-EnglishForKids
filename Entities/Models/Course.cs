@@ -40,6 +40,8 @@ public partial class Course
     public string UpdatedBy { get; set; }
     public DateTime? UpdatedDate { get; set; } // Nullable if update is not always done.
     public int? Position { get; set; }
+    //public int MainCategoryId { get; set; }
+    //public int? SubCategoryId { get; set; }
 
     public virtual ICollection<CourseRelated> CourseRelateds { get; set; } = new List<CourseRelated>();
 

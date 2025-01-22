@@ -137,4 +137,17 @@ app.MapControllerRoute(name: "ProductDetail",
  defaults: new { controller = "Product", action = "Detail" });
 
 
+//app.MapControllerRoute(
+//       name: "Detail",
+//       pattern: "{controller=Courses}/{action=Detail}/{courseId?}");
+
+//app.MapControllerRoute(
+//    name: "detailPartial",
+//    pattern: "courses/partial/detail/{courseId}",
+//    defaults: new { controller = "Courses", action = "LoadCourse" });
+
+//app.MapControllerRoute(
+//    name: "chapterPartial",
+//    pattern: "courses/partial/chapter/{courseId}",
+//    defaults: new { controller = "Courses", action = "Chapters" });
 app.Run();
