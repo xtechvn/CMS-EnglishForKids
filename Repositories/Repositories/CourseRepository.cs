@@ -237,42 +237,33 @@ namespace Repositories.Repositories
                 return new List<ChapterViewModel>();
             }
         }
-        public List<AttachFile> GetFilesByLessonIdAsync(int lessonId)
+        public List<AttachFile> GetFilesByLessonIds(List<int> lessonIds)
         {
+            if (lessonIds == null || lessonIds.Count == 0)
+                return new List<AttachFile>();
+
             try
             {
-                var dataTable = _CourseDAL.GetFilesByLessonIdAsync(lessonId);
-                var files = new List<AttachFile>();
-
-                if (dataTable == null || dataTable.Rows.Count == 0)
+                var dataTable = _CourseDAL.GetFilesByLessonIds(lessonIds);
+                return dataTable.AsEnumerable().Select(row => new AttachFile
                 {
-                    return new List<AttachFile>();
-                }
-
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    files.Add(new AttachFile
-                    {
-                        Id = Convert.ToInt32(row["Id"]),
-                        DataId = Convert.ToInt32(row["DataId"]),
-                        UserId = Convert.ToInt32(row["UserId"]),
-                        Type = Convert.ToInt32(row["Type"]),
-                        Path = Path.GetFileName(row["Path"].ToString()), // Chỉ lấy tên file
-                        Ext = row["Ext"].ToString(),
-                        Capacity = Convert.ToSingle(row["Capacity"]),
-                        CreateDate = Convert.ToDateTime(row["CreateDate"])
-                    });
-                }
-
-                return files;
-
+                    Id = row.Field<long>("Id"),
+                    DataId = row.Field<long>("DataId"),
+                    UserId = row.Field<int>("UserId"),
+                    Type = row.Field<int>("Type"),
+                    Path = Path.GetFileName(row.Field<string>("Path")),
+                    Ext = row.Field<string>("Ext"),
+                    Capacity = row.Field<double>("Capacity"),
+                    CreateDate = row.Field<DateTime>("CreateDate")
+                }).ToList();
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("GetInvoiceRequests - InvoiceRequestRepository: " + ex);
+                LogHelper.InsertLogTelegram("Error in GetFilesByLessonIds: " + ex);
                 return new List<AttachFile>();
             }
         }
+
 
         public async Task<Chapters> GetChapterByIdAsync(int id)
         {

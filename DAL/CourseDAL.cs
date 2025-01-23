@@ -284,23 +284,25 @@ namespace DAL
                 throw;
             }
         }
-        public DataTable GetFilesByLessonIdAsync(int lessonId)
+        public DataTable GetFilesByLessonIds(List<int> lessonIds)
         {
             try
             {
+                var idsParam = string.Join(",", lessonIds);
+                SqlParameter[] objParam = new SqlParameter[]
+                {
+            new SqlParameter("@LessonIds", idsParam)
+                };
 
-                SqlParameter[] objParam = new SqlParameter[1];
-                objParam[0] = new SqlParameter("@LessonId", lessonId);
                 return _DbWorker.GetDataTable(StoreProcedureConstant.SP_GetAttachFilesByLessonId, objParam);
-              
             }
             catch (Exception ex)
             {
-                // Ghi log hoặc xử lý ngoại lệ
-                Console.WriteLine($"Error fetching lesson by ID: {ex.Message}");
-                throw;
+                LogHelper.InsertLogTelegram("Error in GetFilesByLessonIds: " + ex);
+                return null;
             }
         }
+
 
         public async Task<int> DeleteLessonAsync(int id)
         {

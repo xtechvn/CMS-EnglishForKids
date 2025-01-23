@@ -86,91 +86,92 @@
     <a href="#edit-khoahoc-popup" class="open-popup btn btn-default orange line dashed round mb-3 mt-3" id="btn-add-chapter">Thêm Tiết Học</a>
 </section> *@
 
-    <section class="main-container clearfix">
-        <div id="chapter-list">
-            @if (Model != null && Model.Count > 0)
-            {
-                <div style="max-width:100%">
-                    <div class="line-bottom">
-                        <h2>Chương trình giảng dạy</h2>
-                    </div>
+<section class="main-container clearfix">
+    <div id="chapter-list">
+        @if (Model != null && Model.Count > 0)
+        {
+            <div style="max-width:100%">
+                <div class="line-bottom">
+                    <h2>Chương trình giảng dạy</h2>
+                </div>
 
-                    <div class="box-thongtin">
-                        <p>
-                            Hãy bắt đầu xây dựng khóa học của bạn bằng cách tạo các phần, bài giảng và bài thực hành
-                            (<a href="" class="text-primary">trắc nghiệm và bài tập</a>).
-                            Sử dụng <a href="" class="text-primary">đề cương khóa học</a> của
-                            bạn để cấu trúc nội dung của bạn và gắn nhãn
-                            các phần và bài giảng của bạn một cách rõ ràng. Nếu bạn định cung cấp khóa học miễn phí, tổng
-                            thời lượng của nội dung video phải dưới 2 giờ.
-                        </p>
+                <div class="box-thongtin">
+                    <p>
+                        Hãy bắt đầu xây dựng khóa học của bạn bằng cách tạo các phần, bài giảng và bài thực hành
+                        (<a href="" class="text-primary">trắc nghiệm và bài tập</a>).
+                        Sử dụng <a href="" class="text-primary">đề cương khóa học</a> của bạn để cấu trúc nội dung và gắn nhãn
+                        các phần và bài giảng của bạn một cách rõ ràng. Nếu bạn định cung cấp khóa học miễn phí, tổng thời lượng của nội dung video phải dưới 2 giờ.
+                    </p>
 
-                        @foreach (var chapter in Model.Where(c => c.IsDelete == 0))
-                        {
-                            <div class="block-chap block-item" data-item-id="@chapter.Id" data-item-type="Chapter">
-                                <div class="item-header">
-                                    <h6>
-                                        <span class="tt-phan">Phần @chapter.Id:</span>
-                                        <span class="item-title">@chapter.Title</span>
-                                        <a href="javascript:void(0)" class="btn-edit-item" data-item-id="@chapter.Id" data-item-type="Chapter">
-                                            <i class="icofont-ui-edit edit"></i>
-                                        </a>
-                                        <a href="javascript:void(0)" class="btn-delete-item" data-item-id="@chapter.Id" data-item-type="Chapter">
-                                            <i class="icofont-trash del"></i>
-                                        </a>
-                                    </h6>
-                                </div>
+                    @foreach (var chapter in Model.Where(c => c.IsDelete == 0))
+                    {
+                        <div class="block-chap block-item" data-item-id="@chapter.Id" data-item-type="Chapter">
+                            <div class="item-header">
+                                <h6>
+                                    <span class="tt-phan">Phần @chapter.Id:</span>
+                                    <span class="item-title">@chapter.Title</span>
+                                    <a href="javascript:void(0)" class="btn-edit-item" data-item-id="@chapter.Id" data-item-type="Chapter">
+                                        <i class="icofont-ui-edit edit"></i>
+                                    </a>
+                                    <a href="javascript:void(0)" class="btn-delete-item" data-item-id="@chapter.Id" data-item-type="Chapter">
+                                        <i class="icofont-trash del"></i>
+                                    </a>
+                                </h6>
+                            </div>
 
-                                <div class="item-content">
-                                    <!-- Form sửa sẽ được thêm động tại đây -->
-                                </div>
+                            <div class="item-content">
+                                <!-- Form sửa sẽ được thêm động tại đây -->
+                            </div>
 
-                                @foreach (var lesson in chapter.Lessons.Where(l => l.IsDelete == 0))
-                                {
-                                    <div class="box-add-chap block-item" data-item-id="@lesson.Id" data-item-type="Lesson" data-parent-id="@chapter.Id">
-                                  
-                                        <div class="lesson-block" id="lesson_@lesson.Id">
+                            @foreach (var lesson in chapter.Lessons.Where(l => l.IsDelete == 0))
+                            {
+                                <div class="box-add-chap block-item" data-item-id="@lesson.Id" data-item-type="Lesson" data-parent-id="@chapter.Id">
+                                    <div class="lesson-block" id="lesson_@lesson.Id">
 
-                                            <div class="lesson-item">
-                                                <div class="lesson-header title-block txt_16 mb-0 justify-content-between w-100">
-                                                    <div class="lesson-info">
-                                                        <i class="icofont-check-circled mt-1 mr-2"></i>
-                                                        <span class="text-nowrap">Bài giảng @lesson.Id:</span>
-                                                        <span class="item-title"><i class="icofont-file-alt mr-2"></i>@lesson.Title</span>
-                                                        <a href="javascript:void(0)" class="btn-edit-item" data-item-id="@lesson.Id" data-item-type="Lesson">
-                                                            <i class="icofont-ui-edit edit"></i>
-                                                        </a>
-                                                        <a href="javascript:void(0)" class="btn-delete-item" data-item-id="@lesson.Id" data-item-type="Lesson">
-                                                            <i class="icofont-trash del"></i>
-                                                        </a>
-                                                    </div>
-                                                    <div class="action-buttons">
-                                                        <span class="btn btn-default white min2 btn-toggle-content">
-                                                            <i class="icofont-plus mr-2"></i>Nội dung
-                                                        </span>
+                                        <div class="lesson-item">
+                                            <div class="lesson-header title-block txt_16 mb-0 justify-content-between w-100">
+                                                <div class="lesson-info">
+                                                    <i class="icofont-check-circled mt-1 mr-2"></i>
+                                                    <span class="text-nowrap">Bài giảng @lesson.Id:</span>
+                                                    <span class="item-title"><i class="icofont-file-alt mr-2"></i>@lesson.Title</span>
+                                                    <a href="javascript:void(0)" class="btn-edit-item" data-item-id="@lesson.Id" data-item-type="Lesson">
+                                                        <i class="icofont-ui-edit edit"></i>
+                                                    </a>
+                                                    <a href="javascript:void(0)" class="btn-delete-item" data-item-id="@lesson.Id" data-item-type="Lesson">
+                                                        <i class="icofont-trash del"></i>
+                                                    </a>
+                                                </div>
+                                                <div class="action-buttons">
+                                                    <span class="btn btn-default white min2 btn-toggle-content">
+                                                        <i class="icofont-plus mr-2"></i>Nội dung
+                                                    </span>
                                                     <button type="button" class="btn-chevron" onclick="toggleContent('lesson_@lesson.Id')">
                                                         <i class="icofont-rounded-down"></i>
                                                     </button>
-                                                        <i class="icofont-navigation-menu move"></i>
-                                                    </div>
                                                 </div>
-                                                <div class="lesson-content" style="display: none;">
+                                            </div>
 
-                                                <div class="common-panel" data-current-panel="default">
-                                                    <!-- Nội dung mặc định (Mô tả và Tài nguyên) -->
+                                            <div class="lesson-content-wrapper" style="display: none;">
+                                                <div class="common-panel card" data-current-panel="default">
+                                                    <!-- Panel Mặc Định (Mô tả và Tài nguyên) -->
                                                     <div class="panel-default">
                                                         <button class="btn-action btn-description">
-                                                            <i class="icofont-plus"></i>
-                                                            Mô tả
+                                                            <i class="icofont-plus"></i> Mô tả
                                                         </button>
                                                         <button class="btn-action btn-resource">
-                                                            <i class="icofont-plus"></i>
-                                                            Tài nguyên
+                                                            <i class="icofont-plus"></i> Tài nguyên
                                                         </button>
                                                     </div>
 
                                                     <!-- Panel Nội dung -->
                                                     <div class="panel-content" style="display: none;">
+                                                        <div class="content-header">
+                                                            <span class="dynamic-title">Chọn loại nội dung</span>
+                                                            <button type="button" class="btn-close-content">
+                                                                <i class="icofont-close"></i> 
+                                                            </button>
+                                                        </div>
+                                                        <p>Chọn loại nội dung chính. Có thể thêm file và đường liên kết dưới dạng tài nguyên.</p>
                                                         <div class="content-options">
                                                             <div class="option-box" data-type="video">
                                                                 <i class="icofont-play-alt-1 icon-lg"></i>
@@ -178,7 +179,7 @@
                                                             </div>
                                                             <div class="option-box">
                                                                 <i class="icofont-file-powerpoint icon-lg"></i>
-                                                                <span>Bài giảng kết hợp video & trình bày</span>
+                                                                <span>Bài giảng kết hợp video</span>
                                                             </div>
                                                             <div class="option-box">
                                                                 <i class="icofont-file-text icon-lg"></i>
@@ -189,130 +190,85 @@
 
                                                     <!-- Panel Upload Video -->
                                                     <div class="panel-upload-video" style="display: none;">
+                                                        <div class="content-header">
+                                                            <span class="dynamic-title">Chọn loại Video</span>
+                                                            <button type="button" class="btn-close-content">
+                                                                <i class="icofont-close"></i> 
+                                                            </button>
+                                                        </div>
                                                         <h5>Thêm Video</h5>
                                                         <div class="custom-file">
                                                             <input type="file" class="custom-file-input auto-upload" id="lessonFile_@lesson.Id" name="attachFiles" data-lesson-id="@lesson.Id" multiple>
                                                             <label class="custom-file-label" for="lessonFile_@lesson.Id">Không có file nào được chọn</label>
                                                         </div>
                                                     </div>
-
-                                                </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <!-- Panel chọn nội dung -->
-                                        <div class="content-panel" style="display: none;">
-                                            <div class="content-options">
-                                                <div class="option-box" data-type="video">
-                                                    <i class="icofont-play-alt-1 icon-lg"></i>
-                                                    <span>Video</span>
-                                                </div>
-                                                <div class="option-box">
-                                                    <i class="icofont-file-powerpoint icon-lg"></i>
-                                                    <span>Bài giảng kết hợp video & trình bày</span>
-                                                </div>
-                                                <div class="option-box">
-                                                    <i class="icofont-file-text icon-lg"></i>
-                                                    <span>Bài viết</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Panel upload video -->
-                                        <div class="video-upload-panel" style="display: none;">
-                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                <h5>Thêm Video</h5>
-                                                <button type="button" class="btn-close">
-                                                    <i class="icofont-close"></i>
-                                                </button>
-                                            </div>
-                                            <div class="tab-default mt-2">
-                                                <a href="#" class="active">File có thể tải xuống</a>
-                                            </div>
-
-                                            <div class="custom-file">
-                                                <input type="file" class="custom-file-input auto-upload" id="lessonFile_@lesson.Id" name="attachFiles" data-lesson-id="@lesson.Id" multiple>
-                                                <label class="custom-file-label" for="lessonFile_@lesson.Id">Không có file nào được chọn</label>
-                                            </div>
-
-                                            <div class="upload-progress mt-2" style="display: none;">
-                                                <div class="progress">
-                                                    <div class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                            </div>
-                                            <p class="color-gray mt-2">
-                                                Lưu ý: Tài nguyên áp dụng cho bất kỳ loại tài liệu nào có thể dùng để trợ giúp
-                                                học viên khi họ nghe giảng. File này sẽ được coi là bài giảng bổ sung. Hãy đảm
-                                                bảo rằng nội dung tài nguyên rõ ràng, dễ đọc và có kích thước file dưới 200Mb.
-                                                Chấp nhận định dạng: mp3, pdf, audio, jpg, mp4
-                                            </p>
-
-                                        </div>
-
-                                        <div class="item-content2">
-                                            <table class="file-list-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Tên file</th>
-                                                        <th>Loại</th>
-                                                        <th>Kích thước</th>
-                                                        <th>Ngày</th>
-
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="fileList_@lesson.Id">
-                                                    @if (lesson.Files != null && lesson.Files.Count > 0)
-                                                    {
-                                                        foreach (var file in lesson.Files)
-                                                        {
-                                                            <tr>
-                                                                <td>@file.Path</td>
-                                                                <td>@file.Ext</td>
-                                                                <td>@(file.Capacity / 1024) KB</td>
-                                                                <td>@file.CreateDate</td>
-
-                                                            </tr>
-                                                        }
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        <div class="item-content">
-                                            <!-- Form sửa sẽ được thêm động tại đây -->
                                         </div>
                                     </div>
-                                }
 
-                                <div class="box-add-chap p-0 border-0 bg-transparent">
-                                    <a href="javascript:void(0)" class="btn btn-default btn-add-content" data-parent-id="@chapter.Id">
-                                        <i class="icofont-plus mr-2"></i>Mục trong khung chương trình
-                                    </a>
-                                    <div class="content-options" style="display: none; margin-top: 10px;">
-                                        <a href="javascript:void(0)" class="text-primary btn-add-type" data-type="Lesson" data-parent-id="@chapter.Id">
-                                            <i class="icofont-plus mr-2"></i>Bài giảng
-                                        </a>
-                                        <a href="javascript:void(0)" class="text-primary btn-add-type" data-type="Quiz" data-parent-id="@chapter.Id">
-                                            <i class="icofont-plus mr-2"></i>Trắc nghiệm
-                                        </a>
+                                    <!-- Hiển thị danh sách file đã tải -->
+                                    <div class="item-content2">
+                                        <table class="file-list-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tên file</th>
+                                                    <th>Loại</th>
+                                                    <th>Kích thước</th>
+                                                    <th>Ngày</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="fileList_@lesson.Id">
+                                                @if (lesson.Files != null && lesson.Files.Count > 0)
+                                                {
+                                                    foreach (var file in lesson.Files)
+                                                    {
+                                                        <tr>
+                                                            <td>@file.Path</td>
+                                                            <td>@file.Ext</td>
+                                                            <td>@(file.Capacity / 1024) KB</td>
+                                                            <td>@file.CreateDate</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="item-content">
+                                        <!-- Form sửa sẽ được thêm động tại đây -->
                                     </div>
                                 </div>
+                            }
+                            <div class="box-add-chap p-0 border-0 bg-transparent">
+                                <a href="javascript:void(0)" class="btn btn-default btn-add-content" data-parent-id="@chapter.Id">
+                                    <i class="icofont-plus mr-2"></i>Mục trong khung chương trình
+                                </a>
+                                <div class="content-options" style="display: none; margin-top: 10px;">
+                                    <a href="javascript:void(0)" class="text-primary btn-add-type" data-type="Lesson" data-parent-id="@chapter.Id">
+                                        <i class="icofont-plus mr-2"></i>Bài giảng
+                                    </a>
+                                    <a href="javascript:void(0)" class="text-primary btn-add-type" data-type="Quiz" data-parent-id="@chapter.Id">
+                                        <i class="icofont-plus mr-2"></i>Trắc nghiệm
+                                    </a>
+                                </div>
                             </div>
-                        }
+                        </div>
+                    }
 
-                        <button type="button" class="btn btn-primary btn-add-type" data-type="Chapter">
-                            <i class="icofont-plus mr-2"></i>Phần
-                        </button>
-                    </div>
+                    <button type="button" class="btn btn-primary btn-add-type" data-type="Chapter">
+                        <i class="icofont-plus mr-2"></i>Phần
+                    </button>
                 </div>
-            }
-            else
-            {
-                <p>Chưa có tiết học nào được thêm.</p>
-            }
-        </div>
-    </section>
+            </div>
+        }
+        else
+        {
+            <p>Chưa có tiết học nào được thêm.</p>
+        }
+    </div>
+</section>
+
 
 <style>
     .lesson-item {
@@ -320,7 +276,12 @@
         border: 1px solid #e5e7eb;
         border-radius: 8px;
         margin-bottom: 8px;
+        transition: box-shadow 0.2s ease;
     }
+
+        .lesson-item:hover {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
 
     .lesson-header {
         display: flex;
@@ -344,7 +305,13 @@
     .edit-btn, .delete-btn {
         color: #6b7280;
         text-decoration: none;
+        cursor: pointer;
+        transition: color 0.2s;
     }
+
+        .edit-btn:hover, .delete-btn:hover {
+            color: #4f46e5;
+        }
 
     .action-buttons {
         display: flex;
@@ -363,7 +330,13 @@
         color: #6b7280;
         font-size: 14px;
         cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
     }
+
+        .btn-content:hover {
+            background-color: #f9fafb;
+            color: #4f46e5;
+        }
 
     .btn-chevron {
         padding: 4px;
@@ -375,8 +348,12 @@
         .btn-chevron i {
             font-size: 20px;
             color: #6b7280;
-            transition: transform 0.2s;
+            transition: transform 0.2s, color 0.2s;
         }
+
+            .btn-chevron i:hover {
+                color: #4f46e5;
+            }
 
         .btn-chevron.active i {
             transform: rotate(180deg);
@@ -386,6 +363,7 @@
         padding: 12px 16px;
         border-top: 1px solid #e5e7eb;
         display: flex;
+        flex-direction: column;
         gap: 8px;
     }
 
@@ -400,13 +378,27 @@
         color: #6366f1;
         font-size: 14px;
         cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
+
+        .btn-action:hover {
+            background-color: #eef2ff;
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
 
     .icofont-navigation-menu {
         color: #6b7280;
         cursor: move;
     }
 
+    .common-panel {
+        padding: 15px;
+        background-color: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
 
     .content-options {
         display: flex;
@@ -436,11 +428,27 @@
         .option-box:hover {
             background-color: #f8f9fa;
             border-color: #adb5bd;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
     .icon-lg {
         font-size: 24px;
         margin-bottom: 8px;
+    }
+
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 16px;
+    }
+
+    .dynamic-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
     }
 
     .upload-tabs {
@@ -483,18 +491,26 @@
         font-size: 20px;
         padding: 0;
         cursor: pointer;
+        color: #6c757d;
+        transition: color 0.2s;
     }
+
+        .btn-close:hover {
+            color: #dc3545;
+        }
 
     .video-upload-panel {
         padding: 20px;
         background: white;
         border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .content-panel, .video-upload-panel {
         margin: 15px;
+        display: none;
     }
+
 </style>
 
 

@@ -586,71 +586,81 @@ $(document).on("click", ".btn-add-content", function () {
 });
 
 
-// Xử lý nút Nội dung mới
+
+// Mở/Đóng lesson-content-wrapper khi nhấn nút Chevron
 function toggleContent(lessonId) {
-    const lesson = document.getElementById(lessonId); // Tìm lesson block dựa vào id
+    const lesson = document.getElementById(lessonId);
     if (!lesson) {
         console.error(`Lesson with id "${lessonId}" not found`);
         return;
     }
 
-    const content = lesson.querySelector('.lesson-content'); // Lấy phần nội dung
-    const chevron = lesson.querySelector('.btn-chevron'); // Lấy nút chevron
+    const wrapper = lesson.querySelector(".lesson-content-wrapper");
+    const chevron = lesson.querySelector(".btn-chevron i");
 
-    // Kiểm tra trạng thái hiển thị và thực hiện toggle
-    if (content.style.display === 'none') {
-        content.style.display = 'flex'; // Hiển thị
-        chevron.classList.add('active'); // Xoay chevron
+    // Toggle hiển thị lesson-content-wrapper
+    if (wrapper.style.display === "none" || wrapper.style.display === "") {
+        wrapper.style.display = "block"; // Hiển thị wrapper
+        chevron.classList.remove("icofont-rounded-down");
+        chevron.classList.add("icofont-rounded-up");
     } else {
-        content.style.display = 'none'; // Ẩn
-        chevron.classList.remove('active'); // Reset chevron
+        wrapper.style.display = "none"; // Ẩn wrapper
+        chevron.classList.remove("icofont-rounded-up");
+        chevron.classList.add("icofont-rounded-down");
     }
 }
+
+
 // Khi nhấn "Nội dung"
 $(document).on("click", ".btn-toggle-content", function () {
     const lessonBlock = $(this).closest(".lesson-block");
-    const wrapper = lessonBlock.find(".lesson-content");
+    const wrapper = lessonBlock.find(".lesson-content-wrapper");
     const commonPanel = wrapper.find(".common-panel");
-    const currentPanel = commonPanel.attr("data-current-panel");
-   
-    // Ẩn panel hiện tại nếu không phải mặc định
-    if (currentPanel && currentPanel !== "default") {
-        wrapper.find(`.panel-${currentPanel}`).hide();
-    }
 
     // Ẩn panel mặc định (Mô tả và Tài nguyên)
     wrapper.find(".panel-default").hide();
 
-    // Hiển thị panel Nội dung
+    // Hiển thị panel Nội dung và cập nhật tiêu đề động
     commonPanel.attr("data-current-panel", "content");
     wrapper.find(".panel-content").show();
-    wrapper.show(); // Đảm bảo wrapper không bị ẩn
+    wrapper.find(".dynamic-title").text("Chọn loại nội dung");
+
+    // Đảm bảo khu vực lesson-content-wrapper hiển thị
+    wrapper.show();
 });
 
-// Xử lý click vào option video
-$(document).on("click", '.option-box[data-type="video"]', function () {
-    const lessonBlock = $(this).closest('.box-add-chap');
-    const contentPanel = lessonBlock.find('.content-panel');
-    const videoPanel = lessonBlock.find('.video-upload-panel');
+// Khi chọn "Video"
+$(document).on("click", ".option-box[data-type='video']", function () {
+    const wrapper = $(this).closest(".lesson-content-wrapper");
+    const commonPanel = wrapper.find(".common-panel");
 
-    contentPanel.slideUp();
-    videoPanel.slideDown();
+    // Ẩn các panel khác
+    wrapper.find(".panel-default, .panel-content").hide();
+
+    // Hiển thị panel Upload Video và cập nhật tiêu đề động
+    commonPanel.attr("data-current-panel", "upload-video");
+    wrapper.find(".panel-upload-video").show();
+    wrapper.find(".dynamic-title").text("Chọn loại Video");
 });
 
-// Xử lý nút đóng
-$(document).on('click', '.btn-close', function (e) {  // Thêm tham số e vào đây
-    e.preventDefault();
-    e.stopPropagation();
 
-    const lessonBlock = $(this).closest('.box-add-chap');
-    const contentPanel = lessonBlock.find('.content-panel');
-    const videoPanel = lessonBlock.find('.video-upload-panel');
+// Khi nhấn vào dấu "X" trong bất kỳ panel nào
+$(document).on("click", ".btn-close-content", function () {
+    const wrapper = $(this).closest(".lesson-content-wrapper");
+    const commonPanel = wrapper.find(".common-panel");
 
-    contentPanel.slideUp(200);  // Thêm animation cho mượt
-    videoPanel.slideUp(200);
+    // Ẩn tất cả các panel
+    wrapper.find(".panel-content, .panel-upload-video").hide();
+
+    // Hiển thị panel mặc định và cập nhật tiêu đề động
+    commonPanel.attr("data-current-panel", "default");
+    wrapper.find(".panel-default").show();
+    wrapper.find(".dynamic-title").text("Chọn loại nội dung");
 });
+
 
 $(document).on("change", ".custom-file-input.auto-upload", function () {
+    debugger
     const input = $(this);
     const files = this.files;
     const lessonId = input.data("lesson-id");
@@ -663,6 +673,7 @@ $(document).on("change", ".custom-file-input.auto-upload", function () {
         formData.append("lessonId", lessonId);
 
         $.ajax({
+
             url: "/Courses/UploadFile",
             type: "POST",
             data: formData,
@@ -673,6 +684,7 @@ $(document).on("change", ".custom-file-input.auto-upload", function () {
                 $(".progress-bar").css("width", "0%");
             },
             xhr: function () {
+              
                 const xhr = new XMLHttpRequest();
                 xhr.upload.addEventListener("progress", function (e) {
                     if (e.lengthComputable) {
@@ -699,6 +711,7 @@ $(document).on("change", ".custom-file-input.auto-upload", function () {
 
 // Render danh sách file
 function renderFileList(lessonId, files) {
+    debugger
     const fileList = $(`#fileList_${lessonId}`);
     fileList.empty(); // Xóa danh sách cũ
 

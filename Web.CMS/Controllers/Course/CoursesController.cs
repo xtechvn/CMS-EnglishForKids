@@ -343,24 +343,64 @@ namespace Web.CMS.Controllers.Course
         }
 
         public async Task<IActionResult> Chapters(int courseId)
-                {
+        {
             if (courseId <= 0)
             {
                 return RedirectToAction("Detail");
             }
-            var ChapterLesson = _CourseRepository.GetListChapterLessionBySourceId(courseId);
-            foreach (var chapter in ChapterLesson)
+
+            // Lấy danh sách chapter và lesson trong một lần gọi
+            var chapterLessons = _CourseRepository.GetListChapterLessionBySourceId(courseId);
+
+            // Tạo danh sách lessonId để truy vấn file
+            var lessonIds = chapterLessons
+                .SelectMany(chapter => chapter.Lessons.Select(lesson => lesson.Id))
+                .Distinct()
+                .ToList();
+
+            // Lấy tất cả file của các lesson trong một lần gọi
+            var allFiles = _CourseRepository.GetFilesByLessonIds(lessonIds);
+
+            // Map file theo lessonId
+            var fileLookup = allFiles.GroupBy(file => file.DataId).ToDictionary(group => group.Key, group => group.ToList());
+
+            // Gán file vào từng lesson
+            foreach (var chapter in chapterLessons)
             {
                 foreach (var lesson in chapter.Lessons)
                 {
-                    lesson.Files =  _CourseRepository.GetFilesByLessonIdAsync(lesson.Id);
+                    lesson.Files = fileLookup.ContainsKey(lesson.Id) ? fileLookup[lesson.Id] : new List<AttachFile>();
                 }
             }
 
-
             ViewBag.CourseId = courseId;
-            return PartialView("Chapters", ChapterLesson);
+            return PartialView("Chapters", chapterLessons);
         }
+        //[HttpGet]
+        //public JsonResult GetLessonFiles(int lessonId)
+        //{
+        //    if (lessonId <= 0)
+        //    {
+        //        return Json(new { success = false, message = "LessonId không hợp lệ." });
+        //    }
+
+        //    try
+        //    {
+        //        // Lấy danh sách file cho bài giảng dựa trên lessonId
+        //        var files = _CourseRepository.GetFilesByLessonIds(lessonId);
+
+        //        // Trả về danh sách file dưới dạng JSON
+        //        return Json(new { success = true, data = files });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log lỗi và trả về thông báo lỗi
+        //        LogHelper.InsertLogTelegram($"Error in GetLessonFiles: {ex}");
+        //        return Json(new { success = false, message = "Đã xảy ra lỗi khi tải file." });
+        //    }
+        //}
+
+
 
         [HttpPost]
         public async Task<IActionResult> AddorUpdateItem([FromBody] ItemViewModel model)
@@ -445,7 +485,7 @@ namespace Web.CMS.Controllers.Course
 
                 foreach (var file in files)
                 {
-                    var filePath = await UpLoadHelper.UploadFileOrImage(file, lessonId, 35);
+                    var filePath = await UpLoadHelper.UploadFileOrImage(file, lessonId, 40);
                     if (!string.IsNullOrEmpty(filePath))
                     {
                         // Tạo đối tượng AttachFile
