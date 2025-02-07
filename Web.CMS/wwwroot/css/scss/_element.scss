@@ -4753,7 +4753,10 @@ label.switch {
         display: flex;
         align-items: center;
         gap: 10px;
-      
+        @media (max-width:1100px) {
+                flex-wrap: wrap;
+        }
+
         i{
             cursor: pointer;
         }
@@ -4773,6 +4776,9 @@ label.switch {
         }
         .edit, .del{
             display: none;
+        }
+        .title-block{
+            margin-top: 5px;
         }
         .title-block:hover{
             .edit, .del{
@@ -4824,5 +4830,32 @@ label.switch {
     }
     i{
         cursor: pointer;
+    }
+}
+.list{
+    margin-left: 30px;
+    li{
+        list-style-type: disc;
+    }
+}
+.btn-file{
+    display: inline-block;
+    height: auto;
+    text-align: center;
+    width: 120px;
+    margin: 0 10px;
+    i{
+        display: block;
+        font-size: 30px;
+        margin:10px auto;
+    }
+}
+.edit-tainguyen{
+    align-items: center;
+    justify-content: space-between;
+    img{
+        width: 150px;
+        height: 90px;
+        object-fit: cover;
     }
 }

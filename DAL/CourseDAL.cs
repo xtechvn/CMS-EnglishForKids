@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Utilities;
 using Utilities.Contants;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 
 namespace DAL
 {
@@ -98,6 +99,8 @@ namespace DAL
                     entity.Benefif = model.Benefif ?? string.Empty; // Fix potential typo: Benefit?
                     entity.Price = model.Price;
                     entity.OriginalPrice = model.OriginalPrice;
+                    //entity.MainCategoryId = model.MainCategoryId;
+                    //entity.SubCategoryId = model.SubCategoryId;
                     
 
                     entity.Type = model.Type;
@@ -127,6 +130,8 @@ namespace DAL
                         Benefif = model.Benefif ?? string.Empty, // Fix potential typo: Benefit?
                         Price = model.Price,
                         OriginalPrice = model.OriginalPrice,
+                        //MainCategoryId = model.MainCategoryId,
+                        //SubCategoryId = model.SubCategoryId,
 
                         Type = model.Type,
                         AuthorId = model.AuthorId,
@@ -248,6 +253,22 @@ namespace DAL
             return Convert.ToInt32(parameters.Last().Value); // Lấy ID từ OUTPUT parameter
         }
 
+        public async Task<Chapters> GetChapterByIdAsync(int id)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    return await _DbContext.Chapters.FirstOrDefaultAsync(l => l.Id == id);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Ghi log hoặc xử lý ngoại lệ
+                Console.WriteLine($"Error fetching lesson by ID: {ex.Message}");
+                throw;
+            }
+        }
         public async Task<Lessions> GetLessonByIdAsync(int id)
         {
             try
@@ -264,6 +285,25 @@ namespace DAL
                 throw;
             }
         }
+        public DataTable GetFilesByLessonIds(List<int> lessonIds)
+        {
+            try
+            {
+                var idsParam = string.Join(",", lessonIds);
+                SqlParameter[] objParam = new SqlParameter[]
+                {
+            new SqlParameter("@LessonIds", idsParam)
+                };
+
+                return _DbWorker.GetDataTable(StoreProcedureConstant.SP_GetAttachFilesByLessonId, objParam);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("Error in GetFilesByLessonIds: " + ex);
+                return null;
+            }
+        }
+
 
         public async Task<int> DeleteLessonAsync(int id)
         {
@@ -278,9 +318,12 @@ namespace DAL
                         {
                            
 
-                            var lesson = await _DbContext.Lessions.FindAsync(id);
-                            _DbContext.Lessions.Remove(lesson);
-                            await _DbContext.SaveChangesAsync();
+                            var lession = await _DbContext.Lessions.FindAsync(id);
+                            if (lession != null)
+                            {
+                                lession.IsDelete = 1; // Đánh dấu là đã xóa
+                                _DbContext.SaveChanges(); // Lưu thay đổi
+                            }
 
                             transaction.Commit();
                         }
@@ -312,13 +355,11 @@ namespace DAL
                         try
                         {
                             var chapter = await _DbContext.Chapters.FindAsync(chapterId);
-                            if (chapter == null)
+                            if (chapter != null)
                             {
-                                return -1; // Chapter không tồn tại
+                                chapter.IsDelete = 1; // Đánh dấu là đã xóa
+                                _DbContext.SaveChanges(); // Lưu thay đổi
                             }
-
-                            _DbContext.Chapters.Remove(chapter);
-                            await _DbContext.SaveChangesAsync();
                             transaction.Commit();
                         }
                         catch (Exception ex)
@@ -335,6 +376,48 @@ namespace DAL
             {
                 LogHelper.InsertLogTelegram("DeleteChapter - Error: " + ex);
                 return -1;
+            }
+        }
+
+        public async Task<bool> DeleteFilesByLessonId(int lessonId, int fileType)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    using (var transaction = _DbContext.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 🔹 Lấy danh sách file cần xóa từ database
+                            var files = await _DbContext.AttachFiles
+                                .Where(f => f.DataId == lessonId && f.Type == fileType)
+                                .ToListAsync();
+                            if (files != null)
+                            {
+                               
+                                // 🔹 Xóa dữ liệu file trong database
+                                _DbContext.AttachFiles.RemoveRange(files);
+                                await _DbContext.SaveChangesAsync(); // Lưu thay đổi vào DB
+                                
+
+                            }
+                            transaction.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.InsertLogTelegram("DeleteChapter - Transaction Rollback: " + ex);
+                            transaction.Rollback();
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("DeleteChapter - Error: " + ex);
+                return false;
             }
         }
         public async Task<List<Lessions>> GetLessonsByChapterIdAsync(int chapterId)
@@ -385,7 +468,10 @@ namespace DAL
                                 VideoIntro=course.VideoIntro,
                                 CreatedDate = course.CreatedDate ?? DateTime.MinValue,
                                 //DownTime = course.DownTime ?? DateTime.MinValue,
-                                Position = course.Position ?? 0
+                                Position = course.Position ?? 0,
+                               
+                                //MainCategoryId = course.MainCategoryId,
+                                //SubCategoryId = course.SubCategoryId,
                             };
 
                             var TagIds = await _DbContext.CourseTags.Where(s => s.CourseId == course.Id).Select(s => s.TagId).ToListAsync();
@@ -426,6 +512,29 @@ namespace DAL
                 return null;
             }
         }
+
+        public async Task<List<CategoryModel>> GetMainCategories()
+        {
+            using (var _DbContext = new EntityDataContext(_connection))
+            {
+                return await _DbContext.GroupProducts
+                    .Where(c => c.ParentId == -1)
+                    .Select(c => new CategoryModel { Id = c.Id, Name = c.Name })
+                    .ToListAsync();
+            }
+        }
+
+        public async Task<List<CategoryModel>> GetSubCategories(int parentId)
+        {
+            using (var _DbContext = new EntityDataContext(_connection))
+            {
+                return await _DbContext.GroupProducts
+                    .Where(c => c.ParentId == parentId)
+                    .Select(c => new CategoryModel { Id = c.Id, Name = c.Name })
+                    .ToListAsync();
+            }
+        }
+
         public DataTable GetListChapterLessionBySourceId(int courseId)
         {
             try
@@ -522,7 +631,7 @@ namespace DAL
                             }
 
                             if (ListCateId != null && ListCateId.Count > 0)
-                            {
+                            { 
                                 foreach (var item in ListCateId)
                                 {
                                     var model = new CourseCategory

@@ -2,6 +2,7 @@
 using Entities.ConfigModels;
 using Entities.Models;
 using Entities.ViewModels;
+using Entities.ViewModels.Attachment;
 using Entities.ViewModels.Invoice;
 using Microsoft.Extensions.Options;
 using Nest;
@@ -9,6 +10,7 @@ using Repositories.IRepositories;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -65,7 +67,7 @@ namespace Repositories.Repositories
 
                                           CourseCategoryName = row["CategoryName"].ToString(), // Additional fields if needed.
                                           StatusName = row["SourceStatusName"].ToString(),
-                                          
+
                                       }).ToList();
 
                     model.CurrentPage = currentPage;
@@ -84,43 +86,43 @@ namespace Repositories.Repositories
         {
             try
             {
-               Task<string> TBody;
+                Task<string> TBody;
                 #region upload image
                 if (model.Type == 0)
                 {
                     // upload image inside content to static site
-                    TBody=  StringHelpers.ReplaceEditorImage(model.Benefif, _UrlStaticImage);
+                    TBody = StringHelpers.ReplaceEditorImage(model.Benefif, _UrlStaticImage);
                     // upload thumb image via api
-                   
+
                     var T169 = UpLoadHelper.UploadBase64Src(model.Thumbnail, _UrlStaticImage);
 
                     await Task.WhenAll(TBody, T169);
 
                     model.Benefif = TBody.Result;
-                    
+
                     model.Thumbnail = T169.Result;
                 }
                 else
                 {
-                    
+
                     var T169 = UpLoadHelper.UploadBase64Src(model.Thumbnail, _UrlStaticImage);
-                    await Task.WhenAll(  T169);
-                    
+                    await Task.WhenAll(T169);
+
                     model.Thumbnail = T169.Result;
                 }
 
-               
+
                 if (!string.IsNullOrEmpty(model.Thumbnail) && !model.Thumbnail.Contains(_UrlStaticImage))
                 {
                     model.Thumbnail = _UrlStaticImage + model.Thumbnail;
                 }
                 #endregion
-                
+
 
                 #region date
-                if (model.Status == CourseStatus.PUBLISH && model.CreatedDate==DateTime.MinValue)
+                if (model.Status == CourseStatus.PUBLISH && model.CreatedDate == DateTime.MinValue)
                     model.PublishDate = DateTime.Now;
-                
+
                 //if (model.PublishDate != DateTime.MinValue && model.DownTime == DateTime.MinValue)
                 //    model.DownTime = model.PublishDate.AddHours(1);
                 #endregion
@@ -188,7 +190,7 @@ namespace Repositories.Repositories
         }
 
 
-        public  List<ChapterViewModel> GetListChapterLessionBySourceId(int courseId)
+        public List<ChapterViewModel> GetListChapterLessionBySourceId(int courseId)
         {
             try
             {
@@ -200,27 +202,33 @@ namespace Repositories.Repositories
                 }
 
                 // Ánh xạ dữ liệu từ DataTable sang List<ChapterViewModel>
-                var chapters = dataTable.AsEnumerable()
-                    .GroupBy(row => row.Field<int>("ChapterId"))
-                    .Select(group => new ChapterViewModel
-                    {
-                        Id = group.Key,
-                        Title = group.FirstOrDefault()?.Field<string>("ChapterTile"),
-                        
-                        //CourseId = group.FirstOrDefault()?.Field<int>("SourceId"), // Ánh xạ SourceId vào CourseId
-                        Lessons = group.Select(row => new LessonViewModel
-                        {
-                            Id = row.Field<int>("LessionId"),
-                            Title = row.Field<string>("LessionTitle"),
-                            Author = row.Field<string>("Author"),
-                            Thumbnail = row.Field<string>("Thumbnail"),
-                            ThumbnailName = row.Field<string>("ThumbnailName"),
+                    var chapters = dataTable.AsEnumerable()
+        .GroupBy(row => row.Field<int>("ChapterId"))
+        .Select(group => new ChapterViewModel
+        {
+            Id = group.Key,
+            Title = group.FirstOrDefault()?.Field<string>("ChapterTile"),
+            IsDelete = group.FirstOrDefault()?.Field<int>("ChapterIsDelete"),
 
-                            VideoDuration = row.Field<string>("VideoDuration")
-                        }).ToList()
-                    }).ToList();
+
+            //CourseId = group.FirstOrDefault()?.Field<int>("SourceId"), // Ánh xạ SourceId vào CourseId
+            Lessons = group.Any(row => row.Field<int?>("LessionId") != null) // Kiểm tra nếu có ít nhất 1 lesson
+                ? group.Where(row => row.Field<int?>("LessionId") != null).Select(row => new LessonViewModel
+                {
+                    Id = row.Field<int>("LessionId"),
+                    Title = row.Field<string>("LessionTitle"),
+                    //Author = row.Field<string>("Author"),
+                    //Thumbnail = row.Field<string>("Thumbnail"),
+                    //ThumbnailName = row.Field<string>("ThumbnailName"),
+                    //VideoDuration = row.Field<string>("VideoDuration"),
+                    IsDelete = row.Field<int>("LessionIsDelete"),
+                    //Files = _AttachFileRepository.GetFilesByLessonId(row.Field<int>("LessionId")) // Lấy danh sách file cho mỗi lesson
+                }).ToList()
+                : new List<LessonViewModel>() // Nếu không có lesson nào, trả về danh sách rỗng
+        }).ToList();    
 
                 return chapters;
+
 
             }
             catch (Exception ex)
@@ -229,26 +237,62 @@ namespace Repositories.Repositories
                 return new List<ChapterViewModel>();
             }
         }
+        public List<AttachFile> GetFilesByLessonIds(List<int> lessonIds)
+        {
+            if (lessonIds == null || lessonIds.Count == 0)
+                return new List<AttachFile>();
 
+            try
+            {
+                var dataTable = _CourseDAL.GetFilesByLessonIds(lessonIds);
+                return dataTable.AsEnumerable().Select(row => new AttachFile
+                {
+                    Id = row.Field<long>("Id"),
+                    DataId = row.Field<long>("DataId"),
+                    UserId = row.Field<int>("UserId"),
+                    Type = row.Field<int>("Type"),
+                    Path = Path.GetFileName(row.Field<string>("Path")),
+                    Ext = row.Field<string>("Ext"),
+                    Capacity = row.Field<double>("Capacity"),
+                    CreateDate = row.Field<DateTime>("CreateDate")
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("Error in GetFilesByLessonIds: " + ex);
+                return new List<AttachFile>();
+            }
+        }
+
+
+        public async Task<Chapters> GetChapterByIdAsync(int id)
+        {
+            return await _CourseDAL.GetChapterByIdAsync(id);
+        }
         public async Task<Lessions> GetLessonByIdAsync(int id)
         {
             return await _CourseDAL.GetLessonByIdAsync(id);
         }
+       
 
         public async Task<int> DeleteLessonAsync(int id)
         {
-            
+
             return await _CourseDAL.DeleteLessonAsync(id);
         }
 
         public async Task<int> DeleteChapterAsync(int id)
         {
-            return await _CourseDAL.DeleteChapterAsync(id); 
+            return await _CourseDAL.DeleteChapterAsync(id);
         }
 
         public async Task<List<Lessions>> GetLessonsByChapterIdAsync(int chapterid)
         {
             return await _CourseDAL.GetLessonsByChapterIdAsync(chapterid);
+        }
+        public async Task<bool> DeleteFilesByLessonId(int lessonId, int fileType)
+        {
+            return await _CourseDAL.DeleteFilesByLessonId(lessonId , fileType);
         }
 
 
@@ -348,8 +392,39 @@ namespace Repositories.Repositories
                 return null;
             }
         }
+        public async Task<List<CategoryModel>> GetMainCategories()
+        {
+            try
+            {
+                return await _CourseDAL.GetMainCategories();
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"[CMS] CourseRepository - GetMainCategories: {ex}");
+                return new List<CategoryModel>();
+            }
+        }
 
-        
+        public async Task<List<CategoryModel>> GetSubCategories(int parentId)
+        {
+            try
+            {
+                return await _CourseDAL.GetSubCategories(parentId);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"[CMS] CourseRepository - GetSubCategories: {ex}");
+                return new List<CategoryModel>();
+            }
+        }
+
+     
+
+
+
+
+
+
 
 
 

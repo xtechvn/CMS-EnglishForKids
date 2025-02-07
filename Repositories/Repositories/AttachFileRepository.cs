@@ -190,5 +190,31 @@ namespace Repositories.Repositories
                 return null;
             }
         }
+
+        public async Task<AttachFile> GetAttachFileById(long fileId)
+        {
+            try
+            {
+                return await _AttachFileDAL.GetAttachFileById(fileId);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetListByDataID - AttachFileRepository: " + ex);
+                return null;
+            }
+        }
+
+        public async Task<bool> DeleteAttachFile(long fileId)
+        {
+            try
+            {
+                return await _AttachFileDAL.DeleteAttachFile(fileId);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetListByDataID - AttachFileRepository: " + ex);
+                return false;
+            }
+        }
     }
 }

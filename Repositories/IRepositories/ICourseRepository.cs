@@ -1,5 +1,6 @@
 ﻿using Entities.Models;
 using Entities.ViewModels;
+using Entities.ViewModels.Attachment;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,7 +19,12 @@ namespace Repositories.IRepositories
         Task<int> SaveLesson(Lessions model);
         //string ServerFile(CourseModel model);
         Task<CourseModel> GetCourseDetail(int Id);
+        Task<List<CategoryModel>> GetMainCategories();
+        Task<List<CategoryModel>> GetSubCategories(int parentId);
         Task<Lessions> GetLessonByIdAsync(int id);
+        Task<Chapters> GetChapterByIdAsync(int id);
+        List<AttachFile> GetFilesByLessonIds(List<int> lessonIds);
+        Task<bool> DeleteFilesByLessonId(int lessonId, int fileType);
         Task<int> DeleteLessonAsync(int id);
 
         Task<int> DeleteChapterAsync(int id);

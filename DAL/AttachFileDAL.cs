@@ -17,7 +17,8 @@ namespace DAL
     {
         private DbWorker dbWorker;
 
-        public AttachFileDAL(string connection) : base(connection) {
+        public AttachFileDAL(string connection) : base(connection)
+        {
             dbWorker = new DbWorker(connection);
         }
         public async Task<List<AttachFile>> GetListByType(long DataId, int Type)
@@ -29,7 +30,7 @@ namespace DAL
                     return await _DbContext.AttachFiles.Where(s => s.DataId == DataId && s.Type == Type).ToListAsync();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 LogHelper.InsertLogTelegram("GetListByType - AttachFileDAL: " + ex);
                 return new List<AttachFile>();
@@ -58,8 +59,8 @@ namespace DAL
             {
                 using (var _DbContext = new EntityDataContext(_connection))
                 {
-                    var data = await _DbContext.AttachFiles.AsNoTracking().FirstOrDefaultAsync(s => s.Path == attachFile.Path && s.Type ==attachFile.Type && s.DataId==attachFile.DataId && s.Ext==attachFile.Ext);
-                    if(data!=null && data.Id > 0)
+                    var data = await _DbContext.AttachFiles.AsNoTracking().FirstOrDefaultAsync(s => s.Path == attachFile.Path && s.Type == attachFile.Type && s.DataId == attachFile.DataId && s.Ext == attachFile.Ext);
+                    if (data != null && data.Id > 0)
                     {
                         return data.Id;
                     }
@@ -87,14 +88,44 @@ namespace DAL
                 return null;
             }
         }
+        public async Task<AttachFile> GetAttachFileById(long fileId)
+        {
+            using (var _DbContext = new EntityDataContext(_connection))
+            {
+                return await _DbContext.AttachFiles
+                .FirstOrDefaultAsync(f => f.Id == fileId);
+            }
+
+        }
+        public async Task<bool> DeleteAttachFile(long fileId)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    var file = await _DbContext.AttachFiles.FindAsync(fileId);
+                    if (file == null) return false;
+
+                    _DbContext.AttachFiles.Remove(file);
+                    await _DbContext.SaveChangesAsync();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("CheckIfAttachFileExists - AttachFileDAL: " + ex);
+                return false;
+            }
+
+        }
         public async Task<long> SaveAttachFileURL(AttachFile attachFile)
         {
             try
             {
                 using (var _DbContext = new EntityDataContext(_connection))
                 {
-                    var exists= await _DbContext.AttachFiles.Where(s => s.Id==attachFile.Id && s.DataId == attachFile.DataId && s.Type == attachFile.Type && s.Path==attachFile.Path).FirstOrDefaultAsync();
-                    if(exists!=null && exists.Id > 0)
+                    var exists = await _DbContext.AttachFiles.Where(s => s.Id == attachFile.Id && s.DataId == attachFile.DataId && s.Type == attachFile.Type && s.Path == attachFile.Path).FirstOrDefaultAsync();
+                    if (exists != null && exists.Id > 0)
                     {
                         return exists.Id;
                     }
@@ -102,13 +133,13 @@ namespace DAL
                     {
                         var new_attach = new AttachFile()
                         {
-                            Capacity=attachFile.Capacity,
-                            CreateDate=DateTime.Now,
-                            DataId=attachFile.DataId,
-                            Ext=attachFile.Ext,
-                            Path=attachFile.Path,
-                            Type=attachFile.Type,
-                            UserId=attachFile.UserId
+                            Capacity = attachFile.Capacity,
+                            CreateDate = DateTime.Now,
+                            DataId = attachFile.DataId,
+                            Ext = attachFile.Ext,
+                            Path = attachFile.Path,
+                            Type = attachFile.Type,
+                            UserId = attachFile.UserId
                         };
                         _DbContext.AttachFiles.Add(new_attach);
 
@@ -123,13 +154,13 @@ namespace DAL
                 return -1;
             }
         }
-        public async Task<int> DeleteNonExistsAttachFile(List<long> remain_ids, long data_id,  int service_type)
+        public async Task<int> DeleteNonExistsAttachFile(List<long> remain_ids, long data_id, int service_type)
         {
             try
             {
                 using (var _DbContext = new EntityDataContext(_connection))
                 {
-                    var exists = await _DbContext.AttachFiles.Where(s =>  s.DataId == data_id && s.Type == service_type && !remain_ids.Contains(s.Id)).ToListAsync();
+                    var exists = await _DbContext.AttachFiles.Where(s => s.DataId == data_id && s.Type == service_type && !remain_ids.Contains(s.Id)).ToListAsync();
                     if (exists != null && exists.Count > 0)
                     {
                         _DbContext.AttachFiles.RemoveRange(exists);
