@@ -290,6 +290,10 @@ namespace Repositories.Repositories
         {
             return await _CourseDAL.GetLessonsByChapterIdAsync(chapterid);
         }
+        public async Task<bool> DeleteFilesByLessonId(int lessonId, int fileType)
+        {
+            return await _CourseDAL.DeleteFilesByLessonId(lessonId , fileType);
+        }
 
 
 
@@ -414,7 +418,9 @@ namespace Repositories.Repositories
             }
         }
 
-       
+     
+
+
 
 
 

@@ -87,9 +87,15 @@
 </section> *@
 
 <section class="main-container clearfix">
+
+    @* <textarea class="form-control" id="text-editor-chapter"></textarea> *@
     <div id="chapter-list">
+       
+
+        
         @if (Model != null && Model.Count > 0)
         {
+           
             <div style="max-width:100%">
                 <div class="line-bottom">
                     <h2>Chương trình giảng dạy</h2>
@@ -105,6 +111,7 @@
 
                     @foreach (var chapter in Model.Where(c => c.IsDelete == 0))
                     {
+                       
                         <div class="block-chap block-item" data-item-id="@chapter.Id" data-item-type="Chapter">
                             <div class="item-header">
                                 <h6>
@@ -122,13 +129,15 @@
                             <div class="item-content">
                                 <!-- Form sửa sẽ được thêm động tại đây -->
                             </div>
+                            
 
                             @foreach (var lesson in chapter.Lessons.Where(l => l.IsDelete == 0))
                             {
+                                
                                 <div class="box-add-chap block-item" data-item-id="@lesson.Id" data-item-type="Lesson" data-parent-id="@chapter.Id">
                                     <div class="lesson-block" id="lesson_@lesson.Id">
 
-                                        <div class="lesson-item">
+                                        <div class="">
                                             <div class="lesson-header title-block txt_16 mb-0 justify-content-between w-100">
                                                 <div class="lesson-info">
                                                     <i class="icofont-check-circled mt-1 mr-2"></i>
@@ -142,98 +151,166 @@
                                                     </a>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    <span class="btn btn-default white min2 btn-toggle-content">
-                                                        <i class="icofont-plus mr-2"></i>Nội dung
-                                                    </span>
+                                                    @if (lesson.Files == null || lesson.Files.Count == 0)
+                                                    {
+                                                        <span class="btn btn-default white min2 btn-toggle-content">
+                                                            <i class="icofont-plus mr-2"></i>Nội dung
+                                                        </span>
+                                                    }
                                                     <button type="button" class="btn-chevron" onclick="toggleContent('lesson_@lesson.Id')">
                                                         <i class="icofont-rounded-down"></i>
                                                     </button>
                                                 </div>
                                             </div>
-
+                                            
                                             <div class="lesson-content-wrapper" style="display: none;">
                                                 <div class="common-panel card" data-current-panel="default">
-                                                    <!-- Panel Mặc Định (Mô tả và Tài nguyên) -->
+                                                    <!-- Panel Mặc Định  -->
                                                     <div class="panel-default">
-                                                        <button class="btn-action btn-description">
-                                                            <i class="icofont-plus"></i> Mô tả
-                                                        </button>
-                                                        <button class="btn-action btn-resource">
-                                                            <i class="icofont-plus"></i> Tài nguyên
-                                                        </button>
-                                                    </div>
 
-                                                    <!-- Panel Nội dung -->
-                                                    <div class="panel-content" style="display: none;">
-                                                        <div class="content-header">
-                                                            <span class="dynamic-title">Chọn loại nội dung</span>
-                                                            <button type="button" class="btn-close-content">
-                                                                <i class="icofont-close"></i> 
-                                                            </button>
-                                                        </div>
-                                                        <p>Chọn loại nội dung chính. Có thể thêm file và đường liên kết dưới dạng tài nguyên.</p>
-                                                        <div class="content-options">
-                                                            <div class="option-box" data-type="video">
-                                                                <i class="icofont-play-alt-1 icon-lg"></i>
-                                                                <span>Video</span>
-                                                            </div>
-                                                            <div class="option-box">
-                                                                <i class="icofont-file-powerpoint icon-lg"></i>
-                                                                <span>Bài giảng kết hợp video</span>
-                                                            </div>
-                                                            <div class="option-box">
-                                                                <i class="icofont-file-text icon-lg"></i>
-                                                                <span>Bài viết</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                        <!-- Hiển thị danh sách file đã tải -->
+                                                        <div class="item-content2">
+                                                            <table class="file-list-table w-100 mb-2">
+                                                                @if (lesson.Files != null && lesson.Files.Count > 0)
+                                                                {
+                                                                    <thead class="thead1">
+                                                                        <tr>
+                                                                            <th>Tên file</th>
+                                                                            <th>Loại</th>
+                                                                            <th>Trạng Thái</th>
+                                                                            <th>Ngày</th>
 
-                                                    <!-- Panel Upload Video -->
-                                                    <div class="panel-upload-video" style="display: none;">
-                                                        <div class="content-header">
-                                                            <span class="dynamic-title">Chọn loại Video</span>
-                                                            <button type="button" class="btn-close-content">
-                                                                <i class="icofont-close"></i> 
-                                                            </button>
+                                                                        </tr>
+                                                                    </thead>
+                                                                }
+
+                                                                <tbody id="fileList_@lesson.Id">
+                                                                    @if (lesson.Files != null && lesson.Files.Any(f => f.Type == 40))
+                                                                    {
+                                                                        foreach (var file in lesson.Files.Where(f => f.Type == 40))
+                                                                        {
+                                                                            <tr id="file_@lesson.Id-@(file.Path != null ? file.Path.Split('/').Last().Replace(" ", "_") : "unknown")">
+
+                                                                                <td>@file.Path</td>
+                                                                                <td>@file.Ext</td>
+                                                                                <td>
+                                                                                    <span class="progress-text" id="progress-text-@lesson.Id-@(file.Id)">Hoàn thành</span>
+                                                                                </td>
+
+                                                                                <td>@file.CreateDate</td>
+                                                                                <td>
+                                                                                    <a href="javascript:void(0)" class="btn btn-primary btn-replace-video" data-lesson-id="@lesson.Id" data-type="video">
+                                                                                        Thay thế
+                                                                                    </a>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+
                                                         </div>
-                                                        <h5>Thêm Video</h5>
-                                                        <div class="custom-file">
-                                                            <input type="file" class="custom-file-input auto-upload" id="lessonFile_@lesson.Id" name="attachFiles" data-lesson-id="@lesson.Id" multiple>
-                                                            <label class="custom-file-label" for="lessonFile_@lesson.Id">Không có file nào được chọn</label>
+
+
+                                                        <!-- Box hiển thị tài liệu có thể tải xuống -->
+                                                        <div class="box-tailieu" id="boxTailieu_@lesson.Id" style="display: @(lesson.Files != null && lesson.Files.Any(f => f.Type == 50) ? "block" : "none")">
+                                                            @if (lesson.Files != null && lesson.Files.Any(f => f.Type == 50))
+                                                            {
+                                                                <h6>Tài liệu có thể tải xuống</h6>
+                                                            }
+                                                            <table class="file-list-table w-100">
+                                                                <tbody id="downloadList_@lesson.Id">
+                                                                    @if (lesson.Files != null && lesson.Files.Any(f => f.Type == 50))
+                                                                    {
+                                                                        foreach (var file in lesson.Files.Where(f => f.Type == 50).OrderBy(f => f.CreateDate))
+                                                                        {
+                                                                            <tr id="file_@file.Id">
+                                                                                <td>
+                                                                                    <a href="@file.Path" target="_blank">
+                                                                                        <i class="icofont-download mr-1"></i>@file.Path.Split('/').Last()
+                                                                                    </a>
+                                                                                </td>
+                                                                                <td class="text-right">
+                                                                                    <i class="icofont-trash btn-delete-file" data-file-id="@file.Id" data-lesson-id="@lesson.Id" style="cursor:pointer;"></i>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+                                                                    }
+                                                                </tbody>
+                                                            </table>
                                                         </div>
+
+
+                                                        <button type="button" class="btn btn-default white min2 btn-resource" data-lesson-id="@lesson.Id" data-type="resource">
+                                                            Tài nguyên
+                                                        </button>
+
+
                                                     </div>
+                                                    
+                                                        <!-- Panel Nội dung -->
+                                                        <div class="panel-content" style="display: none;">
+                                                            <div class="content-header">
+                                                                <span class="dynamic-title">Chọn loại nội dung</span>
+                                                                <a href="javascript:void(0)" class="btn-close-content">
+                                                                    <i class="icofont-close"></i>
+                                                                </a>
+                                                            </div>
+                                                            <p>Chọn loại nội dung chính. Có thể thêm file và đường liên kết dưới dạng tài nguyên.</p>
+                                                            <div class="content-options">
+                                                                <a href="javascript:void(0)" class="btn btn-default white btn-file" data-type="video">
+                                                                    <i class="icofont-file-flv"></i> Video
+                                                                </a>
+                                                            <a href="javascript:void(0)" class="btn btn-default white btn-file" data-type="article" data-item-id="@lesson.Id">
+                                                                    <i class="icofont-file-alt"></i> Bài viết
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    <!-- Panel Upload chung (Dùng cho cả Video & Tài nguyên) -->
+
+                                                    <div class="panel-upload-video" data-type="video" style="display: none;">
+                                                            <div class="content-header">
+                                                                <span class="dynamic-title">Chọn loại Video</span>
+                                                                <a href="javascript:void(0)" class="btn-close-content">
+                                                                    <i class="icofont-close"></i>
+                                                                </a>
+                                                            </div>
+                                                            <div class="custom-file">
+                                                            <input type="file" class="custom-file-input auto-upload" id="lessonFile_@lesson.Id" data-lesson-id="@lesson.Id" name="attachFiles" multiple>
+                                                                <label class="custom-file-label" for="lessonFile_@lesson.Id">Không có file nào được chọn</label>
+                                                            </div>
+                                                            <p class="color-gray mt-2">
+                                                                Lưu ý: Tài nguyên áp dụng cho bất kỳ loại tài liệu nào có thể dùng để trợ giúp học viên khi họ nghe giảng.
+                                                                File này sẽ được coi là bài giảng bổ sung. Hãy đảm bảo rằng nội dung tài nguyên rõ ràng, dễ đọc và có kích
+                                                                thước file dưới 200Mb. Chấp nhận định dạng: mp3, pdf, audio, jpg, mp4.
+                                                            </p>
+                                                        </div>
+
+                                                        <!-- Panel Upload Bài Viết -->
+                                                        <div class="panel-upload-article" style="display: none;">
+                                                            <div class="content-header">
+                                                            <h6 class="mb-0">Văn bản</h6>
+                                                                <a href="javascript:void(0)" class="btn-close-content">
+                                                                    <i class="icofont-close"></i>
+                                                                </a>
+                                                            </div>
+                                                        <!-- Sử dụng ID động -->
+                                                        <textarea class="form-control text-editor-article" id="text-editor-chapter-@lesson.Id"></textarea>
+                                                        <div class="text-right">
+                                                            <a href="" class="btn btn-default" style="margin-top: 15px;">Lưu</a>
+                                                        </div>
+                                                           
+                                                        </div>
+                                                       
+                                                   
+                                                   
+
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+                                    
 
-                                    <!-- Hiển thị danh sách file đã tải -->
-                                    <div class="item-content2">
-                                        <table class="file-list-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Tên file</th>
-                                                    <th>Loại</th>
-                                                    <th>Kích thước</th>
-                                                    <th>Ngày</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="fileList_@lesson.Id">
-                                                @if (lesson.Files != null && lesson.Files.Count > 0)
-                                                {
-                                                    foreach (var file in lesson.Files)
-                                                    {
-                                                        <tr>
-                                                            <td>@file.Path</td>
-                                                            <td>@file.Ext</td>
-                                                            <td>@(file.Capacity / 1024) KB</td>
-                                                            <td>@file.CreateDate</td>
-                                                        </tr>
-                                                    }
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div>
 
                                     <div class="item-content">
                                         <!-- Form sửa sẽ được thêm động tại đây -->
@@ -241,10 +318,10 @@
                                 </div>
                             }
                             <div class="box-add-chap p-0 border-0 bg-transparent">
-                                <a href="javascript:void(0)" class="btn btn-default btn-add-content" data-parent-id="@chapter.Id">
+                                <a href="javascript:void(0)" class="btn btn-default white btn-add-content" data-parent-id="@chapter.Id">
                                     <i class="icofont-plus mr-2"></i>Mục trong khung chương trình
                                 </a>
-                                <div class="content-options" style="display: none; margin-top: 10px;">
+                                <div class="content-options lesquiz" style="display: none; margin-top: 10px;">
                                     <a href="javascript:void(0)" class="text-primary btn-add-type" data-type="Lesson" data-parent-id="@chapter.Id">
                                         <i class="icofont-plus mr-2"></i>Bài giảng
                                     </a>
@@ -256,9 +333,11 @@
                         </div>
                     }
 
-                    <button type="button" class="btn btn-primary btn-add-type" data-type="Chapter">
+                    <button type="button" class="btn btn-default white btn-add-type btn-ph" data-type="Chapter">
                         <i class="icofont-plus mr-2"></i>Phần
                     </button>
+                   
+
                 </div>
             </div>
         }
@@ -278,6 +357,8 @@
         margin-bottom: 8px;
         transition: box-shadow 0.2s ease;
     }
+
+
 
         .lesson-item:hover {
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -512,6 +593,13 @@
     }
 
 </style>
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/lib/tags-input/bootstrap-tagsinput.js"></script>
+    <script src="~/lib/tags-input/typeahead.js"></script>
+    <script src="~/modules/course/courses_detail.js"></script>
+
+}
 
 
 

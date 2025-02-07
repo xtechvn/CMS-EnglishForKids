@@ -63,7 +63,7 @@ $(document).ready(function () {
 _common.tinyMce('#text-editor');
 //===========================================================================================
 
-
+//_common.tinyMce('#text-editor-chapter');
 
 
 // Check chuyển Tab
@@ -74,7 +74,7 @@ $(document).on("click", ".tab-link", function (event) {
 
     const targetTab = $(this).data("tab"); // Lấy tab được chỉ định
     const courseId = $("#Id").val(); // Lấy ID khóa học từ input ẩn
-
+  
 
     if (targetTab === "chapters-tab") {
         if (!courseId || courseId <= 0) {
@@ -345,18 +345,17 @@ $(document).on("input", ".chapter-title", function () {
 
 //=============================================================================
 //MỚIIIIIIIIIIIIII
-function SendRequest(url, data, successMessage, reloadCallback) {
+function sendRequest(url, data, successMessage, reloadCallback) {
     debugger
     $.ajax({
         url: url,
         type: "POST",
         contentType: "application/json",
         data: JSON.stringify(data),
-        success: function (reponse) {
-            debugger
-            if (reponse.isSuccess) {
+        success: function (response) {
+            if (response.isSuccess) {
                 Swal.fire("Thành công", successMessage, "success").then(() => {
-                    loadChapters(data.CourseId); // Reload lại danh sách chapters
+                    if (reloadCallback) reloadCallback();
                 });
             } else {
                 Swal.fire("Lỗi", response.message, "error");
@@ -365,7 +364,7 @@ function SendRequest(url, data, successMessage, reloadCallback) {
         error: function () {
             Swal.fire("Lỗi", "Đã xảy ra lỗi trong quá trình xử lý!", "error");
         },
-    })
+    });
 }
 
 
@@ -384,8 +383,6 @@ $(document).on("click", ".btn-add-type, .btn-edit-item", function () {
     const type = $(this).data("type") || $(this).data("item-type");
     const id = $(this).data("item-id") || 0;
     let parentId;
-    
-
 
     let container;
     if (type === "Chapter") {
@@ -401,6 +398,9 @@ $(document).on("click", ".btn-add-type, .btn-edit-item", function () {
             // Sửa Lesson
             container = $(this).closest(".box-add-chap");
             parentId = container.data("parent-id") || 0
+           
+          
+           
         } else {
             // Thêm Lesson mới
             container = $(this).closest(".block-chap");
@@ -412,24 +412,42 @@ $(document).on("click", ".btn-add-type, .btn-edit-item", function () {
         ? container.find(".item-title").first().text().trim()
         : "";
 
+    // 👉 **Khôi phục các bài giảng trước đó về trạng thái bình thường**
+    $(".box-add-chap").each(function () {
+        let lessonContainer = $(this);
+        if (!lessonContainer.is(container)) {
+            lessonContainer.find(".item-content").empty(); // Xóa form sửa
+            lessonContainer.find(".lesson-header, .title-block").show(); // Hiển thị lại tiêu đề
+        }
+    });
     
     // Ẩn tiêu đề gốc nếu đang sửa
     if ($(this).hasClass("btn-edit-item")) {
         container.find(".item-header, .title-block").first().hide();
     }
+    // Ẩn nút khi nhấn vào (Chỉ áp dụng khi thêm mới, không áp dụng cho sửa)
+    if (!$(this).hasClass("btn-edit-item")) {
+        $(this).hide();
+    }
+    
+    $(".common-panel").hide();
+    $(".lesquiz").hide();
+
+
+
 
     // Mở form
     openItemForm(container, type, title, id, parentId);
 });
-function openItemForm(container,type, title, id = 0, parentId = 0, additionalData = {}) {
-    debugger
+function openItemForm(container, type, title, id = 0, parentId = 0, additionalData = {}) {
+    debugger;
     const placeholderText = type === "Chapter" ? "Vui lòng nhập tên phần" : "Vui lòng nhập tên bài học";
     const headerText = type === "Chapter" ? "Phần chưa xuất bản" : "Bài Học chưa xuất bản";
     const actionText = id === 0 ? "Thêm" : "Lưu";
 
-    // Cập nhật nội dung Form
+    // Nội dung form
     const formHtml = `
-        <div class="box-add-chap">
+        <div class="box-add-chap box_2" ${type !== "Chapter" && id > 0 ? 'style="margin-left:0; border: none;"' : ''}>
             <div class="d-flex gap10" style="align-items: center;">
                 <p class="title-block txt_16 align-items-start mb-0">
                     <i class="icofont-check-circled mt-1 mr-2"></i>
@@ -452,66 +470,50 @@ function openItemForm(container,type, title, id = 0, parentId = 0, additionalDat
         </div>
     `;
 
-    // Hiển thị Form trong container
 
-    if (type === "Chapter" && id == 0) {
-        // Với Chapter, thêm form vào cuối danh sách Chapters
-        container.append(`<div class="block-chap">${formHtml}</div>`);
+    if (type === "Chapter") {
+        if (id === 0) {
+            // Nếu thêm mới Chapter, thêm vào cuối danh sách
+            container.append(`<div class="block-chap">${formHtml}</div>`);
+        } else {
+            // Nếu sửa Chapter, thay thế nội dung ngay tại vị trí hiện tại
+            container.find("> .item-content").html(formHtml).show();
+        }
+    } else {
+        // Với Lesson/Quiz, luôn chèn vào cuối container hiện tại
+        //container.append(formHtml);
+        if (id === 0) {
+            container.append(formHtml); // **Thêm mới Lesson xuống dưới**
+        } else {
+            container.find("> .item-content").append(formHtml).show(); // **Thêm vào dưới**
+        }
     }
-   
-
-    $(".item-title").focus(); // Đặt focus vào input
-    container.find("> .item-content").html(formHtml).show();
-    container.find(".item-title").focus();
-
-    // Cập nhật số ký tự
-    container.find(".item-title").on("input", function () {
+    $(".item-title").focus().on("input", function () {
         const charCount = $(this).val().length;
         $(this).siblings(".character-count").text(`${charCount}/200`);
     });
+    
 }
+
+
+
 $(document).on("click", ".btn-save-item", function () {
-       debugger
-    const type = $(this).data("item-type");
-    const id = $(this).data("item-id") || 0;
-    let parentId = $(this).data("parent-id") || 0;
-    //const title = container.find(".item-title").val().trim();
+     debugger
+    const $this = $(this);
+    const type = $this.data("item-type");
+    const id = $this.data("item-id") || 0;
+    const parentId = $this.data("parent-id") || 0;
     const courseId = $("#Id").val();
-
-    let title;
-
-    // Xử lý riêng cho Chapter và Lesson
-    if (type === "Chapter") {
-        // Đối với Chapter, input nằm trong .box-add-chap
-        title = $(this).closest(".block-chap").find("input.item-title").val().trim();
-    } else {
-        // Đối với Lesson, input cũng nằm trong .box-add-chap
-        title = $(this).closest(".box-add-chap").find("input.item-title").val().trim();
-    }
-
-    if (type === "Lesson") {
-        parentId = $(this).data("parent-id"); // Lấy ChapterId nếu là Lesson
-    }
+    const title = $this.closest(type === "Chapter" ? ".block-chap" : ".box-add-chap").find("input.item-title").val().trim();
 
     if (!title) {
         Swal.fire("Lỗi", "Vui lòng nhập tên!", "error");
         return;
     }
 
-    const item = {
-        Id: id,
-        Title: title,
-        Type: type,
-        ParentId: parentId,
-        CourseId: courseId
-    };
-
-    SendRequest(
-        "/Courses/AddorUpdateItem",
-        item,
-        "Thao tác thành công!",
-        () => location.reload()
-    );
+    const item = { Id: id, Title: title, Type: type, ParentId: parentId, CourseId: courseId };
+    sendRequest("/Courses/AddorUpdateItem", item, "Thao tác thành công!", () => loadChapters(courseId));
+    
 });
 $(document).on("click", ".btn-delete-item", function () {
     debugger
@@ -526,26 +528,8 @@ $(document).on("click", ".btn-delete-item", function () {
         cancelButtonText: "Hủy",
     }).then((result) => {
         if (result.isConfirmed) {
-            // Gửi yêu cầu xóa qua API
-            $.ajax({
-                url: "/Courses/DeleteItem",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({ id, type }),
-                success: function (response) {
-                    debugger
-                    if (response.isSuccess) {
-                        Swal.fire("Thành công", response.message, "success").then(() => {
-                            $(`[data-item-id="${id}"][data-item-type="${type}"]`).remove(); // Xóa item khỏi DOM
-                        });
-                    } else {
-                        Swal.fire("Lỗi", response.message, "error");
-                    }
-                },
-                error: function () {
-                    Swal.fire("Lỗi", "Đã xảy ra lỗi trong quá trình xóa!", "error");
-                },
-            });
+            debugger
+           sendRequest("/Courses/DeleteItem", { id, type }, "Xóa thành công!", () => $(`[data-item-id="${id}"][data-item-type="${type}"]`).remove());
         }
     });
 });
@@ -558,6 +542,10 @@ $(document).on("click", ".btn-cancel-item", function () {
     if ($("#new-chapter-container").has(block).length > 0) {
         $("#new-chapter-container").html(""); // Xóa container thêm mới
         $("#btn-add-chapter1").show(); // Hiển thị lại nút thêm mới
+        $(".btn-add-type[data-type='Chapter']").show();
+        $(".btn-add-content").show();
+        $(".content-options").show();
+
     } else {
         // Nếu là sửa Chapter
         const chapterId = $(this).closest(".block-chap").data("chapter-id");
@@ -568,15 +556,19 @@ $(document).on("click", ".btn-cancel-item", function () {
 //Lession
 
 
-$(document).on("change", ".custom-file-input", function () {
-    var fileName = $(this).val().split("\\").pop(); // Lấy tên file
-    $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
-});
+//$(document).on("change", ".custom-file-input", function () {
+//    var fileName = $(this).val().split("\\").pop(); // Lấy tên file
+//    $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+//});
 
 // Hiển thị các nút "Bài giảng" và "Trắc nghiệm"
 $(document).on("click", ".btn-add-content", function () {
     const parent = $(this).closest(".box-add-chap");
     const options = parent.find(".content-options");
+    // Ẩn nút khi nhấn vào (Chỉ áp dụng khi thêm mới, không áp dụng cho sửa)
+    
+        $(this).hide();
+    
 
     // Ẩn tất cả các content-options khác
     $(".content-options").not(options).hide();
@@ -629,18 +621,34 @@ $(document).on("click", ".btn-toggle-content", function () {
     wrapper.show();
 });
 
-// Khi chọn "Video"
-$(document).on("click", ".option-box[data-type='video']", function () {
-    const wrapper = $(this).closest(".lesson-content-wrapper");
-    const commonPanel = wrapper.find(".common-panel");
+$(document).on("click", ".btn-file", function (e) {
+    e.preventDefault(); // Ngăn chặn hành vi mặc định
 
-    // Ẩn các panel khác
-    wrapper.find(".panel-default, .panel-content").hide();
+    const type = $(this).data("type"); // Lấy giá trị data-type (video/article)
+    const itemId = $(this).data("item-id"); // Lấy ID bài giảng
+    const wrapper = $(this).closest(".panel-content").parent(); // Tìm phần tử cha chứa các panel
 
-    // Hiển thị panel Upload Video và cập nhật tiêu đề động
-    commonPanel.attr("data-current-panel", "upload-video");
-    wrapper.find(".panel-upload-video").show();
-    wrapper.find(".dynamic-title").text("Chọn loại Video");
+    // Ẩn tất cả các panel trước khi hiển thị panel cần chọn
+    wrapper.find(".panel-content, .panel-upload-video, .panel-upload-article").hide();
+
+    // Hiển thị panel tương ứng dựa vào loại nội dung được chọn
+    if (type === "video") {
+        wrapper.find(".panel-upload-video").show();
+        wrapper.find(".dynamic-title").text("Chọn loại Video");
+    } else if (type === "article") {
+
+        wrapper.find(".panel-upload-article").show();
+        wrapper.find(".dynamic-title").text("Văn Bản");
+        // Chờ panel mở xong rồi khởi tạo TinyMCE
+        setTimeout(function () {
+            const textareaId = `#text-editor-chapter-${itemId}`;
+
+            if ($(textareaId).length > 0) {
+                tinymce.remove(textareaId); // Xóa TinyMCE cũ
+                _common.tinyMce(textareaId, 200); // Khởi tạo TinyMCE mới
+            }
+        }, 100);
+    }
 });
 
 
@@ -648,7 +656,7 @@ $(document).on("click", ".option-box[data-type='video']", function () {
 $(document).on("click", ".btn-close-content", function () {
     const wrapper = $(this).closest(".lesson-content-wrapper");
     const commonPanel = wrapper.find(".common-panel");
-
+    $(this).closest(" .panel-upload-article, .panel-content").hide();
     // Ẩn tất cả các panel
     wrapper.find(".panel-content, .panel-upload-video").hide();
 
@@ -658,76 +666,459 @@ $(document).on("click", ".btn-close-content", function () {
     wrapper.find(".dynamic-title").text("Chọn loại nội dung");
 });
 
+//$(document).on("click", ".btn-replace-video", function () {
+//    const lessonId = $(this).data("lesson-id");
+//    const wrapper = $(`#lesson_${lessonId}`).find(".lesson-content-wrapper");
 
-$(document).on("change", ".custom-file-input.auto-upload", function () {
+//    // ✅ Reset input file để tránh dính dữ liệu cũ
+//    const fileInput = wrapper.find(".panel-upload-video .custom-file-input");
+//    fileInput.val("");
+//    fileInput.next(".custom-file-label").text("Không có file nào được chọn");
+
+//    // ✅ Ẩn panel mặc định và nội dung
+//    wrapper.find(".panel-default, .panel-content").hide();
+
+//    // ✅ Hiển thị Panel Upload Video, nhưng không làm ảnh hưởng đến tài nguyên
+//    wrapper.find(".panel-upload-video").attr("data-type", "video").show();
+//    wrapper.find(".dynamic-title").text("Thay thế Video");
+
+//    // ✅ Reset lại danh sách tài nguyên nếu là thay thế video
+//    if (wrapper.find(".panel-upload-video").attr("data-type") === "video") {
+//        $(`#downloadList_${lessonId}`).html(""); // Xóa danh sách tài nguyên
+//    }
+//});
+
+ //Khi nhấn "Thay thế Video" hoặc "Thêm Tài Nguyên"
+$(document).on("click", ".btn-resource", function () {
     debugger
+    const lessonId = $(this).data("lesson-id");
+    const type = $(this).hasClass("btn-replace-video") ? "video" : "resource";
+
+    if (!lessonId) {
+        console.error("🔴 Lỗi: lessonId bị undefined");
+        return;
+    }
+
+    // Ẩn panel mặc định, mở panel upload
+    $(`#lesson_${lessonId} .panel-default`).hide();
+    $(`#lesson_${lessonId} .panel-content`).hide();
+    $(`#lesson_${lessonId} .panel-upload-video`).attr("data-type", type).show();
+    $(`#lesson_${lessonId} .dynamic-title`).text(type === "video" ? "Thay thế Video" : "Thêm Tài Nguyên");
+});
+
+
+$(document).on("click", ".btn-replace-video", function () {
+    const lessonId = $(this).data("lesson-id");
+    const wrapper = $(`#lesson_${lessonId}`).find(".lesson-content-wrapper");
+
+    // ✅ Reset input file để tránh lỗi upload file cũ
+    const fileInput = wrapper.find(".panel-upload-video .custom-file-input");
+    fileInput.val("");
+    fileInput.next(".custom-file-label").text("Không có file nào được chọn");
+
+    // ✅ Đảm bảo cập nhật `data-type="video"` khi nhấn "Thay thế Video"
+    wrapper.find(".panel-upload-video").attr("data-type", "video");
+
+    // ✅ Chắc chắn không reset danh sách tài nguyên khi thay video
+    wrapper.find(".panel-default, .panel-content").hide();
+    wrapper.find(".panel-upload-video").show();
+    wrapper.find(".dynamic-title").text("Thay thế Video");
+});
+
+
+// Xử lý Upload file (Tài nguyên hoặc Video)
+$(document).on("change", ".custom-file-input.auto-upload", function () {
+    debugger;
     const input = $(this);
     const files = this.files;
     const lessonId = input.data("lesson-id");
 
-    if (files.length > 0) {
-        const formData = new FormData();
-        for (let i = 0; i < files.length; i++) {
-            formData.append("files", files[i]);
-        }
-        formData.append("lessonId", lessonId);
+    if (files.length === 0 || !lessonId) return alert("Lỗi: Không tìm thấy Lesson ID");
 
-        $.ajax({
+    const type = $(`#lesson_${lessonId} .panel-upload-video`).attr("data-type"); // ✅ Lấy type đúng
+    const isReplace = type === "video";
+    const isResource = type === "resource";
 
-            url: "/Courses/UploadFile",
-            type: "POST",
-            data: formData,
-            contentType: false,
-            processData: false,
-            beforeSend: function () {
-                input.siblings(".upload-progress").show();
-                $(".progress-bar").css("width", "0%");
-            },
-            xhr: function () {
-              
-                const xhr = new XMLHttpRequest();
-                xhr.upload.addEventListener("progress", function (e) {
-                    if (e.lengthComputable) {
-                        const percentComplete = (e.loaded / e.total) * 100;
-                        $(".progress-bar").css("width", percentComplete + "%");
-                    }
-                });
-                return xhr;
-            },
-            success: function (response) {
-                if (response.isSuccess) {
-                    debugger
-                    renderFileList(lessonId, response.data);
-                } else {
-                    alert(response.message);
-                }
-            },
-            complete: function () {
-                $(".upload-progress").hide();
-            }
-        });
+    // ✅ Kiểm tra đúng loại file trước khi upload
+    if (isReplace && !isValidVideoFile(files)) {
+        alert("❌ Chỉ được upload file Video (.mp4, .avi, .mov)!");
+        resetFileInput(input);
+        return;
     }
+
+    // ✅ Hiển thị file name
+    const fileName = files.length === 1 ? files[0].name : `${files.length} files selected`;
+    input.next(".custom-file-label").text(fileName);
+
+    // ✅ Chuẩn bị dữ liệu upload
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i]);
+    }
+    formData.append("lessonId", lessonId);
+    formData.append("isReplace", isReplace);
+    formData.append("isResource", isResource);
+
+    $.ajax({
+        url: "/Courses/UploadFile",
+        type: "POST",
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+            if (response.isSuccess && response.data.length > 0) {
+                updateLessonUI(lessonId, response.data, isResource);
+            } else {
+                alert(response.message || "Upload không thành công.");
+            }
+        },
+        error: function () {
+            alert("Có lỗi xảy ra khi tải file lên. Vui lòng thử lại!");
+        },
+    });
 });
 
-// Render danh sách file
-function renderFileList(lessonId, files) {
+// Xử lý sự kiện click nút xóa file
+$(document).on("click", ".btn-delete-file", function () {
     debugger
-    const fileList = $(`#fileList_${lessonId}`);
-    fileList.empty(); // Xóa danh sách cũ
+    const fileId = $(this).data("file-id");
+    const lessonId = $(this).data("lesson-id");
 
-    files.forEach((file) => {
-        const newRow = `
-            <tr>
-                <td>${file.path}</td>
-                <td>${file.ext}</td>
-                <td>Hoàn thành</td>
-                <td>${new Date(file.createDate)}</td>
-                
-            </tr>`;
-        fileList.append(newRow);
+    Swal.fire({
+        title: "Bạn có chắc muốn xóa tài nguyên này?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Xóa",
+        cancelButtonText: "Hủy"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: "/Courses/DeleteResource",
+                type: "POST",
+                data: { fileId: fileId, lessonId: lessonId },
+                success: function (response) {
+                    if (response.isSuccess) {
+                        // Xóa phần tử file khỏi danh sách
+                        $(`#file_${fileId}`).fadeOut("slow", function () {
+                            $(this).remove();
+
+                            // Kiểm tra nếu không còn file nào
+                            const fileList = $(`#downloadList_${lessonId}`);
+                            //if (fileList.children("li").length === 0) {
+                            //    fileList.html('<li class="text-muted">Chưa có tài liệu nào</li>');
+                            //}
+                        });
+
+                        // Hiển thị thông báo thành công
+                        Swal.fire({
+                            title: "Thành công!",
+                            text: "Xóa tài nguyên thành công",
+                            icon: "success",
+                            timer: 1500
+                        });
+                    } else {
+                        // Hiển thị thông báo lỗi
+                        Swal.fire({
+                            title: "Lỗi!",
+                            text: response.message || "Xóa tài nguyên không thành công",
+                            icon: "error"
+                        });
+                    }
+                },
+                error: function () {
+                    // Hiển thị thông báo lỗi khi gọi API thất bại
+                    Swal.fire({
+                        title: "Lỗi!",
+                        text: "Có lỗi xảy ra khi xóa tài nguyên. Vui lòng thử lại!",
+                        icon: "error"
+                    });
+                }
+            });
+        }
+    });
+});
+
+/** Hàm kiểm tra định dạng file Video hợp lệ */
+function isValidVideoFile(files) {
+    const allowedExtensions = ["mp4", "avi", "mov"];
+    return Array.from(files).every(file => {
+        const ext = file.name.split(".").pop().toLowerCase();
+        return allowedExtensions.includes(ext);
     });
 }
+/** Hàm reset input file khi chọn file không hợp lệ */
+function resetFileInput(input) {
+    input.val("");  // Reset giá trị file input
+    input.next(".custom-file-label").text("Không có file nào được chọn"); // Đặt lại tên file hiển thị
+}
 
+
+// Hàm cập nhật giao diện sau khi upload thành công
+function updateLessonUI(lessonId, files, isResource) {
+    debugger
+    $(`#lesson_${lessonId} .panel-upload-video, #lesson_${lessonId} .btn-toggle-content`).hide();
+    $(`#lesson_${lessonId} .panel-default`).fadeIn("slow");
+
+    // ✅ Gọi showUploadProgress cho cả tài nguyên và video
+    showUploadProgress(lessonId, files, isResource);
+}
+
+
+// Hiển thị trạng thái "Đang tải lên..." trong danh sách file
+function showUploadProgress(lessonId, files, isResource) {
+    debugger;
+    const container = isResource ? `#downloadList_${lessonId}` : `#fileList_${lessonId}`;
+    const fileList = $(container);
+
+    // ✅ Khi upload video -> Ẩn tài nguyên
+    if (!isResource) {
+        $(`#boxTailieu_${lessonId}`).hide();
+    }
+
+    // ✅ Ẩn nút "Tài nguyên"
+    $(`.btn-resource[data-lesson-id="${lessonId}"]`).hide();
+
+    // ✅ Xóa danh sách cũ (chỉ khi upload video)
+    if (!isResource) {
+        fileList.empty();
+    }
+
+    // ✅ Hiển thị process upload
+    files.forEach((file, index) => {
+        const fileId = `uploadingRow_${lessonId}_${index}`;
+        fileList.append(createUploadingRow(fileId, file, isResource));
+    });
+
+    fileList.show();
+    simulateUploadProgress(lessonId, files, isResource);
+}
+
+
+
+
+
+// Tạo hàng đang upload
+function createUploadingRow(fileId, file, isResource) {
+    if (isResource) {
+        return `
+            <tr id="${fileId}">
+                <td>
+                    <a href="javascript:void(0)">
+                        <i class="icofont-download"></i> ${file.path ? file.path.split('/').pop() : 'Đang tải...'}
+                    </a>
+                </td>
+                <td class="text-right">
+                    <span class="progress-text" id="progress-text-${fileId}">0%</span>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar-${fileId}" style="width: 0%"></div>
+                    </div>
+                </td>
+                
+            </tr>
+        `;
+    } else {
+        return `
+            <tr id="${fileId}">
+                <td>${file.path ? file.path.split('/').pop() : 'Đang tải...'}</td>
+                <td>${file.ext || '...'}</td>
+                <td>
+                    <span class="progress-text" id="progress-text-${fileId}">0%</span>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar-${fileId}" style="width: 0%"></div>
+                    </div>
+                </td>
+                <td>Đang tải...</td>
+            </tr>
+        `;
+    }
+}
+
+
+
+// Giả lập cập nhật tiến trình upload
+function simulateUploadProgress(lessonId, files, isResource) {
+    debugger;
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 10;
+        files.forEach((file, index) => {
+            const fileId = `uploadingRow_${lessonId}_${index}`;
+            $(`#progress-bar-${fileId}`).css("width", `${progress}%`);
+            $(`#progress-text-${fileId}`).text(`${progress}%`);
+        });
+
+        if (progress >= 100) {
+            clearInterval(interval);
+
+            setTimeout(() => {
+                // ✅ Xóa process ngay lập tức khi hoàn tất
+                files.forEach((file, index) => {
+                    const fileId = `uploadingRow_${lessonId}_${index}`;
+                    $(`#${fileId}`).remove();
+
+                    // ✅ Khi xóa xong, cập nhật danh sách
+                    if (index === files.length - 1) {
+                        if (isResource) {
+                            updateResourceList(lessonId, files);
+                        } else {
+                            renderFileList(lessonId, files);
+                        }
+                    }
+                });
+
+                // ✅ Chỉ hiển thị lại "Tài nguyên" ngay lập tức khi tải xong Video
+                if (!isResource) {
+                    $(`#boxTailieu_${lessonId}`).show();
+                }
+
+                // ✅ Hiển thị ngay lập tức nút "Tài nguyên"
+                $(`.btn-resource[data-lesson-id="${lessonId}"]`).show();
+
+            }, 500);
+        }
+    }, 500);
+}
+
+
+
+
+
+// Cập nhật danh sách tài nguyên sau khi tải lên
+function updateResourceList(lessonId, files) {
+    debugger;
+    const list = $(`#downloadList_${lessonId}`);
+    const boxTailieu = $(`#boxTailieu_${lessonId}`); // ✅ Box tài nguyên
+
+    // ✅ Lấy danh sách file hiện có
+    let existingFiles = list.children("tr").map(function () {
+        return {
+            id: $(this).attr("id"),
+            name: $(this).find("td a").text().trim(),
+            html: $(this).prop("outerHTML")
+        };
+    }).get();
+
+    files.forEach(file => {
+        const fileName = file.path.split('/').pop();
+
+        // ✅ Kiểm tra nếu file trùng tên -> Không thêm vào danh sách
+        if (existingFiles.some(f => f.name === fileName)) {
+            console.log(`🚨 Bỏ qua file trùng: ${fileName}`);
+            return;
+        }
+
+        // ✅ Nếu không trùng tên, thêm file vào danh sách hiển thị
+        existingFiles.push({
+            id: `file_${file.id}`,
+            name: fileName,
+            html: `
+                <tr id="file_${file.id}">
+                    <td>
+                        <a href="${file.path}" target="_blank">
+                            <i class="icofont-download"></i> ${file.path.split('/').pop()}
+                        </a>
+                    </td>
+                    <td class="text-right">
+                        <i class="icofont-trash btn-delete-file" data-file-id="${file.id}" data-lesson-id="${lessonId}" style="cursor:pointer;"></i>
+                    </td>
+                </tr>
+            `
+        });
+    });
+
+    // ✅ Cập nhật danh sách hiển thị
+    list.html(existingFiles.map(f => f.html).join(""));
+
+    // ✅ Kiểm tra nếu có tài nguyên thì hiển thị box tài liệu
+    if (existingFiles.length === 0) {
+        console.log("📢 Không có tài nguyên, ẩn box tài liệu!");
+        boxTailieu.hide();
+    } else {
+        console.log("📢 Có tài nguyên, hiển thị box tài liệu!");
+        boxTailieu.show();
+    }
+}
+
+
+function createResourceRow(lessonId, file) {
+    return `
+        <tr id="file_${file.id}">
+            <td>
+                <a href="${file.path}" target="_blank">
+                    <i class="icofont-download"></i> ${file.path.split('/').pop()}
+                </a>
+            </td>
+            <td class="text-right">
+                <i class="icofont-trash btn-delete-file" data-file-id="${file.id}" data-lesson-id="${lessonId}" style="cursor:pointer;"></i>
+            </td>
+        </tr>
+    `;
+}
+
+
+
+
+// Render danh sách file sau khi hoàn tất tải lên
+function renderFileList(lessonId, files) {
+    const fileList = $(`#fileList_${lessonId}`);
+    const table = fileList.closest("table");
+
+    // Xóa danh sách cũ
+    fileList.empty();
+
+    // ✅ Kiểm tra nếu chưa có `thead` thì thêm vào
+    if (table.find("thead").length === 0) {
+        table.prepend(createTableHeader());
+    }
+
+    // ✅ Nếu không có file nào thì hiển thị hàng "Chưa có file"
+    if (files.length === 0) {
+        fileList.append("<tr><td colspan='5' class='text-center'>Chưa có file nào</td></tr>");
+        return;
+    }
+
+    // ✅ Thêm file mới vào danh sách
+    files.forEach((file) => {
+        fileList.append(createFileRow(lessonId, file));
+    });
+
+    // ✅ Hiển thị danh sách video
+    fileList.fadeIn("slow");
+    $(`#boxTailieu_${lessonId}`).fadeIn("slow");
+}
+
+
+// Tạo header cho bảng
+function createTableHeader() {
+    return `
+        <thead class="thead1">
+            <tr>
+                <th>Tên file</th>
+                <th>Loại</th>
+                <th>Trạng Thái</th>
+                <th>Ngày</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+    `;
+}
+
+// Tạo hàng file
+function createFileRow(lessonId, file) {
+    return `
+        <tr>
+            <td><a href="${file.path}" target="_blank">${file.path.split('/').pop()}</a></td>
+            <td>${file.ext}</td>
+            <td><span class="progress-text">Hoàn thành</span></td>
+            <td>${new Date(file.createDate).toLocaleString()}</td>
+            <td>
+                <a href="javascript:void(0)" class="btn btn-primary btn-replace-video" data-lesson-id="${lessonId}">
+                    Thay thế
+                </a>
+            </td>
+        </tr>
+    `;
+}
 
 function loadChapters(courseId) {
     debugger
@@ -785,49 +1176,49 @@ function loadChapters(courseId) {
 
 
 
-$(document).on("click", "#save-chapters1", function () {
-    debugger
-    const block = $(this).closest(".box-add-chap"); // Giới hạn phạm vi tìm kiếm
-    const title = block.find(".chapter-title").val().trim();
-    const chapterId = $(this).data("chapter-id") || 0;
-    const courseId = $("#Id").val();
-    let isValid = true;
-    if (!title) {
-        Swal.fire("Lỗi", "Vui lòng nhập tên phần!", "error");
-        isValid = false;
-        return false;
-    }
+//$(document).on("click", "#save-chapters1", function () {
+//    debugger
+//    const block = $(this).closest(".box-add-chap"); // Giới hạn phạm vi tìm kiếm
+//    const title = block.find(".chapter-title").val().trim();
+//    const chapterId = $(this).data("chapter-id") || 0;
+//    const courseId = $("#Id").val();
+//    let isValid = true;
+//    if (!title) {
+//        Swal.fire("Lỗi", "Vui lòng nhập tên phần!", "error");
+//        isValid = false;
+//        return false;
+//    }
 
 
 
-    const chapters = {
-        Id: chapterId,
-        Title: title,
-        CourseId: courseId,
-    };
+//    const chapters = {
+//        Id: chapterId,
+//        Title: title,
+//        CourseId: courseId,
+//    };
 
-    // Gọi API tạo chapter mới
-    $.ajax({
-        url: "/Courses/AddorUpdateItem",
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify(chapters),
+//    // Gọi API tạo chapter mới
+//    $.ajax({
+//        url: "/Courses/AddorUpdateItem",
+//        type: "POST",
+//        contentType: "application/json",
+//        data: JSON.stringify(chapters),
 
-        success: function (response) {
-            debugger
-            if (response.isSuccess) {
-                Swal.fire("Thành công", "Thêm phần mới thành công!", "success").then(() => {
-                    loadChapters(courseId); // Reload lại danh sách chapters
-                });
-            } else {
-                Swal.fire("Lỗi", response.message, "error");
-            }
-        },
-        error: function () {
-            Swal.fire("Lỗi", "Đã xảy ra lỗi khi thêm phần mới!", "error");
-        }
-    });
-});
+//        success: function (response) {
+//            debugger
+//            if (response.isSuccess) {
+//                Swal.fire("Thành công", "Thêm phần mới thành công!", "success").then(() => {~~
+//                    loadChapters(courseId); // Reload lại danh sách chapters
+//                });
+//            } else {
+//                Swal.fire("Lỗi", response.message, "error");
+//            }
+//        },
+//        error: function () {
+//            Swal.fire("Lỗi", "Đã xảy ra lỗi khi thêm phần mới!", "error");
+//        }
+//    });
+//});
 // Hàm tải nội dung tiết học bằng AJAX
 
 

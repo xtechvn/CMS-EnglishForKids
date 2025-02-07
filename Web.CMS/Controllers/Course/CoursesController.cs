@@ -16,6 +16,7 @@ using Repositories.Repositories;
 using Azure.Core;
 using Caching.RedisWorker;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Web.CMS.Controllers.Course
 {
@@ -323,24 +324,24 @@ namespace Web.CMS.Controllers.Course
             ViewBag.ListAuthor = await _UserRepository.GetUserSuggestionList(string.Empty);
             return PartialView();
         }
-        [HttpGet]
-        public async Task<IActionResult> GetChapterDetails(int courseId)
-        {
-            if (courseId <= 0)
-            {
-                return Json(new { isSuccess = false, message = "ID khóa học không hợp lệ!" });
-            }
+        //[HttpGet]
+        //public async Task<IActionResult> GetChapterDetails(int courseId)
+        //{
+        //    if (courseId <= 0)
+        //    {
+        //        return Json(new { isSuccess = false, message = "ID khóa học không hợp lệ!" });
+        //    }
 
-            try
-            {
-                var chapters = _CourseRepository.GetListChapterLessionBySourceId(courseId);
-                return Json(new { isSuccess = true, data = chapters });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { isSuccess = false, message = ex.Message });
-            }
-        }
+        //    try
+        //    {
+        //        var chapters = _CourseRepository.GetListChapterLessionBySourceId(courseId);
+        //        return Json(new { isSuccess = true, data = chapters });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Json(new { isSuccess = false, message = ex.Message });
+        //    }
+        //}
 
         public async Task<IActionResult> Chapters(int courseId)
         {
@@ -469,7 +470,7 @@ namespace Web.CMS.Controllers.Course
             }
         }
         [HttpPost]
-        public async Task<IActionResult> UploadFile(int lessonId, List<IFormFile> files)
+        public async Task<IActionResult> UploadFile(int lessonId, List<IFormFile> files, bool isReplace = false, bool isResource = false)
         {
             try
             {
@@ -479,13 +480,21 @@ namespace Web.CMS.Controllers.Course
                 }
 
                 int userid = Convert.ToInt32(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                // Nếu là thay thế video, xóa video cũ trước khi thêm mới
+                if (isReplace)
+                {
+                    await _CourseRepository.DeleteFilesByLessonId(lessonId, 40); // 40: Loại video
+                }
 
+                int fileType = isResource ? 50 : 40; // 50: Tài nguyên, 40: Video
 
                 var fileRecords = new List<AttachFile>();
 
                 foreach (var file in files)
                 {
-                    var filePath = await UpLoadHelper.UploadFileOrImage(file, lessonId, 40);
+                    // Kiểm tra loại file hợp lệ (Video chỉ nhận định dạng video)
+                    
+                    var filePath = await UpLoadHelper.UploadFileOrImage(file, lessonId, fileType);
                     if (!string.IsNullOrEmpty(filePath))
                     {
                         // Tạo đối tượng AttachFile
@@ -493,7 +502,7 @@ namespace Web.CMS.Controllers.Course
                         {
                             DataId = lessonId,
                             UserId = userid, // ID người dùng từ session hoặc token
-                            Type = 40, // Loại file, mặc định là 0
+                            Type = fileType, // Loại file, mặc định là 0
                             Path = filePath,
                             Ext = Path.GetExtension(filePath),
                             Capacity = file.Length,
@@ -516,20 +525,40 @@ namespace Web.CMS.Controllers.Course
             }
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> GetLessonFiles(int lessonId)
-        //{
-        //    try
-        //    {
-        //        var files = await _lessonService.GetFilesByLessonIdAsync(lessonId);
-        //        return Json(new { isSuccess = true, data = files });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogHelper.InsertLogTelegram($"GetLessonFiles Error: {ex}");
-        //        return Json(new { isSuccess = false, message = "Đã xảy ra lỗi khi lấy danh sách file." });
-        //    }
-        //}
+        [HttpPost]
+        public async Task<IActionResult> DeleteResource(long fileId,  long lessonId)
+        {
+            try
+            {
+                if (fileId <= 0 || lessonId <= 0)
+                {
+                    return Json(new { isSuccess = false, message = "Dữ liệu không hợp lệ!" });
+                }
+
+                // Lấy thông tin file
+                var file = await _AttachFileRepository.GetAttachFileById(fileId);
+                if (file == null || file.DataId != lessonId)
+                {
+                    return Json(new { isSuccess = false, message = "Không tìm thấy file!" });
+                }
+
+               
+
+                // Xóa record trong database
+                await _AttachFileRepository.DeleteAttachFile(fileId);
+
+                return Json(new { isSuccess = true, message = "Xóa file thành công!" });
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"DeleteFile Error: {ex}");
+                return Json(new { isSuccess = false, message = "Đã xảy ra lỗi khi xóa file." });
+            }
+        }
+
+
+
+        
 
         [HttpPost]
         public IActionResult DeleteItem([FromBody] ItemDeleteViewModel model)

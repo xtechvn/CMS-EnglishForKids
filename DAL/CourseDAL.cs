@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Utilities;
 using Utilities.Contants;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 
 namespace DAL
 {
@@ -375,6 +376,48 @@ namespace DAL
             {
                 LogHelper.InsertLogTelegram("DeleteChapter - Error: " + ex);
                 return -1;
+            }
+        }
+
+        public async Task<bool> DeleteFilesByLessonId(int lessonId, int fileType)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    using (var transaction = _DbContext.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 🔹 Lấy danh sách file cần xóa từ database
+                            var files = await _DbContext.AttachFiles
+                                .Where(f => f.DataId == lessonId && f.Type == fileType)
+                                .ToListAsync();
+                            if (files != null)
+                            {
+                               
+                                // 🔹 Xóa dữ liệu file trong database
+                                _DbContext.AttachFiles.RemoveRange(files);
+                                await _DbContext.SaveChangesAsync(); // Lưu thay đổi vào DB
+                                
+
+                            }
+                            transaction.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.InsertLogTelegram("DeleteChapter - Transaction Rollback: " + ex);
+                            transaction.Rollback();
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("DeleteChapter - Error: " + ex);
+                return false;
             }
         }
         public async Task<List<Lessions>> GetLessonsByChapterIdAsync(int chapterId)

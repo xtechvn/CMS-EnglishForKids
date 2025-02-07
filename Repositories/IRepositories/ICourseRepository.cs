@@ -23,7 +23,8 @@ namespace Repositories.IRepositories
         Task<List<CategoryModel>> GetSubCategories(int parentId);
         Task<Lessions> GetLessonByIdAsync(int id);
         Task<Chapters> GetChapterByIdAsync(int id);
-        public List<AttachFile> GetFilesByLessonIds(List<int> lessonIds);
+        List<AttachFile> GetFilesByLessonIds(List<int> lessonIds);
+        Task<bool> DeleteFilesByLessonId(int lessonId, int fileType);
         Task<int> DeleteLessonAsync(int id);
 
         Task<int> DeleteChapterAsync(int id);

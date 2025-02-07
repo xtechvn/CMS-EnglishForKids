@@ -157,7 +157,7 @@ namespace Utilities
                 var extension = Path.GetExtension(file.FileName).ToLower();
 
                 if ( !validFileExtensions.Contains(extension))
-                {uq
+                {
                     throw new Exception($"Định dạng file {extension} không được hỗ trợ.");
                 }
 

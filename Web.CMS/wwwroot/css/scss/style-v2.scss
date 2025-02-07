@@ -1301,3 +1301,8 @@ label.switch {
   text-align: center;
   text-transform: none;
 }
+.table-no-border{
+  td, th{
+    padding: 5px;
+  }
+}
