@@ -90,12 +90,12 @@
 
     @* <textarea class="form-control" id="text-editor-chapter"></textarea> *@
     <div id="chapter-list">
-       
 
-        
+
+
         @if (Model != null && Model.Count > 0)
         {
-           
+
             <div style="max-width:100%">
                 <div class="line-bottom">
                     <h2>Chương trình giảng dạy</h2>
@@ -111,7 +111,7 @@
 
                     @foreach (var chapter in Model.Where(c => c.IsDelete == 0))
                     {
-                       
+
                         <div class="block-chap block-item" data-item-id="@chapter.Id" data-item-type="Chapter">
                             <div class="item-header">
                                 <h6>
@@ -129,11 +129,11 @@
                             <div class="item-content">
                                 <!-- Form sửa sẽ được thêm động tại đây -->
                             </div>
-                            
+
 
                             @foreach (var lesson in chapter.Lessons.Where(l => l.IsDelete == 0))
                             {
-                                
+
                                 <div class="box-add-chap block-item" data-item-id="@lesson.Id" data-item-type="Lesson" data-parent-id="@chapter.Id">
                                     <div class="lesson-block" id="lesson_@lesson.Id">
 
@@ -151,7 +151,7 @@
                                                     </a>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    @if (lesson.Files == null || lesson.Files.Count == 0)
+                                                    @if (lesson.Files == null || lesson.Files.Count == 0 || !lesson.Files.Any(f => f.Type == 40))
                                                     {
                                                         <span class="btn btn-default white min2 btn-toggle-content">
                                                             <i class="icofont-plus mr-2"></i>Nội dung
@@ -162,7 +162,7 @@
                                                     </button>
                                                 </div>
                                             </div>
-                                            
+
                                             <div class="lesson-content-wrapper" style="display: none;">
                                                 <div class="common-panel card" data-current-panel="default">
                                                     <!-- Panel Mặc Định  -->
@@ -247,69 +247,69 @@
 
 
                                                     </div>
-                                                    
-                                                        <!-- Panel Nội dung -->
-                                                        <div class="panel-content" style="display: none;">
-                                                            <div class="content-header">
-                                                                <span class="dynamic-title">Chọn loại nội dung</span>
-                                                                <a href="javascript:void(0)" class="btn-close-content">
-                                                                    <i class="icofont-close"></i>
-                                                                </a>
-                                                            </div>
-                                                            <p>Chọn loại nội dung chính. Có thể thêm file và đường liên kết dưới dạng tài nguyên.</p>
-                                                            <div class="content-options">
-                                                                <a href="javascript:void(0)" class="btn btn-default white btn-file" data-type="video">
-                                                                    <i class="icofont-file-flv"></i> Video
-                                                                </a>
-                                                            <a href="javascript:void(0)" class="btn btn-default white btn-file" data-type="article" data-item-id="@lesson.Id">
-                                                                    <i class="icofont-file-alt"></i> Bài viết
-                                                                </a>
-                                                            </div>
+
+                                                    <!-- Panel Nội dung -->
+                                                    <div class="panel-content" style="display: none;">
+                                                        <div class="content-header">
+                                                            <span class="dynamic-title">Chọn loại nội dung</span>
+                                                            <a href="javascript:void(0)" class="btn-close-content">
+                                                                <i class="icofont-close"></i>
+                                                            </a>
                                                         </div>
+                                                        <p>Chọn loại nội dung chính. Có thể thêm file và đường liên kết dưới dạng tài nguyên.</p>
+                                                        <div class="content-options">
+                                                            <a href="javascript:void(0)" class="btn btn-default white btn-file" data-type="video">
+                                                                <i class="icofont-file-flv"></i> Video
+                                                            </a>
+                                                            <a href="javascript:void(0)" class="btn btn-default white btn-file" data-type="article" data-item-id="@lesson.Id">
+                                                                <i class="icofont-file-alt"></i> Bài viết
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                     <!-- Panel Upload chung (Dùng cho cả Video & Tài nguyên) -->
 
                                                     <div class="panel-upload-video" data-type="video" style="display: none;">
-                                                            <div class="content-header">
-                                                                <span class="dynamic-title">Chọn loại Video</span>
-                                                                <a href="javascript:void(0)" class="btn-close-content">
-                                                                    <i class="icofont-close"></i>
-                                                                </a>
-                                                            </div>
-                                                            <div class="custom-file">
-                                                            <input type="file" class="custom-file-input auto-upload" id="lessonFile_@lesson.Id" data-lesson-id="@lesson.Id" name="attachFiles" multiple>
-                                                                <label class="custom-file-label" for="lessonFile_@lesson.Id">Không có file nào được chọn</label>
-                                                            </div>
-                                                            <p class="color-gray mt-2">
-                                                                Lưu ý: Tài nguyên áp dụng cho bất kỳ loại tài liệu nào có thể dùng để trợ giúp học viên khi họ nghe giảng.
-                                                                File này sẽ được coi là bài giảng bổ sung. Hãy đảm bảo rằng nội dung tài nguyên rõ ràng, dễ đọc và có kích
-                                                                thước file dưới 200Mb. Chấp nhận định dạng: mp3, pdf, audio, jpg, mp4.
-                                                            </p>
+                                                        <div class="content-header">
+                                                            <span class="dynamic-title">Chọn loại Video</span>
+                                                            <a href="javascript:void(0)" class="btn-close-content">
+                                                                <i class="icofont-close"></i>
+                                                            </a>
                                                         </div>
+                                                        <div class="custom-file">
+                                                            <input type="file" class="custom-file-input auto-upload" id="lessonFile_@lesson.Id" data-lesson-id="@lesson.Id" name="attachFiles" multiple>
+                                                            <label class="custom-file-label" for="lessonFile_@lesson.Id">Không có file nào được chọn</label>
+                                                        </div>
+                                                        <p class="color-gray mt-2">
+                                                            Lưu ý: Tài nguyên áp dụng cho bất kỳ loại tài liệu nào có thể dùng để trợ giúp học viên khi họ nghe giảng.
+                                                            File này sẽ được coi là bài giảng bổ sung. Hãy đảm bảo rằng nội dung tài nguyên rõ ràng, dễ đọc và có kích
+                                                            thước file dưới 200Mb. Chấp nhận định dạng: mp3, pdf, audio, jpg, mp4.
+                                                        </p>
+                                                    </div>
 
-                                                        <!-- Panel Upload Bài Viết -->
-                                                        <div class="panel-upload-article" style="display: none;">
-                                                            <div class="content-header">
+                                                    <!-- Panel Upload Bài Viết -->
+                                                    <div class="panel-upload-article" style="display: none;">
+                                                        <div class="content-header">
                                                             <h6 class="mb-0">Văn bản</h6>
-                                                                <a href="javascript:void(0)" class="btn-close-content">
-                                                                    <i class="icofont-close"></i>
-                                                                </a>
-                                                            </div>
+                                                            <a href="javascript:void(0)" class="btn-close-content">
+                                                                <i class="icofont-close"></i>
+                                                            </a>
+                                                        </div>
                                                         <!-- Sử dụng ID động -->
                                                         <textarea class="form-control text-editor-article" id="text-editor-chapter-@lesson.Id"></textarea>
                                                         <div class="text-right">
                                                             <a href="" class="btn btn-default" style="margin-top: 15px;">Lưu</a>
                                                         </div>
-                                                           
-                                                        </div>
-                                                       
-                                                   
-                                                   
+
+                                                    </div>
+
+
+
 
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
+
 
 
                                     <div class="item-content">
@@ -336,7 +336,7 @@
                     <button type="button" class="btn btn-default white btn-add-type btn-ph" data-type="Chapter">
                         <i class="icofont-plus mr-2"></i>Phần
                     </button>
-                   
+
 
                 </div>
             </div>
