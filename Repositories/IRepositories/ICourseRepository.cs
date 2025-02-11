@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace Repositories.IRepositories
 {
@@ -17,7 +18,10 @@ namespace Repositories.IRepositories
         Task UpdateVideoIntro(int courseId, string videoUrl);
         Task<int> SaveChapter(Chapters model);
         Task<int> SaveLesson(Lessions model);
-        //string ServerFile(CourseModel model);
+
+        Task<bool> SaveArticleAsync(int lessonId, string article);
+
+        
         Task<CourseModel> GetCourseDetail(int Id);
         Task<List<CategoryModel>> GetMainCategories();
         Task<List<CategoryModel>> GetSubCategories(int parentId);
@@ -26,6 +30,7 @@ namespace Repositories.IRepositories
         List<AttachFile> GetFilesByLessonIds(List<int> lessonIds);
         Task<bool> DeleteFilesByLessonId(int lessonId, int fileType);
         Task<int> DeleteLessonAsync(int id);
+        Task<bool> DeleteArticleAsync(int lessonId);
 
         Task<int> DeleteChapterAsync(int id);
         Task<List<Lessions>> GetLessonsByChapterIdAsync(int chapterid);

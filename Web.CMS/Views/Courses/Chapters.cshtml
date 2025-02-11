@@ -5,90 +5,9 @@
 
 
 
-@* <section class="main-container clearfix">
 
-
-
-    <!-- Danh sách Chapter -->
-    <div id="chapter-list">
-        @if (Model != null && Model.Count > 0)
-        {
-            foreach (var chapter in Model)
-            {
-                <!-- Chapter Item -->
-                <div class="block-course accordion chapter-item" id="chapter-@chapter.Id">
-                    <div class="item">
-                        <div class="title" id="heading-@chapter.Id">
-                            <a data-toggle="collapse" data-target="#collapse-@chapter.Id">
-                                <input class="form-control" style="width:80%" type="text" value="@chapter.Title" readonly />
-                                <span class="time">
-                                    @($"{chapter.Lessons?.Count ?? 0} bài giảng")
-                                </span>
-                            </a>
-                        </div>
-                        <!-- Lesson List -->
-                        <div id="collapse-@chapter.Id" class="collapse show" aria-labelledby="heading-@chapter.Id" data-parent="#chapter-list">
-                            <div class="card-body">
-                                <ul id="lesson-list-@chapter.Id" class="sortable">
-                                    @if (chapter.Lessons != null && chapter.Lessons.Count > 0)
-                                    {
-                                        foreach (var lesson in chapter.Lessons)
-                                        {
-                                            var fileExtension = System.IO.Path.GetExtension(lesson.Thumbnail)?.ToLower();
-                                            <li class="ui-state-default lesson-item" id="lesson-@lesson.Id">
-                                                <div class="d-flex align-items-center">
-                                                    <!-- Icon mở file/video -->
-                                                    @if (fileExtension == ".mp4")
-                                                    {
-                                                        <img class="lesson-icon"
-                                                             data-url="@lesson.Thumbnail"
-                                                             style="font-size: 24px; cursor: pointer;" src="/images/icons/PlayCircle.svg">
-
-                                                    }
-                                                    else if (fileExtension == ".pdf")
-                                                    {
-                                                        <img class="lesson-icon"
-                                                             data-url="@lesson.Thumbnail"
-                                                             style="font-size: 24px; cursor: pointer;" src="/images/icons/BookOpenText.svg">
-                                                    }
-
-                                                    <!-- Lesson Title -->
-                                                    <span class="flex-tt ml-2">
-                                                        <input class="form-control lesson-title" type="text" value="@lesson.Title" readonly />
-                                                    </span>
-
-
-                                                </div>
-                                                <span class="time">@lesson.VideoDuration</span>
-                                            </li>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <li>Không có bài giảng nào.</li>
-                                    }
-
-
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
-        else
-        {
-            <p>Chưa có tiết học nào được thêm.</p>
-        }
-    </div>
-
-    <!-- Nút Thêm Tiết Học -->
-    <a href="#edit-khoahoc-popup" class="open-popup btn btn-default orange line dashed round mb-3 mt-3" id="btn-add-chapter">Thêm Tiết Học</a>
-</section> *@
 
 <section class="main-container clearfix">
-
-    @* <textarea class="form-control" id="text-editor-chapter"></textarea> *@
     <div id="chapter-list">
 
 
@@ -151,7 +70,8 @@
                                                     </a>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    @if (lesson.Files == null || lesson.Files.Count == 0 || !lesson.Files.Any(f => f.Type == 40))
+                                                    @if ((lesson.Files == null || lesson.Files.Count == 0 || !lesson.Files.Any(f => f.Type == 40))
+                                                   && string.IsNullOrWhiteSpace(lesson.Article))
                                                     {
                                                         <span class="btn btn-default white min2 btn-toggle-content">
                                                             <i class="icofont-plus mr-2"></i>Nội dung
@@ -165,13 +85,13 @@
 
                                             <div class="lesson-content-wrapper" style="display: none;">
                                                 <div class="common-panel card" data-current-panel="default">
-                                                    <!-- Panel Mặc Định  -->
+                                                    <!-- Panel Mặc Định (Panel Video)  -->
                                                     <div class="panel-default">
 
                                                         <!-- Hiển thị danh sách file đã tải -->
                                                         <div class="item-content2">
                                                             <table class="file-list-table w-100 mb-2">
-                                                                @if (lesson.Files != null && lesson.Files.Count > 0)
+                                                                @if (lesson.Files != null && lesson.Files.Count > 0 && lesson.Files.Any(f => f.Type == 40))
                                                                 {
                                                                     <thead class="thead1">
                                                                         <tr>
@@ -212,6 +132,24 @@
                                                         </div>
 
 
+                                                        <!-- Panel Bài Viết -->
+                                                        <div class="edit-tainguyen panel-baiviet  gap10 mb-3" style="display: @(string.IsNullOrWhiteSpace(lesson.Article) ? "none"  : "flex")">
+
+                                                            <div class="d-flex gap10 align-items-center">
+                                                                <img src="/images/graphics/img_4.jpg">
+                                                                <div>
+                                                                    <a href="javascript:void(0)" class="btn-edit-article" data-lesson-id="@lesson.Id">
+                                                                        <i class="icofont-edit mr-2"></i>Chỉnh sửa nội dung
+                                                                    </a>
+                                                                    <a href="javascript:void(0)" class="btn-replace-video replace-from-article" data-lesson-id="@lesson.Id">
+                                                                        <i class="icofont-video-alt mr-2"></i>Thay thế video
+                                                                    </a>
+
+                                                                </div>
+                                                            </div>
+                                                            <a class="btn btn-default min"><i class="icofont-video-alt"></i>Xem trước</a>
+                                                        </div>
+
                                                         <!-- Box hiển thị tài liệu có thể tải xuống -->
                                                         <div class="box-tailieu" id="boxTailieu_@lesson.Id" style="display: @(lesson.Files != null && lesson.Files.Any(f => f.Type == 50) ? "block" : "none")">
                                                             @if (lesson.Files != null && lesson.Files.Any(f => f.Type == 50))
@@ -241,12 +179,15 @@
                                                         </div>
 
 
+
                                                         <button type="button" class="btn btn-default white min2 btn-resource" data-lesson-id="@lesson.Id" data-type="resource">
                                                             Tài nguyên
                                                         </button>
 
 
                                                     </div>
+
+
 
                                                     <!-- Panel Nội dung -->
                                                     <div class="panel-content" style="display: none;">
@@ -295,9 +236,13 @@
                                                             </a>
                                                         </div>
                                                         <!-- Sử dụng ID động -->
-                                                        <textarea class="form-control text-editor-article" id="text-editor-chapter-@lesson.Id"></textarea>
+                                                        <textarea class="form-control text-editor-article" id="text-editor-chapter-@lesson.Id">
+                                                             @Html.Raw(lesson.Article) 
+                                                        </textarea>
                                                         <div class="text-right">
-                                                            <a href="" class="btn btn-default" style="margin-top: 15px;">Lưu</a>
+                                                            <button type="button" class="btn btn-default btn-save-article" data-lesson-id="@lesson.Id" style="margin-top: 15px;">
+                                                                Lưu
+                                                            </button>
                                                         </div>
 
                                                     </div>

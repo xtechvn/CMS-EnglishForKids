@@ -253,6 +253,26 @@ namespace DAL
             return Convert.ToInt32(parameters.Last().Value); // Lấy ID từ OUTPUT parameter
         }
 
+
+        public async Task<bool> UpdateLessonAsync(Lessions lesson)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    _DbContext.Lessions.Update(lesson);
+                    await _DbContext.SaveChangesAsync();
+                    return true;
+                }
+              
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"UpdateLessonAsync - LessonRepository: {ex}");
+                return false;
+            }
+        }
+
         public async Task<Chapters> GetChapterByIdAsync(int id)
         {
             try
@@ -378,6 +398,32 @@ namespace DAL
                 return -1;
             }
         }
+
+        public async Task<bool> DeleteArticleAsync(int lessonId)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection)) // 🔥 Tạo DbContext
+                {
+                    var lesson = await _DbContext.Lessions.FirstOrDefaultAsync(l => l.Id == lessonId);
+
+                    if (lesson == null)
+                        return false; // 🔥 Nếu không tìm thấy bài giảng, không cần xóa
+
+                    lesson.Article = null; // 🔥 Xóa nội dung bài viết bằng cách đặt giá trị NULL
+                    await _DbContext.SaveChangesAsync(); // 🔥 Lưu thay đổi vào DB
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("Error in DeleteArticleAsync: " + ex);
+                return false;
+            }
+        }
+
+
 
         public async Task<bool> DeleteFilesByLessonId(int lessonId, int fileType)
         {
