@@ -15,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web.Mvc;
 using Utilities;
 using Utilities.Contants;
 
@@ -189,6 +190,20 @@ namespace Repositories.Repositories
             }
         }
 
+        public async Task<bool> SaveArticleAsync(int lessonId, string article)
+        {
+            var lesson = await _CourseDAL.GetLessonByIdAsync(lessonId);
+            if (lesson == null)
+            {
+                return false; // Không tìm thấy bài giảng
+            }
+            lesson.Article = article;
+            var isUpdated = await _CourseDAL.UpdateLessonAsync(lesson);
+
+            return true;
+
+        }
+
 
         public List<ChapterViewModel> GetListChapterLessionBySourceId(int courseId)
         {
@@ -217,12 +232,9 @@ namespace Repositories.Repositories
                 {
                     Id = row.Field<int>("LessionId"),
                     Title = row.Field<string>("LessionTitle"),
-                    //Author = row.Field<string>("Author"),
-                    //Thumbnail = row.Field<string>("Thumbnail"),
-                    //ThumbnailName = row.Field<string>("ThumbnailName"),
-                    //VideoDuration = row.Field<string>("VideoDuration"),
+                    Article = row.Field<string>("LessionArticle"),
                     IsDelete = row.Field<int>("LessionIsDelete"),
-                    //Files = _AttachFileRepository.GetFilesByLessonId(row.Field<int>("LessionId")) // Lấy danh sách file cho mỗi lesson
+                    
                 }).ToList()
                 : new List<LessonViewModel>() // Nếu không có lesson nào, trả về danh sách rỗng
         }).ToList();    
@@ -286,6 +298,10 @@ namespace Repositories.Repositories
             return await _CourseDAL.DeleteChapterAsync(id);
         }
 
+        public async Task<bool> DeleteArticleAsync(int lessonId)
+        {
+            return await _CourseDAL.DeleteArticleAsync(lessonId); 
+        }
         public async Task<List<Lessions>> GetLessonsByChapterIdAsync(int chapterid)
         {
             return await _CourseDAL.GetLessonsByChapterIdAsync(chapterid);
@@ -418,7 +434,11 @@ namespace Repositories.Repositories
             }
         }
 
-     
+       
+
+
+
+
 
 
 

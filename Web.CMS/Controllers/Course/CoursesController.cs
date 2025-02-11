@@ -377,29 +377,6 @@ namespace Web.CMS.Controllers.Course
             ViewBag.CourseId = courseId;
             return PartialView("Chapters", chapterLessons);
         }
-        //[HttpGet]
-        //public JsonResult GetLessonFiles(int lessonId)
-        //{
-        //    if (lessonId <= 0)
-        //    {
-        //        return Json(new { success = false, message = "LessonId không hợp lệ." });
-        //    }
-
-        //    try
-        //    {
-        //        // Lấy danh sách file cho bài giảng dựa trên lessonId
-        //        var files = _CourseRepository.GetFilesByLessonIds(lessonId);
-
-        //        // Trả về danh sách file dưới dạng JSON
-        //        return Json(new { success = true, data = files });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Log lỗi và trả về thông báo lỗi
-        //        LogHelper.InsertLogTelegram($"Error in GetLessonFiles: {ex}");
-        //        return Json(new { success = false, message = "Đã xảy ra lỗi khi tải file." });
-        //    }
-        //}
 
 
 
@@ -524,6 +501,45 @@ namespace Web.CMS.Controllers.Course
                 return Json(new { isSuccess = false, message = "Đã xảy ra lỗi khi upload file." });
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> SaveArticle(int lessonId, string article)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(article))
+                {
+                    return Json(new { isSuccess = false, message = "Nội dung bài viết không được để trống!" });
+                }
+
+                var result = await _CourseRepository.SaveArticleAsync(lessonId,article);
+                return Json(new
+                {
+                    isSuccess = result,
+                    message = result ? "Bài viết đã được lưu!" : "Không thể lưu bài viết!"
+                });
+
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { isSuccess = false, message = "Lỗi khi lưu bài viết!", error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteArticle(int lessonId)
+        {
+            try
+            {
+                var result = await _CourseRepository.DeleteArticleAsync(lessonId); // Gọi đến Repository xóa bài viết
+                return Json(new { isSuccess = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { isSuccess = false, message = "Lỗi khi xóa bài viết!", error = ex.Message });
+            }
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> DeleteResource(long fileId,  long lessonId)
