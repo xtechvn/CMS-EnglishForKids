@@ -28,13 +28,18 @@
                         các phần và bài giảng của bạn một cách rõ ràng. Nếu bạn định cung cấp khóa học miễn phí, tổng thời lượng của nội dung video phải dưới 2 giờ.
                     </p>
 
+                    @{
+                        int chapterIndex = 1;
+                        int lessonIndexGlobal = 1;
+                    }  @* Biến đếm chương *@
+
                     @foreach (var chapter in Model.Where(c => c.IsDelete == 0))
                     {
 
                         <div class="block-chap block-item" data-item-id="@chapter.Id" data-item-type="Chapter">
                             <div class="item-header">
                                 <h6>
-                                    <span class="tt-phan">Phần @chapter.Id:</span>
+                                    <span class="tt-phan">Phần @chapterIndex:</span>
                                     <span class="item-title">@chapter.Title</span>
                                     <a href="javascript:void(0)" class="btn-edit-item" data-item-id="@chapter.Id" data-item-type="Chapter">
                                         <i class="icofont-ui-edit edit"></i>
@@ -48,7 +53,7 @@
                             <div class="item-content">
                                 <!-- Form sửa sẽ được thêm động tại đây -->
                             </div>
-
+                            
 
                             @foreach (var lesson in chapter.Lessons.Where(l => l.IsDelete == 0))
                             {
@@ -60,7 +65,7 @@
                                             <div class="lesson-header title-block txt_16 mb-0 justify-content-between w-100">
                                                 <div class="lesson-info">
                                                     <i class="icofont-check-circled mt-1 mr-2"></i>
-                                                    <span class="text-nowrap">Bài giảng @lesson.Id:</span>
+                                                    <span class="text-nowrap">Bài giảng @lessonIndexGlobal:</span>
                                                     <span class="item-title"><i class="icofont-file-alt mr-2"></i>@lesson.Title</span>
                                                     <a href="javascript:void(0)" class="btn-edit-item" data-item-id="@lesson.Id" data-item-type="Lesson">
                                                         <i class="icofont-ui-edit edit"></i>
@@ -261,6 +266,7 @@
                                         <!-- Form sửa sẽ được thêm động tại đây -->
                                     </div>
                                 </div>
+                                lessonIndexGlobal++;  @* Tăng số thứ tự của bài học *@
                             }
                             <div class="box-add-chap p-0 border-0 bg-transparent">
                                 <a href="javascript:void(0)" class="btn btn-default white btn-add-content" data-parent-id="@chapter.Id">
@@ -276,6 +282,7 @@
                                 </div>
                             </div>
                         </div>
+                        chapterIndex++;  @* Tăng số thứ tự của chương *@
                     }
 
                     <button type="button" class="btn btn-default white btn-add-type btn-ph" data-type="Chapter">
