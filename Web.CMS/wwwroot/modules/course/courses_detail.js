@@ -329,7 +329,6 @@ $(document).on("click", ".btn-save-item", function () {
 
 });
 $(document).on("click", ".btn-delete-item", function () {
-    debugger
     const id = $(this).data("item-id"); // Lấy ID của item
     const type = $(this).data("item-type"); // Lấy loại của item (Chapter hoặc Lesson)
 
@@ -341,11 +340,37 @@ $(document).on("click", ".btn-delete-item", function () {
         cancelButtonText: "Hủy",
     }).then((result) => {
         if (result.isConfirmed) {
-            debugger
-            sendRequest("/Courses/DeleteItem", { id, type }, "Xóa thành công!", () => $(`[data-item-id="${id}"][data-item-type="${type}"]`).remove());
+            sendRequest("/Courses/DeleteItem", { id, type }, "Xóa thành công!", function () {
+                // Xóa item khỏi DOM
+                $(`[data-item-id="${id}"][data-item-type="${type}"]`).remove();
+
+                // Cập nhật lại số thứ tự
+                updateNumbers();
+            });
         }
     });
 });
+
+// 🔄 Hàm cập nhật số thứ tự (bài giảng liên tục trên toàn bộ hệ thống)
+function updateNumbers() {
+    let chapterIndex = 1;
+    let lessonIndex = 1; // Bài giảng sẽ liên tục trên toàn hệ thống
+
+    // Cập nhật số thứ tự của các Chapters
+    $(".block-chap").each(function () {
+        $(this).find(".tt-phan").text(`Phần ${chapterIndex}:`); // Cập nhật tiêu đề Phần
+        chapterIndex++;
+
+        // Cập nhật số thứ tự của các Lessons (nối tiếp trên toàn hệ thống)
+        $(this).find(".lesson-info .text-nowrap").each(function () {
+            $(this).text(`Bài giảng ${lessonIndex}:`);
+            lessonIndex++; // Luôn tăng liên tục trên toàn hệ thống
+        });
+    });
+}
+
+
+
 
 $(document).on("click", ".btn-cancel-item", function () {
     debugger
