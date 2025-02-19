@@ -13,6 +13,9 @@ namespace Entities.ViewModels
         public string Type { get; set; } // Loại (Chapter, Lesson, Exam)
         public int ParentId { get; set; } // ID cha (ChapterId nếu là Lesson, LessonId nếu là Exam)
         public int CourseId { get; set; } // ID khóa học
+        public string Description { get; set; } // Chỉ dùng cho Quiz
+        public int Order { get; set; } // Chỉ dùng cho Quiz
+        public int Status { get; set; } // Chỉ dùng cho Quiz
 
 
         // Các thuộc tính dành riêng cho Lesson

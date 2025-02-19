@@ -15,15 +15,21 @@ using Utilities;
 using Utilities.Contants;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
+using PdfSharp;
+using System.Data.Common;
+using System.Drawing.Printing;
+
 
 namespace DAL
 {
     public class CourseDAL : GenericService<Course>
     {
         private static DbWorker _DbWorker;
+        private readonly IDbConnection _dbConnection;
         public CourseDAL(string connection) : base(connection)
         {
             _DbWorker = new DbWorker(connection);
+            _dbConnection = new SqlConnection(connection);
         }
 
         public DataTable GetPagingList(CourseSearchModel searchModel, int currentPage, int pageSize)
@@ -101,7 +107,7 @@ namespace DAL
                     entity.OriginalPrice = model.OriginalPrice;
                     //entity.MainCategoryId = model.MainCategoryId;
                     //entity.SubCategoryId = model.SubCategoryId;
-                    
+
 
                     entity.Type = model.Type;
                     entity.AuthorId = model.AuthorId;
@@ -182,7 +188,8 @@ namespace DAL
                 {
             new SqlParameter("@Id", model.Id),
             new SqlParameter("@Title", model.Title ?? (object)DBNull.Value),
-            
+             //new SqlParameter("@CreatedBy", model.CreatedBy),
+
             new SqlParameter("@SourceId", model.CourseId),
             //new SqlParameter("@UpdatedBy", model.UpdatedBy ?? (object)DBNull.Value),
             //new SqlParameter("@Identity", SqlDbType.Int) { Direction = ParameterDirection.Output }
@@ -195,7 +202,8 @@ namespace DAL
                 parameters = new SqlParameter[]
         {
             new SqlParameter("@Title", model.Title ?? (object)DBNull.Value),
-            
+             new SqlParameter("@CreatedBy", model.CreatedBy),
+
             new SqlParameter("@SourceId", model.CourseId),
             //new SqlParameter("@CreatedBy", model.CreatedBy ?? (object)DBNull.Value),
             //new SqlParameter("@Identity", SqlDbType.Int) { Direction = ParameterDirection.Output }
@@ -218,6 +226,7 @@ namespace DAL
                 parameters = new SqlParameter[]
                 {
             new SqlParameter("@Id", model.Id),
+             //new SqlParameter("@CreatedBy", model.CreatedBy),
             new SqlParameter("@Title", model.Title ?? (object)DBNull.Value),
             new SqlParameter("@Author", model.Author ?? (object)DBNull.Value),
             new SqlParameter("@VideoDuration", model.VideoDuration ?? (object)DBNull.Value),
@@ -237,6 +246,7 @@ namespace DAL
                 parameters = new SqlParameter[]
                 {
             new SqlParameter("@Title", model.Title ?? (object)DBNull.Value),
+             new SqlParameter("@CreatedBy", model.CreatedBy),
             new SqlParameter("@Author", model.Author ?? (object)DBNull.Value),
             new SqlParameter("@VideoDuration", model.VideoDuration ?? (object)DBNull.Value),
             new SqlParameter("@Thumbnail", model.Thumbnail ?? (object)DBNull.Value),
@@ -250,8 +260,142 @@ namespace DAL
                 return _DbWorker.ExecuteNonQuery("sp_InsertLessions", parameters);
             }
 
-            return Convert.ToInt32(parameters.Last().Value); // Lấy ID từ OUTPUT parameter
+
         }
+
+        public async Task<int> SaveQuiz(Quiz model)
+        {
+            SqlParameter[] parameters;
+
+            if (model.Id > 0) // Gọi SP Update
+            {
+                parameters = new SqlParameter[]
+                {
+            new SqlParameter("@Id", model.Id),
+             //new SqlParameter("@CreatedBy", model.CreatedBy),
+              new SqlParameter("@SourceId", model.CourseId),
+              new SqlParameter("@ParentId", model.ParentId), // ✅ Nếu là Quiz thì = -1, nếu là Question thì = QuizId
+            //new SqlParameter("@Title", model.Title ?? (object)DBNull.Value),
+            new SqlParameter("@ChapterId", model.ChapterId),
+            //new SqlParameter("@Description", model.Description ?? (object)DBNull.Value),
+            new SqlParameter("@Order", model.Order),
+            new SqlParameter("@Thumbnail", model.Thumbnail ?? (object)DBNull.Value),
+            new SqlParameter("@Type", model.Type),
+            new SqlParameter("@Status", model.Status),
+            //new SqlParameter("@UpdatedBy", model.UpdatedBy ?? (object)DBNull.Value),
+            //new SqlParameter("@UpdatedDate", DateTime.UtcNow)
+                };
+                // Nếu là Quiz, cập nhật `Title`
+                if (model.ParentId == -1) // ✅ Nếu là Quiz, cập nhật `Title` & `ChapterId`
+                {
+                    parameters = parameters.Append(new SqlParameter("@Title", model.Title ?? (object)DBNull.Value)).ToArray();
+
+                }
+                else // ✅ Nếu là Question, cập nhật `Description`
+                {
+                    parameters = parameters.Append(new SqlParameter("@Description", model.Description ?? (object)DBNull.Value)).ToArray();
+                }
+
+                return _DbWorker.ExecuteNonQuery("sp_UpdateQuiz", parameters);
+            }
+            else // Gọi SP Insert
+            {
+                parameters = new SqlParameter[]
+                {
+              new SqlParameter("@SourceId", model.CourseId),
+               new SqlParameter("@CreatedBy", model.CreatedBy),
+            //new SqlParameter("@Title", model.Title ?? (object)DBNull.Value),
+            new SqlParameter("@ChapterId", model.ChapterId),
+            new SqlParameter("@ParentId", model.ParentId), // ✅ Quiz luôn có ParentId = -1, Question thì là QuizId
+            //new SqlParameter("@Description", model.Description ?? (object)DBNull.Value),
+            new SqlParameter("@Order", model.Order),
+            new SqlParameter("@Thumbnail", model.Thumbnail ?? (object)DBNull.Value),
+            new SqlParameter("@Type", model.Type),
+            new SqlParameter("@Status", model.Status),
+            //new SqlParameter("@CreatedBy", model.CreatedBy ?? (object)DBNull.Value),
+            //new SqlParameter("@CreatedDate", model.CreatedDate ?? (object)DBNull.Value),
+            //new SqlParameter("@Identity", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+
+                // Nếu là Quiz, lưu `Title`
+                if (model.ParentId == -1)
+                {
+                    parameters = parameters.Append(new SqlParameter("@Title", model.Title ?? (object)DBNull.Value)).ToArray();
+                }
+                else // Nếu là Question, lưu `Description`
+                {
+                    parameters = parameters.Append(new SqlParameter("@Description", model.Description ?? (object)DBNull.Value)).ToArray();
+                }
+
+                int result = _DbWorker.ExecuteNonQuery("sp_InsertQuiz", parameters);
+
+                // Lấy giá trị Identity (ID mới được tạo ra từ SCOPE_IDENTITY())
+                return result;
+            }
+        }
+
+        public async Task<int> SaveQuizAnswer(QuizAnswer model)
+        {
+            SqlParameter[] parameters;
+
+            if (model.Id > 0) // Gọi SP Update
+            {
+                parameters = new SqlParameter[]
+                {
+            new SqlParameter("@Id", model.Id),
+             //new SqlParameter("@CreatedBy", model.CreatedBy),
+              new SqlParameter("@QuizId", model.QuizId),
+            new SqlParameter("@Description", model.Description ?? (object)DBNull.Value),
+            new SqlParameter("@Order", model.Order),
+            new SqlParameter("@Thumbnail", model.Thumbnail ?? (object)DBNull.Value),
+            new SqlParameter("@Status", model.Status),
+            new SqlParameter("@IsCorrectAnswer", model.IsCorrectAnswer),
+            new SqlParameter("@Note", model.Note ?? (object)DBNull.Value)
+            //new SqlParameter("@UpdatedBy", model.UpdatedBy ?? (object)DBNull.Value),
+            //new SqlParameter("@UpdatedDate", DateTime.UtcNow)
+                };
+
+                return _DbWorker.ExecuteNonQuery("sp_UpdateQuizAnswer", parameters);
+            }
+            else // Gọi SP Insert
+            {
+                parameters = new SqlParameter[]
+                {
+              new SqlParameter("@QuizId", model.QuizId),
+            new SqlParameter("@Description", model.Description ?? (object)DBNull.Value),
+            new SqlParameter("@Order", model.Order),
+            new SqlParameter("@Thumbnail", model.Thumbnail ?? (object)DBNull.Value),
+            new SqlParameter("@Status", model.Status),
+            new SqlParameter("@IsCorrectAnswer", model.IsCorrectAnswer),
+            new SqlParameter("@Note", model.Note ?? (object)DBNull.Value),
+            new SqlParameter("@CreatedBy", model.CreatedBy),
+            //new SqlParameter("@CreatedDate", model.CreatedDate ?? DateTime.UtcNow),
+            //new SqlParameter("@CreatedBy", model.CreatedBy ?? (object)DBNull.Value),
+            //new SqlParameter("@CreatedDate", model.CreatedDate ?? (object)DBNull.Value),
+            //new SqlParameter("@Identity", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+
+                int result = _DbWorker.ExecuteNonQuery("sp_InsertQuizAnswer", parameters);
+
+                // Lấy giá trị Identity (ID mới được tạo ra từ SCOPE_IDENTITY())
+                return (int)parameters.Last().Value;
+            }
+        }
+
+        public async Task<int> UpdateQuizDescription(int quizId, string description)
+        {
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+        new SqlParameter("@Id", quizId),
+        new SqlParameter("@Description", description ?? (object)DBNull.Value)
+
+            };
+
+            return _DbWorker.ExecuteNonQuery("sp_UpdateQuiz", parameters);
+        }
+
+
+
 
 
         public async Task<bool> UpdateLessonAsync(Lessions lesson)
@@ -264,7 +408,7 @@ namespace DAL
                     await _DbContext.SaveChangesAsync();
                     return true;
                 }
-              
+
             }
             catch (Exception ex)
             {
@@ -336,7 +480,7 @@ namespace DAL
                     {
                         try
                         {
-                           
+
 
                             var lession = await _DbContext.Lessions.FindAsync(id);
                             if (lession != null)
@@ -363,6 +507,91 @@ namespace DAL
                 return -1;
             }
         }
+        public async Task<int> DeleteQuizAsync(int id)
+        {
+
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    using (var transaction = _DbContext.Database.BeginTransaction())
+                    {
+                        try
+                        {
+
+
+                            var quiz = await _DbContext.Quiz.FindAsync(id);
+                            if (quiz != null)
+                            {
+                                quiz.IsDelete = 1; // Đánh dấu là đã xóa
+                                _DbContext.SaveChanges(); // Lưu thay đổi
+                            }
+
+                            transaction.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.InsertLogTelegram("DeleteLesson - Transaction Rollback " + ex);
+                            transaction.Rollback();
+                            return -1;
+                        }
+                    }
+                }
+                return id;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("DeleteArticle - ArticleDAL: " + ex);
+                return -1;
+            }
+        }
+
+        public async Task<int> DeleteQuizAnswers(int questionId)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    using (var transaction = await _DbContext.Database.BeginTransactionAsync())
+                    {
+                        try
+                        {
+                            // Lấy danh sách tất cả các đáp án có QuizId = questionId
+                            var quizAnswers = await _DbContext.QuizAnswer
+                                .Where(a => a.QuizId == questionId)
+                                .ToListAsync();
+
+                            if (!quizAnswers.Any())
+                            {
+                                return 0; // Không tìm thấy câu trả lời nào để xóa
+                            }
+
+                            // Xóa tất cả đáp án liên quan
+                            _DbContext.QuizAnswer.RemoveRange(quizAnswers);
+                            await _DbContext.SaveChangesAsync();
+
+                            // Commit giao dịch
+                            await transaction.CommitAsync();
+                            return questionId;
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.InsertLogTelegram($"DeleteQuizAnswers - Transaction Rollback: {ex}");
+                            await transaction.RollbackAsync();
+                            return -1; // Lỗi trong quá trình xử lý
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"DeleteQuizAnswers - DAL Error: {ex}");
+                return -1; // Lỗi chung
+            }
+        }
+
+
+
 
         public async Task<int> DeleteChapterAsync(int chapterId)
         {
@@ -441,11 +670,11 @@ namespace DAL
                                 .ToListAsync();
                             if (files != null)
                             {
-                               
+
                                 // 🔹 Xóa dữ liệu file trong database
                                 _DbContext.AttachFiles.RemoveRange(files);
                                 await _DbContext.SaveChangesAsync(); // Lưu thay đổi vào DB
-                                
+
 
                             }
                             transaction.Commit();
@@ -511,11 +740,11 @@ namespace DAL
                                 Status = course.Status,
                                 Type = course.Type,
                                 Thumbnail = course.Thumbnail,
-                                VideoIntro=course.VideoIntro,
+                                VideoIntro = course.VideoIntro,
                                 CreatedDate = course.CreatedDate ?? DateTime.MinValue,
                                 //DownTime = course.DownTime ?? DateTime.MinValue,
                                 Position = course.Position ?? 0,
-                               
+
                                 //MainCategoryId = course.MainCategoryId,
                                 //SubCategoryId = course.SubCategoryId,
                             };
@@ -595,7 +824,73 @@ namespace DAL
             }
             return null;
         }
+        public DataTable GetListQuizBySourceId(int courseId, int pageIndex, int pageSize)
+        {
+            try
+            {
+                SqlParameter[] objParam = new SqlParameter[3];
+                objParam[0] = new SqlParameter("@SourceId", courseId);
+                objParam[1] = new SqlParameter("@PageIndex", pageIndex);
+                objParam[2] = new SqlParameter("@PageSize", pageSize);
 
+                return _DbWorker.GetDataTable(StoreProcedureConstant.SP_GetListQuizBySourceId, objParam);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetByInvoiceId - InvoiceRequestDAL: " + ex);
+            }
+            return null;
+        }
+
+
+        public async Task<Quiz> GetQuestionById(int questionId)
+        {
+            try
+            {
+                SqlParameter[] objParam = new SqlParameter[1];
+                objParam[0] = new SqlParameter("@QuestionId", questionId > 0 ? (object)questionId : DBNull.Value);
+
+                DataTable dt = _DbWorker.GetDataTable("SP_GetQuizById", objParam);
+
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    return dt.ToList<Quiz>().FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"GetQuestionById - QuizRepository: {ex}");
+            }
+
+            return null;
+        }
+
+
+
+        public async Task<List<QuizAnswer>> GetQuizAnswersByQuestionId(int questionId)
+        {
+            try
+            {
+                SqlParameter[] objParam = new SqlParameter[3];
+                objParam[0] = new SqlParameter("@QuizId", questionId > 0 ? (object)questionId : DBNull.Value);
+                objParam[1] = new SqlParameter("@PageIndex", 1);
+                objParam[2] = new SqlParameter("@PageSize", 10);
+
+
+                DataTable dt = _DbWorker.GetDataTable("SP_GetListQuizAnswerByQuizId", objParam);
+
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    return dt.ToList<QuizAnswer>();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"GetQuizAnswersByQuestionId - QuizRepository: {ex}");
+            }
+
+            return new List<QuizAnswer>(); // Trả về danh sách rỗng nếu không có đáp án
+        }
 
         public async Task<int> MultipleInsertCourseTag(int CourseId, List<long> ListTagId)
         {
@@ -677,7 +972,7 @@ namespace DAL
                             }
 
                             if (ListCateId != null && ListCateId.Count > 0)
-                            { 
+                            {
                                 foreach (var item in ListCateId)
                                 {
                                     var model = new CourseCategory

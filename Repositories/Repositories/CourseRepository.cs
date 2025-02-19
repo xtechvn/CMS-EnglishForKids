@@ -1,9 +1,11 @@
 ﻿using DAL;
+using DAL.StoreProcedure;
 using Entities.ConfigModels;
 using Entities.Models;
 using Entities.ViewModels;
 using Entities.ViewModels.Attachment;
 using Entities.ViewModels.Invoice;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using Nest;
 using Repositories.IRepositories;
@@ -189,6 +191,43 @@ namespace Repositories.Repositories
                 return null;
             }
         }
+        public Task<int> SaveQuiz(Quiz model)
+        {
+            try
+            {
+                return _CourseDAL.SaveQuiz(model);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetInvoiceRequests - InvoiceRequestRepository: " + ex);
+                return null;
+            }
+        }
+        public Task<int> SaveQuizAnswer(QuizAnswer model)
+        {
+            try
+            {
+                return _CourseDAL.SaveQuizAnswer(model);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetInvoiceRequests - InvoiceRequestRepository: " + ex);
+                return null;
+            }
+        }
+
+        public async Task<int> UpdateQuizDescription(int quizId, string description)
+        {
+            try
+            {
+                return await _CourseDAL.UpdateQuizDescription(quizId , description);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetInvoiceRequests - InvoiceRequestRepository: " + ex);
+                return -1;
+            }
+        }
 
         public async Task<bool> SaveArticleAsync(int lessonId, string article)
         {
@@ -249,6 +288,106 @@ namespace Repositories.Repositories
                 return new List<ChapterViewModel>();
             }
         }
+        // Phương thức lấy danh sách Quiz theo SourceId có phân trang
+        public List<ChapterViewModel> GetListChapterLessionQuizBySourceId(int courseId, int pageIndex, int pageSize)
+        {
+            try
+            {
+                // Lấy danh sách Chapter + Lesson từ SP_GetListLessionBySourceId
+                var dataTableLessons = _CourseDAL.GetListChapterLessionBySourceId(courseId);
+
+                // Lấy danh sách Quiz có phân trang từ SP_GetListQuizBySourceId
+                var dataTableQuizzes = _CourseDAL.GetListQuizBySourceId(courseId, pageIndex, pageSize);
+
+                // Nếu cả hai bảng dữ liệu đều rỗng, trả về danh sách rỗng
+                if ((dataTableLessons == null || dataTableLessons.Rows.Count == 0) &&
+                    (dataTableQuizzes == null || dataTableQuizzes.Rows.Count == 0))
+                {
+                    return new List<ChapterViewModel>();
+                }
+
+                // Bước 1: Ánh xạ Chapter + Lesson
+                var chapters = dataTableLessons.AsEnumerable()
+                    .GroupBy(row => row.Field<int>("ChapterId"))
+                    .Select(group => new ChapterViewModel
+                    {
+                        Id = group.Key,
+                        Title = group.FirstOrDefault()?.Field<string>("ChapterTile"),
+                        CourseId = group.FirstOrDefault()?.Field<int>("SourceId"),
+                        IsDelete = group.FirstOrDefault()?.Field<int?>("ChapterIsDelete") ?? 0,
+
+                        // Lấy danh sách Lessons nếu có
+                        Lessons = group.Any(row => row.Field<int?>("LessionId") != null)
+                            ? group.Where(row => row.Field<int?>("LessionId") != null).Select(row => new LessonViewModel
+                            {
+                                Id = row.Field<int>("LessionId"),
+                                Title = row.Field<string>("LessionTitle"),
+                                Article = row.Field<string>("LessionArticle") ?? "", // ✅ Không để null
+                                IsDelete = row.Field<int?>("LessionIsDelete") ?? 0,
+                            }).ToList()
+                            : new List<LessonViewModel>(),
+
+                        // Khởi tạo danh sách Quizzes để gán sau
+                        Quizzes = new List<QuizViewModel>()
+                    }).ToList();
+
+                // Bước 2: Ánh xạ dữ liệu Quiz (có phân trang)
+                var quizzes = dataTableQuizzes.AsEnumerable()
+                    .GroupBy(row => row.Field<int>("ChapterId")) // Nhóm theo ChapterId
+                    .Select(group => new
+                    {
+                        ChapterId = group.Key,
+                        Quizzes = group.Select(row => new QuizViewModel
+                        {
+                            Id = row.Field<int>("Id"),
+                            Title = row.Field<string>("Title") ?? "", // ✅ Không để null
+                            Description = row.Field<string>("Description") ?? "", // ✅ Không để null
+                            IsDelete = row.Field<int?>("IsDelete") ?? 0, // ✅ Không để null
+                            ParentId = row.Field<int?>("ParentId") ?? -1, // ✅ Không để null
+                            ChapterId = row.Field<int?>("ChapterId") ?? -1
+
+                            // Ép kiểu `SMALLINT` (SQL) sang `int` (C#)
+                            //Order = Convert.ToInt32(row["Order"]),
+                            //Type = Convert.ToInt32(row["Type"]),
+                            //Thumbnail = row.Field<string>("Thumbnail"),
+
+                            //Status = row.Field<int>("Status"),
+                            //CreatedBy = row.Field<int>("CreatedBy"),
+                            //CreatedDate = row.Field<DateTime>("CreatedDate"),
+
+                        }).ToList()
+                    }).ToList();
+
+                // Bước 3: Gán danh sách Quiz vào Chapter tương ứng
+                foreach (var chapter in chapters)
+                {
+                    var chapterQuizzes = quizzes.FirstOrDefault(q => q.ChapterId == chapter.Id)?.Quizzes ?? new List<QuizViewModel>();
+                    if (chapterQuizzes != null)
+                    {
+                        chapter.Quizzes = chapterQuizzes;
+                    }
+                }
+
+                return chapters;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetListChapterLessionQuizBySourceId - Repository: " + ex);
+                return new List<ChapterViewModel>();
+            }
+        }
+
+        public async Task<Quiz> GetQuestionById(int questionId)
+        {
+            return await _CourseDAL.GetQuestionById(questionId);
+        }
+
+        public async Task<List<QuizAnswer>> GetAnswersByQuestionId(int questionId)
+        {
+            return await _CourseDAL.GetQuizAnswersByQuestionId(questionId);
+        }
+
+
         public List<AttachFile> GetFilesByLessonIds(List<int> lessonIds)
         {
             if (lessonIds == null || lessonIds.Count == 0)
@@ -291,6 +430,15 @@ namespace Repositories.Repositories
         {
 
             return await _CourseDAL.DeleteLessonAsync(id);
+        }
+        public async Task<int> DeleteQuizAsync(int id)
+        {
+
+            return await _CourseDAL.DeleteQuizAsync(id);
+        }
+        public async Task<int> DeleteQuizAnswers(int id)
+        {
+            return await _CourseDAL.DeleteQuizAnswers(id);
         }
 
         public async Task<int> DeleteChapterAsync(int id)
@@ -434,7 +582,12 @@ namespace Repositories.Repositories
             }
         }
 
-       
+        
+
+
+
+
+
 
 
 
