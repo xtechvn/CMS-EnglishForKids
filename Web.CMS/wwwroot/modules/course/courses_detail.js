@@ -63,7 +63,7 @@ $(document).ready(function () {
 _common.tinyMce('#text-editor');
 //===========================================================================================
 
-//_common.tinyMce('#text-editor-chapter');
+_common.tinyMce('#text-editor-quiz');
 
 
 // Check chuyển Tab
@@ -253,13 +253,19 @@ $(document).on("click", ".btn-add-type, .btn-edit-item", function () {
     // Mở form
     openItemForm(container, type, title, id, parentId);
 });
-function openItemForm(container, type, title, id = 0, parentId = 0, additionalData = {}) {
-    debugger;
-    const placeholderText = type === "Chapter" ? "Vui lòng nhập tên phần" : "Vui lòng nhập tên bài học";
-    const headerText = type === "Chapter" ? "Phần chưa xuất bản" : "Bài Học chưa xuất bản";
+function openItemForm(container, type, title, id = 0, parentId = 0) {
+   
+    const placeholderText = type === "Chapter" ? "Vui lòng nhập tên phần" :
+        type === "Quiz" ? "Vui lòng nhập nội dung câu hỏi" :
+            "Vui lòng nhập tên bài học";
+
+    const headerText = type === "Chapter" ? "Phần chưa xuất bản" :
+        type === "Quiz" ? "Câu Hỏi chưa xuất bản" :
+            "Bài Học chưa xuất bản";
+
     const actionText = id === 0 ? "Thêm" : "Lưu";
 
-    // Nội dung form
+    // **Dùng chung Form**
     const formHtml = `
         <div class="box-add-chap box_2" ${type !== "Chapter" && id > 0 ? 'style="margin-left:0; border: none;"' : ''}>
             <div class="d-flex gap10" style="align-items: center;">
@@ -278,36 +284,44 @@ function openItemForm(container, type, title, id = 0, parentId = 0, additionalDa
                     data-item-id="${id}" 
                     data-item-type="${type}" 
                     data-parent-id="${parentId}">
-                    ${actionText} ${type === "Chapter" ? "Phần" : "Bài Học"}
+                    ${actionText} ${type === "Chapter" ? "Phần" : type === "Quiz" ? "Câu Hỏi" : "Bài Học"}
                 </button>
             </div>
         </div>
     `;
-
+    debugger
 
     if (type === "Chapter") {
         if (id === 0) {
-            // Nếu thêm mới Chapter, thêm vào cuối danh sách
             container.append(`<div class="block-chap">${formHtml}</div>`);
         } else {
-            // Nếu sửa Chapter, thay thế nội dung ngay tại vị trí hiện tại
             container.find("> .item-content").html(formHtml).show();
         }
     } else {
-        // Với Lesson/Quiz, luôn chèn vào cuối container hiện tại
-        //container.append(formHtml);
         if (id === 0) {
-            container.append(formHtml); // **Thêm mới Lesson xuống dưới**
+            if (type === "Quiz") {
+                let lastQuiz = container.find(".box-add-chap[data-item-type='Quiz']").last();
+                if (lastQuiz.length > 0) {
+                    lastQuiz.after(formHtml); // Đẩy xuống cuối cùng của danh sách Quiz
+                } else {
+                    container.append(formHtml); // Nếu chưa có Quiz nào, thêm vào cuối container
+                }
+            } else {
+                container.append(formHtml);
+            }
         } else {
-            container.find("> .item-content").append(formHtml).show(); // **Thêm vào dưới**
+            container.find("> .item-content").append(formHtml).show();
         }
     }
+
+    // Bắt sự kiện nhập và đếm số ký tự
     $(".item-title").focus().on("input", function () {
         const charCount = $(this).val().length;
         $(this).siblings(".character-count").text(`${charCount}/200`);
     });
-
 }
+
+
 
 
 $(document).on("click", ".btn-save-item", function () {
@@ -329,11 +343,17 @@ $(document).on("click", ".btn-save-item", function () {
 
 });
 $(document).on("click", ".btn-delete-item", function () {
+    debugger;
     const id = $(this).data("item-id"); // Lấy ID của item
-    const type = $(this).data("item-type"); // Lấy loại của item (Chapter hoặc Lesson)
+    const type = $(this).data("item-type"); // Lấy loại của item (Quiz, Chapter, Lesson)
+    const quizBlock = $(this).closest(".lesson-block"); // Lấy block của Quiz
+    const panelListQuiz = quizBlock.find(".panel-listquiz"); // Danh sách câu hỏi
+    const btnToggleContent = quizBlock.find(".btn-toggle-content"); // Nút "Câu hỏi"
+    const btnChevron = quizBlock.find(".btn-chevron"); // Nút chevron
+    const commonPanel = quizBlock.find(".common-panel1"); // Panel nội dung chung
 
     Swal.fire({
-        title: `Bạn có chắc muốn xóa ${type === "Chapter" ? "Phần" : "Bài Học"} này?`,
+        title: `Bạn có chắc muốn xóa ${type === "Chapter" ? "Phần" : type === "Lesson" ? "Bài Học" : "Câu Hỏi"} này?`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Xóa",
@@ -341,15 +361,34 @@ $(document).on("click", ".btn-delete-item", function () {
     }).then((result) => {
         if (result.isConfirmed) {
             sendRequest("/Courses/DeleteItem", { id, type }, "Xóa thành công!", function () {
-                // Xóa item khỏi DOM
-                $(`[data-item-id="${id}"][data-item-type="${type}"]`).remove();
+                if (type === "Chapter" || type === "Lesson") {
+                    // ✅ Xóa trực tiếp item trên giao diện
+                    $(`[data-item-id="${id}"][data-item-type="${type}"]`).remove();
+                    // ✅ Cập nhật lại số thứ tự của Chapters & Lessons
+                    updateNumbers();
+                } else if (type === "Quiz") {
+                    // ✅ Xóa toàn bộ phần tử câu hỏi khỏi giao diện
+                    let questionElement = $(`[data-question-id="${id}"]`);
+                    $(`[data-item-id="${id}"][data-item-type="${type}"]`).remove();
 
-                // Cập nhật lại số thứ tự
-                updateNumbers();
+                    if (questionElement.length > 0) {
+                        questionElement.remove();
+                    }
+
+                    //// ✅ Kiểm tra nếu danh sách câu hỏi rỗng, ẩn luôn .panel-listquiz
+                    //if (panelListQuiz.find(".question-content").length === 0) {
+                    //    panelListQuiz.hide(); // Ẩn danh sách câu hỏi
+                    //    btnToggleContent.show(); // Hiển thị lại nút "Câu hỏi"
+                    //    btnChevron.hide(); // Ẩn nút chevron
+                       
+                    //}
+                }
             });
         }
     });
 });
+
+
 
 // 🔄 Hàm cập nhật số thứ tự (bài giảng liên tục trên toàn bộ hệ thống)
 function updateNumbers() {
@@ -391,9 +430,491 @@ $(document).on("click", ".btn-cancel-item", function () {
     }
 });
 
+//Quizz
+
+
+// Khi nhấn "Thêm đáp án"
+$(document).on("click", ".btn-add-answer", function (e) {
+    debugger
+    e.preventDefault();
+
+    const quizId = $(this).data("quiz-id"); // Lấy Quiz ID
+    const answerList = $(this).closest(".panel-quiz").find(".answer-list"); // Khu vực chứa đáp án
+    const newAnswerId = `text-editor-answer-${quizId}-${Date.now()}`; // Tạo ID duy nhất
+
+    // ✅ Tạo HTML cho textarea đáp án mới
+    const newAnswerHtml = `
+        <div class="row mt-3 answer-item" data-answer-id="0">
+            <div class="col-2">
+                <label class="radio">
+                    <input type="radio" name="isCorrectAnswer-${quizId}" value="${newAnswerId}">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+            <div class="col-8">
+                <div>
+                    <textarea rows="3" class="form-control text-editor-answer" id="${newAnswerId}" placeholder="Nhập câu trả lời..."></textarea>
+                    <div class="custom-input mb-2 w-100 pl-5 mt-2">
+                        <input type="text" class="form-control answer-note" placeholder="Giải thích lý do đây là hoặc không phải là đáp án hay nhất" />
+                        <label class="custom-label">100</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-2">
+                <i class="icofont-trash btn-remove-answer" style="cursor: pointer;"></i>
+            </div>
+        </div>`;
+
+    // ✅ Thêm đáp án mới vào danh sách
+    answerList.append(newAnswerHtml);
+
+    // ✅ Đợi textarea render trước khi khởi tạo TinyMCE
+    setTimeout(() => {
+        if ($(`#${newAnswerId}`).length > 0) {
+            tinymce.init({
+                selector: `#${newAnswerId}`,
+                height: 130,
+                menubar: false,
+                plugins: 'lists link',
+                toolbar: 'bold italic underline | bullist numlist | link',
+            });
+        }
+    }, 100);
+});
+
+
+
+
+
+function showQuizPanel(quizId, chapterId = 0) {
+    let quizBlock = $(`#quiz_${quizId}`);
+    let panelQuiz = quizBlock.find(".panel-quiz");
+
+    if (panelQuiz.length === 0) {
+        console.warn(`⚠️ Không tìm thấy .panel-quiz của quiz ${quizId}, thêm mới vào DOM...`);
+        let panelQuizHtml = `
+            <div class="panel-quiz" style="display: none;" data-quiz-id="${quizId}">
+                <div class="content-header">
+                    <h6 class="mt-3">Đặt câu hỏi</h6>
+                    <a href="javascript:void(0)" class="btn-close-content">
+                        <i class="icofont-close"></i>
+                    </a>
+                </div>
+                <textarea rows="5" class="form-control text-editor-quiz" id="text-editor-quiz-${quizId}" placeholder="Nhập câu hỏi..."></textarea>
+                
+                <h6 class="mt-3">Đáp án</h6>
+                <div class="answer-list" id="quiz-answers-${quizId}"></div>
+
+                <!-- ✅ Nút thêm đáp án -->
+                <div class="flex justify-content-between my-3">
+                    <p>Viết tối đa 15 đáp án khả thi và chọn đáp án đúng.</p>
+                    <a href="javascript:void(0)" class="btn btn-default white btn-add-answer" data-quiz-id="${quizId}">
+                        <i class="icofont-plus mr-2"></i> Thêm đáp án
+                    </a>
+                </div>
+
+                <!-- ✅ Nút lưu -->
+                <div class="text-right">
+                    <a href="javascript:void(0)" class="btn btn-default btn-save-quiz" data-parent-id="${chapterId}" data-quiz-id="${quizId}" data-question-id="0"">Lưu</a>
+                </div>
+            </div>
+        `;
+        quizBlock.append(panelQuizHtml);
+        panelQuiz = quizBlock.find(".panel-quiz");
+    }
+    // ✅ Reset questionId về 0 khi nhấn "Câu hỏi mới"
+    panelQuiz.find(".btn-save-quiz").data("question-id", 0);
+
+    // ✅ XÓA DỮ LIỆU CŨ TRƯỚC KHI HIỂN THỊ FORM MỚI
+    const quizTextAreaId = `#text-editor-quiz-${quizId}`;
+
+    // 👉 Xóa TinyMCE hoàn toàn trước khi reset dữ liệu
+    if (tinymce.get(`text-editor-quiz-${quizId}`)) {
+        tinymce.get(`text-editor-quiz-${quizId}`).setContent(''); // Reset nội dung trong TinyMCE
+        tinymce.remove(quizTextAreaId); // Xóa TinyMCE trước khi khởi tạo lại
+    }
+
+    panelQuiz.find(".answer-list").html(generateDefaultAnswers(quizId)); // Reset danh sách đáp án
+
+    // ✅ Reset tất cả radio button (Không chọn đáp án nào)
+    panelQuiz.find('input[type="radio"]').prop("checked", false);
+
+    // ✅ Ẩn danh sách câu hỏi nếu có
+    quizBlock.find(".panel-listquiz").hide();
+
+    // ✅ Hiển thị panel
+    panelQuiz.show();
+    panelQuiz.find(".text-editor-quiz").focus();
+
+    // ✅ Chờ 300ms để đảm bảo textarea có trong DOM trước khi khởi tạo TinyMCE
+    setTimeout(() => {
+
+        const quizTextAreaId = `#text-editor-quiz-${quizId}`;
+
+        if ($(quizTextAreaId).length > 0) {
+            tinymce.remove(quizTextAreaId);
+            _common.tinyMce(quizTextAreaId, 200);
+        }
+
+        // ✅ Khởi tạo TinyMCE cho các đáp án
+        panelQuiz.find(".text-editor-answer").each(function () {
+            const answerId = `#${$(this).attr("id")}`;
+            tinymce.remove(answerId);
+            tinymce.init({
+                selector: answerId,
+                height: 130,
+                menubar: false,
+                plugins: 'lists link',
+                toolbar: 'bold italic underline | bullist numlist | link',
+            });
+        });
+
+    }, 300);
+
+    return panelQuiz;
+}
+
+function generateDefaultAnswers(quizId) {
+    let answerHtml = '';
+    for (let i = 1; i <= 3; i++) {
+        answerHtml += `
+            <div class="row mt-3 answer-item">
+                <div class="col-2">
+                    <label class="radio">
+                        <input type="radio" name="isCorrectAnswer-${quizId}" value="${i}">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+                <div class="col-8">
+                    <div>
+                        <textarea rows="3" class="form-control text-editor-answer" id="text-editor-answer-${quizId}-${i}" placeholder="Nhập Trả lời..."></textarea>
+                        <div class="custom-input mb-2 w-100 pl-5 mt-2">
+                            <input type="text" class="form-control answer-note" placeholder="Giải thích lý do đây là hoặc không phải là đáp án hay nhất" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <i class="icofont-trash btn-remove-answer" style="cursor: pointer;"></i>
+                </div>
+            </div>
+        `;
+    }
+    return answerHtml;
+}
+
+
+//Thêm Câu hỏi
+
+$(document).on("click", ".btn-new-question", function (e) {
+    e.preventDefault();
+    const quizId = $(this).data("quiz-id");
+    const chapterId = $(`#quiz_${quizId}`).closest(".block-item").data("parent-id") || 0; // Lấy chapterId đúng
+
+    console.log(`📌 Đang mở panel trắc nghiệm cho Quiz ID: ${quizId}`);
+    showQuizPanel(quizId, chapterId);
+});
+
+
+let deletedAnswers = []; // Mảng lưu ID của đáp án đã xóa
+// Sửa Câu Hỏi
+
+$(document).on("click", ".btn-edit-quiz", function (e) {
+
+    e.preventDefault();
+
+    const quizId = $(this).data("quiz-id");
+    const questionId = $(this).data("question-id");
+    const chapterId = $(`#quiz_${quizId}`).closest(".block-item").data("parent-id") || 0; // Lấy chapterId đúng
+
+    // Lấy panel-quiz và hiển thị nó
+
+    const wrapper = $(this).closest(".panel-listquiz").parent();
+
+    let panelQuiz = showQuizPanel(quizId, chapterId);
+
+    // Ẩn danh sách câu hỏi
+    wrapper.find(".panel-listquiz").hide();
+
+    // Hiển thị panel-quiz
+    panelQuiz.show();
+
+    // Gọi API để lấy dữ liệu câu hỏi và đáp án
+    $.ajax({
+        url: "/Courses/GetQuizQuestion",
+        type: "GET",
+        data: { questionId: questionId },
+        success: function (response) {
+            if (response.isSuccess) {
+                const { question, answers } = response.data;
+
+                // Đảm bảo TinyMCE đã được khởi tạo
+                setTimeout(() => {
+                    const editorId = `text-editor-quiz-${quizId}`;
+
+                    // Xóa TinyMCE nếu đã tồn tại
+                    tinymce.remove(`#${editorId}`);
+
+                    // Khởi tạo lại TinyMCE
+                    _common.tinyMce(`#${editorId}`, 200);
+
+                    // Chờ TinyMCE khởi tạo xong rồi mới set nội dung
+                    setTimeout(() => {
+                        const editor = tinymce.get(editorId);
+                        if (editor) {
+                            editor.setContent(question.description);
+                        } else {
+                            console.warn(`⚠️ Không tìm thấy TinyMCE với ID: ${editorId}`);
+                        }
+                    }, 200);
+                }, 100);
+                debugger
+                // Xóa các đáp án cũ
+                const answerList = $(`#quiz-answers-${quizId}`);
+                answerList.empty();
+
+                // ✅ Duy trì thứ tự của danh sách từ API
+                answers.forEach((answer, index) => {
+                    const answerId = `text-editor-answer-${quizId}-${index + 1}`;
+                    const answerHtml = `
+                        <div class="row mt-3 answer-item" data-answer-id="${answer.id}">
+                            <div class="col-2">
+                                <label class="radio">
+                                    <input type="radio" name="isCorrectAnswer-${quizId}" value="${answer.Id}" ${answer.isCorrect ? 'checked' : ''}>
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="col-8">
+                                <div>
+                                    <textarea rows="3" class="form-control text-editor-answer" id="${answerId}">${answer.description}</textarea>
+                                    <div class="custom-input mb-2 w-100 pl-5 mt-2">
+                                        <input type="text" class="form-control answer-note" value="${answer.note || ''}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <i class="icofont-trash btn-remove-answer" style="cursor: pointer;"></i>
+                            </div>
+                        </div>
+                    `;
+                    answerList.append(answerHtml);
+
+                    // Khởi tạo TinyMCE cho textarea đáp án
+                    tinymce.remove(`#${answerId}`);
+                    _common.tinyMce(`#${answerId}`, 200);
+                });
+
+                // Cập nhật data-question-id cho nút lưu
+                panelQuiz.find(".btn-save-quiz").data("question-id", questionId);
+            } else {
+                alert("Không thể lấy dữ liệu câu hỏi!");
+            }
+        },
+        error: function () {
+            alert("Đã xảy ra lỗi khi lấy dữ liệu câu hỏi!");
+        }
+    });
+});
+
+// Xóa Đáp án
+
+
+$(document).on("click", ".btn-remove-answer", function (e) {
+    debugger
+    e.preventDefault();
+
+    let answerItem = $(this).closest(".answer-item");
+    let answerId = answerItem.data("answer-id"); // Lấy ID đáp án
+
+    if (answerId && answerId !== 0) {
+        // Nếu đáp án đã có trong database, thêm vào danh sách xóa
+        deletedAnswers.push(answerId);
+    }
+
+    // Xóa phần tử khỏi giao diện
+    answerItem.remove();
+
+    console.log("✅ Đáp án bị xóa khỏi giao diện. Danh sách ID cần xóa trong database:", deletedAnswers);
+});
+
+
+//==========================================
+
+$(document).on("click", ".btn-save-quiz", function () {
+    debugger
+    let quizId = $(this).data("quiz-id") || 0;
+    let questionId = $(this).data("question-id") || 0;
+    const parentId = $(this).data("parent-id") || 0;
+    const courseId = $("#Id").val();
+
+    // ✅ Lấy nội dung câu hỏi từ TinyMCE
+    const quizDescription = tinymce.get(`text-editor-quiz-${quizId}`)?.getContent().trim() || "";
+    if (!quizDescription) {
+        alert("Vui lòng nhập câu hỏi!");
+        return;
+    }
+
+    let answers = [];
+    let isCorrectSelected = false;
+
+    // ✅ Lấy danh sách đáp án
+    $(`#quiz-answers-${quizId} .answer-item`).each(function (index) {
+        debugger
+        let answerDataId = $(this).attr("data-answer-id") ? parseInt($(this).attr("data-answer-id")) : 0;
+        const answerTextarea = $(this).find(".text-editor-answer");
+        const answerId = answerTextarea.attr("id"); // ✅ Lấy ID textarea
+
+        if (!answerId) {
+            console.warn("⚠️ Không tìm thấy ID của textarea đáp án!");
+            return; // ✅ Bỏ qua nếu không tìm thấy ID
+        }
+
+        // ✅ Kiểm tra nếu TinyMCE đã khởi tạo, nếu không thì lấy từ textarea gốc
+        const answerText = tinymce.get(answerId)
+            ? tinymce.get(answerId).getContent().trim()
+            : (answerTextarea.length ? answerTextarea.val().trim() : "");
+
+        let isCorrect = $(this).find(`input[name="isCorrectAnswer-${quizId}"]:checked`).length > 0;
+
+        if (isCorrect) {
+            isCorrectSelected = true;
+        }
+
+        let note = $(this).find(".answer-note").val()?.trim() || "";
+
+        if (answerText) {
+            answers.push({
+                Id: answerDataId,
+                Description: answerText,
+                IsCorrect: isCorrect,
+                Note: note
+            });
+        }
+    });
+
+    if (!isCorrectSelected) {
+        alert("Bạn phải chọn ít nhất một đáp án đúng!");
+        return;
+    }
+
+    if (answers.length < 2) {
+        alert("Cần ít nhất 2 đáp án!");
+        return;
+    }
+
+    let quizData = {
+        QuizId: quizId,
+        QuestionId: questionId,
+        Description: quizDescription,
+        ParentId: parentId,
+        CourseId: courseId,
+        Answers: answers,
+        DeletedAnswers: deletedAnswers
+    };
+
+    $.ajax({
+        url: "/Courses/SaveQuizAnswer",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(quizData),
+        success: function (response) {
+            debugger
+            if (response.isSuccess) {
+                let quizBlock = $(`#quiz_${quizId}`);
+                let questionListPanel = quizBlock.find(".panel-listquiz");
+                let questionList = questionListPanel.find(".question-list");
+
+                // Tìm câu hỏi cần update
+                let questionElement = questionListPanel.find(`[data-question-id="${response.questionId}"]`);
+
+                // ✅ Nếu danh sách câu hỏi chưa có, tạo mới
+                if (questionListPanel.length === 0) {
+                    quizBlock.find(".lesson-content-wrapper").html(`
+                    <div class="panel-listquiz">
+                        <div class="question-header flex-space-between">
+                            <div>
+                                <span class="question-title">Câu hỏi</span>
+                                <button class="btn btn-new-question ms-2" data-quiz-id="${quizId}">Câu hỏi mới</button>
+                            </div>
+                            <button class="btn btn-preview">Xem trước</button>
+                        </div>
+                        <div class="question-list"></div>
+                    </div>
+                `);
+                    questionListPanel = quizBlock.find(".panel-listquiz");
+                    questionList = questionListPanel.find(".question-list");
+                }
+
+                if (questionElement.length > 0) {
+                    // Cập nhật nội dung câu hỏi
+                    questionElement.find(".question-description").html(response.description);
+                } else {
+                    // Nếu là câu hỏi mới, thêm vào cuối danh sách
+                    let newQuestionHtml = `
+                    <div class="question-content flex-space-between" data-question-id="${response.questionId}">
+                        <div class="item-title" style="display:flex">
+                            <strong class="question-number">${questionListPanel.find(".question-content").length + 1}.</strong>
+                            <span class="question-description mb-0">${response.description}</span>
+                            <span class="question-type">Trắc nghiệm một đáp án</span>
+                        </div>
+                        <div class="action-icons">
+                            <a href="javascript:void(0)" class="btn-edit-quiz" data-quiz-id="${quizId}" data-question-id="${response.questionId}">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
+                            <a href="javascript:void(0)" class="btn-delete-item" data-item-id="${response.questionId}" data-item-type="Quiz">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            <a href="javascript:void(0)" class="btn-move-item">
+                                <i class="fas fa-bars"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                    questionList.append(newQuestionHtml);
+                }
+
+                // ✅ Hiển thị danh sách câu hỏi nếu đang bị ẩn
+                questionListPanel.show();
+
+                // ✅ Ẩn panel nhập câu hỏi
+                quizBlock.find(".panel-quiz").hide();
+
+                // ✅ Kiểm tra nếu `.btn-chevron` chưa tồn tại, thì thêm vào
+                if (quizBlock.find(".btn-chevron").length === 0) {
+                    console.warn("⚠️ Không tìm thấy .btn-chevron, tạo mới...");
+                    let chevronHtml = `<button type="button" class="btn-chevron" onclick="toggleContent('quiz_${quizId}')">
+                                        <i class="icofont-rounded-down"></i>
+                                   </button>`;
+                    quizBlock.find(".lesson-header .action-buttons").append(chevronHtml);
+                }
+
+                // ✅ Hiển thị nút mở rộng (chevron) nếu cần
+                quizBlock.find(".btn-chevron").show();
+
+                // ✅ Cuộn xuống để hiển thị câu hỏi mới nhất
+                setTimeout(() => {
+                    $('html, body').animate({
+                        scrollTop: questionList.find(".question-content").last().offset().top
+                    }, 300);
+                }, 200);
+
+                console.log("✅ Câu hỏi đã được thêm vào danh sách!");
+            } else {
+                alert("Lưu thất bại: " + response.message);
+            }
+        },
+        error: function () {
+            alert("Đã xảy ra lỗi!");
+        }
+    });
+
+});
+
+
+
+
+
+
 //Lession
-
-
 
 
 // Hiển thị các nút "Bài giảng" và "Trắc nghiệm"
@@ -438,59 +959,104 @@ function toggleContent(lessonId) {
 }
 
 
-// Khi nhấn "Nội dung"
+
+// Khi nhấn "Nội dung" hoặc "Câu Hỏi"
 $(document).on("click", ".btn-toggle-content", function () {
+    debugger;
     const lessonBlock = $(this).closest(".lesson-block");
-    const wrapper = lessonBlock.find(".lesson-content-wrapper");
-    const commonPanel = wrapper.find(".common-panel");
+    $(".common-quiz").show();
+
+    // Xác định xem đây là Quiz hay Lesson
+    const isQuiz = $(this).data("item-type") === "Quiz";
+
+    // Nếu là Quiz, tìm `quiz-wrapper`, nếu là Lesson, tìm `lesson-content-wrapper`
+    const wrapper = isQuiz ? lessonBlock.find(".quiz-wrapper") : lessonBlock.find(".lesson-content-wrapper");
+
+    // Nếu là Quiz, dùng `common-panel1`, nếu là Lesson, dùng `common-panel`
+    const commonPanel = isQuiz ? wrapper.find(".common-panel1") : wrapper.find(".common-panel");
 
     // Ẩn panel mặc định (Mô tả và Tài nguyên)
     wrapper.find(".panel-default").hide();
 
     // Hiển thị panel Nội dung và cập nhật tiêu đề động
-    commonPanel.attr("data-current-panel", "content");
+    commonPanel.attr("data-current-panel", "content").show();
     wrapper.find(".panel-content").show();
-    wrapper.find(".dynamic-title").text("Chọn loại nội dung");
 
-    // Đảm bảo khu vực lesson-content-wrapper hiển thị
+    // Cập nhật tiêu đề động
+    wrapper.find(".dynamic-title").text(isQuiz ? "Thêm câu hỏi trắc nghiệm" : "Chọn loại nội dung");
+
+    // Đảm bảo khu vực hiển thị chính xác
     wrapper.show();
 });
 
-$(document).on("click", ".btn-file", function (e) {
+
+
+$(document).on("click", ".btn-file, .btn-file1", function (e) {
     e.preventDefault(); // Ngăn chặn hành vi mặc định
 
-    const type = $(this).data("type"); // Lấy giá trị data-type (video hoặc article)
-    const itemId = $(this).data("item-id"); // Lấy ID bài giảng
+    const type = $(this).data("type"); // Lấy giá trị data-type (video, article, quiz)
+    const itemId = $(this).data("item-id"); // Lấy ID bài giảng hoặc quiz
     const wrapper = $(this).closest(".panel-content").parent(); // Tìm phần tử cha chứa các panel
-    const panelUpload = wrapper.find(".panel-upload-video"); // Panel dùng chung
 
     console.log(`📂 Người dùng chọn loại nội dung: ${type}`);
 
     // Ẩn tất cả các panel trước khi hiển thị panel cần chọn
-    wrapper.find(".panel-content, .panel-upload-video, .panel-upload-article").hide();
+    wrapper.find(".panel-content, .panel-upload-video, .panel-upload-article, .panel-quiz").hide();
+    $(`#lesson_${itemId} .btn-toggle-content, #quiz_${itemId} .btn-toggle-content`).hide(); // ✅ Ẩn "Nội dung" khi chọn loại nội dung
 
     if (type === "video") {
-        // ✅ Khi chọn Video, đặt `data-type="video"`
-        panelUpload.attr("data-type", "video").show();
+        // ✅ Khi chọn Video, hiển thị panel video
+        wrapper.find(".panel-upload-video").attr("data-type", "video").show();
         wrapper.find(".dynamic-title").text("Tải lên Video");
-
     } else if (type === "article") {
+        // ✅ Khi chọn Bài Viết, hiển thị panel bài viết
         wrapper.find(".panel-upload-article").show();
         wrapper.find(".dynamic-title").text("Thêm Bài Viết");
 
-        // ✅ Chờ panel mở xong rồi khởi tạo TinyMCE
         setTimeout(function () {
             const textareaId = `#text-editor-chapter-${itemId}`;
-
             if ($(textareaId).length > 0) {
-                tinymce.remove(textareaId); // Xóa TinyMCE cũ
-                _common.tinyMce(textareaId, 200); // Khởi tạo TinyMCE mới
+                tinymce.remove(textareaId);
+                _common.tinyMce(textareaId, 200);
             }
+        }, 100);
+    } else if (type === "quiz") {
+        // ✅ Khi chọn Quiz, hiển thị panel quiz
+        const panelQuiz = wrapper.find(".panel-quiz");
+        panelQuiz.show();
+        wrapper.find(".dynamic-title").text("Thêm Câu Hỏi Trắc Nghiệm");
+
+        // ✅ Ẩn nút "Câu hỏi"
+        $(`#quiz_${itemId} .btn-toggle-content`).hide();
+
+        // ✅ Chờ panel mở xong rồi khởi tạo TinyMCE
+        setTimeout(function () {
+            const quizTextAreaId = `#text-editor-quiz-${itemId}`;
+
+            if ($(quizTextAreaId).length > 0) {
+                tinymce.remove(quizTextAreaId);
+                _common.tinyMce(quizTextAreaId, 200);
+            }
+
+            // ✅ Khởi tạo TinyMCE cho 3 textarea mặc định
+            panelQuiz.find(".text-editor-answer").each(function () {
+                tinymce.init({
+                    selector: `#${this.id}`,
+                    height: 130,
+                    menubar: false,
+                    plugins: 'lists link',
+                    toolbar: 'bold italic underline | bullist numlist | link',
+                });
+            });
         }, 100);
     }
 
     console.log(`✅ Đã mở panel upload cho: ${type}`);
 });
+
+
+
+
 //Lưu bài viết
 $(document).on("click", ".btn-save-article", function () {
     debugger
@@ -526,7 +1092,7 @@ $(document).on("click", ".btn-save-article", function () {
                 lessonWrapper.find(".panel-baiviet").fadeIn("slow").css("display", "flex");
                 lessonWrapper.find(".box-tailieu").fadeIn("slow");
 
-               
+
 
             } else {
                 Swal.fire("Lỗi", "Không thể lưu bài viết!", "error");
@@ -566,38 +1132,80 @@ $(document).on("click", ".btn-edit-article", function () {
 //==============================================================================
 
 // Khi nhấn vào dấu "X" trong bất kỳ panel nào
-// Khi nhấn vào dấu "X" trong bất kỳ panel nào
+
+
 $(document).on("click", ".btn-close-content", function () {
     const wrapper = $(this).closest(".lesson-content-wrapper");
     const commonPanel = wrapper.find(".common-panel");
+    const panelQuiz = wrapper.find(".panel-quiz"); // Panel của Quiz
+    const panelListQuiz = wrapper.find(".panel-listquiz"); // Danh sách câu hỏi
+    const panelDefault = wrapper.find(".panel-default"); // Panel mặc định (nếu có)
+    const panelUpload = wrapper.find(".panel-upload-article, .panel-content"); // Panel bài viết
+    const isQuiz = wrapper.closest(".lesson-block").attr("id").includes("quiz_"); // Xác định có phải Quiz không
 
-    // 🛠 Ẩn chỉ panel đang đóng (không ảnh hưởng đến panel khác)
-    $(this).closest(".panel-upload-article, .panel-content").hide();
+    if (isQuiz) {
+        // ✅ Nếu là Quiz, quay về danh sách câu hỏi thay vì ẩn hoàn toàn
+        panelQuiz.hide();
+        panelListQuiz.show();
 
-    // 🛠 Ẩn tất cả các panel nội dung khác (không động vào panel-baiviet)
-    wrapper.find(".panel-content, .panel-upload-video").hide();
+        // ✅ Reset nội dung panel Quiz
+        panelQuiz.find("textarea").val(""); // Xóa nội dung câu hỏi
+        wrapper.find(".answer-list .answer-item").slice(3).remove(); // Xóa tất cả đáp án ngoại trừ 3 đáp án mặc định
+        wrapper.find(".answer-list input[type='radio']").prop("checked", false); // Reset radio button
 
-    // 🛠 Hiển thị panel mặc định và cập nhật tiêu đề động
-    commonPanel.attr("data-current-panel", "default");
-    wrapper.find(".panel-default").show();
-    wrapper.find(".dynamic-title").text("Chọn loại nội dung");
+        // ✅ Hiển thị lại nút "Câu hỏi"
+        const quizId = wrapper.closest(".lesson-block").attr("id").replace("quiz_", "");
+        $(`#quiz_${quizId} .btn-toggle-content`).show();
+    } else {
+        // ✅ Nếu không phải Quiz, xử lý cho Chapter & Lesson
+        panelUpload.hide(); // Ẩn panel bài viết nếu có
+        wrapper.find(".panel-content, .panel-upload-video").hide(); // Ẩn các panel nội dung khác
 
-    // 🛠 Kiểm tra nếu bài giảng có bài viết (TinyMCE có nội dung) thì hiển thị các phần liên quan
-    const lessonId = wrapper.closest(".lesson-block").attr("id").replace("lesson_", "");
-    const articleContent = tinymce.get(`text-editor-chapter-${lessonId}`)?.getContent().trim();
-
-    if (articleContent && articleContent.length > 0) {
-        if (wrapper.find(".panel-baiviet").length) {
-            wrapper.find(".panel-baiviet").fadeIn("slow");
+        if (panelDefault.length) {
+            // ✅ Nếu có panel mặc định, quay về panel mặc định
+            panelDefault.show();
+            wrapper.find(".dynamic-title").text("Chọn loại nội dung");
+        } else {
+            // ✅ Nếu không có panel mặc định, quay về danh sách câu hỏi
+            panelListQuiz.show();
         }
-        if (wrapper.find(".box-tailieu").length) {
-            wrapper.find(".box-tailieu").fadeIn("slow");
-        }
-        if (wrapper.find(".btn-resource").length) {
-            wrapper.find(".btn-resource").show();
+
+        // ✅ Kiểm tra nếu bài giảng có nội dung (TinyMCE không rỗng), hiển thị lại phần liên quan
+        const lessonId = wrapper.closest(".lesson-block").attr("id").replace("lesson_", "");
+        const articleContent = tinymce.get(`text-editor-chapter-${lessonId}`)?.getContent().trim();
+
+        if (articleContent && articleContent.length > 0) {
+            if (wrapper.find(".panel-baiviet").length) {
+                wrapper.find(".panel-baiviet").fadeIn("slow");
+            }
+            if (wrapper.find(".box-tailieu").length) {
+                wrapper.find(".box-tailieu").fadeIn("slow");
+            }
+            if (wrapper.find(".btn-resource").length) {
+                wrapper.find(".btn-resource").show();
+            }
         }
     }
 });
+$(document).on("click", ".btn-close-content2", function () {
+    debugger
+    const wrapper = $(this).closest(".lesson-content-wrapper");
+    const panelQuiz = wrapper.find(".panel-quiz"); // Panel của Quiz
+    const panelListQuiz = wrapper.find(".panel-listquiz"); // Danh sách câu hỏi
+
+    $(".panel-content").hide();
+    $(".common-quiz").hide();
+    $(".toogle-quiz").show();
+    panelQuiz.hide();
+
+  
+      
+
+       
+});
+
+
+
 
 
 
@@ -629,7 +1237,7 @@ $(document).on("click", ".btn-replace-video", function () {
     const wrapper = $(`#lesson_${lessonId}`);
     // 🛠 **Cập nhật lại `data-type` thành "video"**
     wrapper.find(".panel-upload-video").attr("data-type", "video");
-   
+
 
     if (isReplaceArticle) {
         // 🛠 Xử lý THAY THẾ TỪ BÀI VIẾT -> VIDEO
@@ -825,19 +1433,34 @@ function resetFileInput(input) {
 
 // Hàm cập nhật giao diện sau khi upload thành công
 function updateLessonUI(lessonId, files, isResource) {
-    debugger
+    debugger;
     $(`#lesson_${lessonId} .panel-upload-video, #lesson_${lessonId} .btn-toggle-content`).hide();
     $(`#lesson_${lessonId} .panel-default`).fadeIn("slow");
-    // ✅ Khi upload Video, ẩn chữ "Nội dung"
+
+    // ✅ Kiểm tra xem trước đó "Nội dung" có bị ẩn hay không
+    const wasContentHidden = $(`#lesson_${lessonId} .btn-toggle-content`).is(":hidden");
+
     if (!isResource) {
+        // ✅ Nếu tải video, luôn ẩn "Nội dung"
         $(`#lesson_${lessonId} .btn-toggle-content`).hide();
     } else {
-        $(`#lesson_${lessonId} .btn-toggle-content`).show(); // ✅ Upload tài nguyên vẫn hiển thị "Nội dung"
+        // ✅ Nếu trước đó đã ẩn, giữ nguyên trạng thái ẩn
+        if (!wasContentHidden) {
+            const hasVideo = $(`#fileList_${lessonId} tr`).length > 0;
+            const hasArticle = $(`#lesson_${lessonId} .panel-baiviet`).is(":visible"); // Kiểm tra bài viết đã có chưa
+
+            if (!hasVideo && !hasArticle) {
+                $(`#lesson_${lessonId} .btn-toggle-content`).show();
+            } else {
+                $(`#lesson_${lessonId} .btn-toggle-content`).hide();
+            }
+        }
     }
 
-    // ✅ Gọi showUploadProgress cho cả tài nguyên và video
+    // ✅ Gọi showUploadProgress để hiển thị tiến trình tải lên
     showUploadProgress(lessonId, files, isResource);
 }
+
 
 
 // Hiển thị trạng thái "Đang tải lên..." trong danh sách file
@@ -1024,6 +1647,11 @@ function updateResourceList(lessonId, files) {
         } else {
             header.show(); // ✅ Nếu có rồi thì hiển thị lại
         }
+    }
+    // ✅ Kiểm tra nếu có video -> Không hiển thị "Nội dung"
+    const hasVideo = $(`#fileList_${lessonId} tr`).length > 0;
+    if (hasVideo) {
+        $(`#lesson_${lessonId} .btn-toggle-content`).hide();
     }
 }
 

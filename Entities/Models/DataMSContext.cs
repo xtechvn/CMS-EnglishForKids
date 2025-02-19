@@ -47,6 +47,10 @@ public partial class DataMSContext : DbContext
     public virtual DbSet<Chapters> Chapters { get; set; }
 
     public virtual DbSet<Lessions> Lessions { get; set; }
+    public virtual DbSet<Quiz> Quiz { get; set; }
+    public virtual DbSet<QuizAnswer> QuizAnswer { get; set; }
+
+
 
 
 
@@ -189,6 +193,11 @@ public partial class DataMSContext : DbContext
         modelBuilder.Entity< Chapters > ().ToTable("Chapters"); // Ánh xạ Course tới bảng Source
 
         modelBuilder.Entity<Lessions>().ToTable("Lessions"); // Ánh xạ Course tới bảng Source
+
+        modelBuilder.Entity<Quiz>().ToTable("Quiz"); 
+        modelBuilder.Entity<QuizAnswer>().ToTable("QuizAnswer"); 
+
+
 
 
         modelBuilder.Entity<CourseCategory>(entity =>

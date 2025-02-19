@@ -343,15 +343,25 @@ namespace Web.CMS.Controllers.Course
         //    }
         //}
 
-        public async Task<IActionResult> Chapters(int courseId)
+        public async Task<IActionResult> Chapters(int courseId, int pageIndex = 1, int pageSize = 10)
         {
             if (courseId <= 0)
             {
                 return RedirectToAction("Detail");
             }
 
-            // Lấy danh sách chapter và lesson trong một lần gọi
-            var chapterLessons = _CourseRepository.GetListChapterLessionBySourceId(courseId);
+            // Gọi duy nhất 1 hàm để lấy cả Chapter, Lesson và Quiz
+            var chapterLessons = _CourseRepository.GetListChapterLessionQuizBySourceId(courseId, pageIndex, pageSize);
+            // Kiểm tra có dữ liệu không
+            if (chapterLessons == null || !chapterLessons.Any())
+            {
+                return PartialView("Chapters", new List<ChapterViewModel>());
+            }
+            Console.WriteLine($"📌 Chapters: {chapterLessons.Count}");
+            foreach (var chapter in chapterLessons)
+            {
+                Console.WriteLine($"🔍 Chapter {chapter.Id}: Lessons {chapter.Lessons.Count}, Quizzes {chapter.Quizzes.Count}");
+            }
 
             // Tạo danh sách lessonId để truy vấn file
             var lessonIds = chapterLessons
@@ -372,11 +382,14 @@ namespace Web.CMS.Controllers.Course
                 {
                     lesson.Files = fileLookup.ContainsKey(lesson.Id) ? fileLookup[lesson.Id] : new List<AttachFile>();
                 }
+                // ✅ Đảm bảo `Quizzes` không null
+        chapter.Quizzes ??= new List<QuizViewModel>();
             }
 
             ViewBag.CourseId = courseId;
             return PartialView("Chapters", chapterLessons);
         }
+
 
 
 
@@ -389,6 +402,7 @@ namespace Web.CMS.Controllers.Course
                 {
                     return Json(new { isSuccess = false, message = "Tên phần không được để trống!" });
                 }
+                int userid = Convert.ToInt32(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 switch (model.Type)
                 {
                     case "Chapter":
@@ -398,6 +412,7 @@ namespace Web.CMS.Controllers.Course
                             Title = model.Title,
                             CourseId = model.CourseId,
                             CreatedDate = DateTime.Now,
+                            CreatedBy = userid,
                             IsDelete = 0
                         });
                         break;
@@ -411,20 +426,30 @@ namespace Web.CMS.Controllers.Course
                             VideoDuration = model.VideoDuration,
                             Thumbnail = model.Thumbnail,
                             ThumbnailName = model.ThumbnailName,
+                            CreatedBy = userid,
                             ChapterId = model.ParentId,
                             IsDelete = 0
                         });
                         break;
+                    case "Quiz":
+                        var quizId = await _CourseRepository.SaveQuiz(new Quiz
+                        {
+                            Id = model.Id,
+                            CourseId = model.CourseId,
+                            Title = model.Title,
+                            ChapterId = model.ParentId,
+                            ParentId =  -1,
+                            //Description = model.Description,
+                            //Order = model.Order,
 
-                    //case "Exam":
-                    //    var examId = await _CourseRepository.SaveExam(new Exams
-                    //    {
-                    //        Id = model.Id,
-                    //        Title = model.Title,
-                    //        LessonId = model.ParentId,
-                    //        CreatedDate = DateTime.Now
-                    //    });
-                    //    break;
+                            //Thumbnail = model.Thumbnail,
+                            CreatedBy = userid,
+                            // Type = model.QuizType, // Nếu có nhiều loại Quiz
+                            Status = model.Status,
+                            CreatedDate = DateTime.Now,
+                            IsDelete = 0
+                        });
+                        break;
 
                     default:
                         return Json(new { isSuccess = false, message = "Loại dữ liệu không hợp lệ!" });
@@ -436,10 +461,7 @@ namespace Web.CMS.Controllers.Course
                 
                     return Json(new { isSuccess = true, message = "Thêm phần mới thành công!" });
                 
-                //else
-                //{
-                //    return Json(new { isSuccess = false, message = "Không thể thêm phần mới!" });
-                //}
+              
             }
             catch (Exception ex)
             {
@@ -526,6 +548,130 @@ namespace Web.CMS.Controllers.Course
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetQuizQuestion(int questionId)
+        {
+            try
+            {
+                var question = await _CourseRepository.GetQuestionById(questionId);
+
+                if (question == null)
+                {
+                    return Json(new { isSuccess = false, message = "Câu hỏi không tồn tại!" });
+                }
+
+                var answers = await _CourseRepository.GetAnswersByQuestionId(questionId);
+                answers = answers.OrderBy(a => a.Id).ToList();
+
+                return Json(new
+                {
+                    isSuccess = true,
+                    data = new
+                    {
+                        question = new { Id = question.Id, Description = question.Description },
+                        answers = answers.Select(a => new
+                        {
+                            Id = a.Id,
+                            Description = a.Description,
+                            Note = a.Note,
+                            IsCorrect = a.IsCorrectAnswer
+                        })
+                    }
+                        
+                });
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"GetQuizQuestion - QuizController: {ex}");
+                return Json(new { isSuccess = false, message = "Lỗi khi lấy dữ liệu câu hỏi!" });
+            }
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> SaveQuizAnswer([FromBody] QuizSaveViewModel model)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(model.Description) || model.Answers == null || model.Answers.Count < 2)
+                {
+                    return Json(new { isSuccess = false, message = "Câu hỏi phải có ít nhất 2 đáp án!" });
+                }
+
+                int userId = Convert.ToInt32(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+                // ✅ Chỉ cập nhật `Description`, không ảnh hưởng đến `Title`
+                //await _CourseRepository.UpdateQuizDescription(model.QuizId, model.Description);
+
+                int questionId;
+
+                if (model.QuestionId > 0) // ✅ Nếu đã có QuestionId, cập nhật nội dung câu hỏi
+                {
+                    var question = new Quiz
+                    {
+                        Id = model.QuestionId, // ✅ Update câu hỏi
+                        ParentId = model.QuizId, // ✅ Thuộc về Quiz
+                        Description = model.Description, // ✅ Nội dung câu hỏi mới
+                        CourseId = model.CourseId,
+                        ChapterId = model.ParentId,
+
+                    };
+
+                    questionId = await _CourseRepository.SaveQuiz(question); // ✅ Cập nhật câu hỏi
+                                                                             // Xóa đáp án cũ
+                    await _CourseRepository.DeleteQuizAnswers(questionId);
+                }
+                else // ✅ Nếu chưa có, tạo mới câu hỏi
+                {
+                    var question = new Quiz
+                    {
+                        Id = 0, // ✅ Tạo mới
+                        ParentId = model.QuizId, // ✅ Thuộc về Quiz
+                        CourseId = model.CourseId,
+                        ChapterId = model.ParentId,
+                        Description = model.Description, // ✅ Nội dung câu hỏi
+                        CreatedBy = userId,
+                        CreatedDate = DateTime.Now,
+                        Status = 1 // Mặc định Active
+                    };
+
+                    questionId = await _CourseRepository.SaveQuiz(question); // ✅ Trả về ID mới của `Question`
+                }
+
+                //// ✅ Xóa đáp án cũ nếu cập nhật
+                //await _CourseRepository.DeleteQuizAnswers(model.QuizId);
+
+                // ✅ Lưu đáp án vào bảng `QuizAnswer`
+                foreach (var answer in model.Answers)
+                {
+                    await _CourseRepository.SaveQuizAnswer(new QuizAnswer
+                    {
+                        QuizId = questionId,
+                        Description = answer.Description,
+                        Note = answer.Note,
+                        IsCorrectAnswer = answer.IsCorrect,
+                        CreatedBy = userId,
+                        CreatedDate = DateTime.Now
+                    });
+                }
+                // Lấy thông tin câu hỏi mới nhất để trả về
+                var updatedQuestion = await _CourseRepository.GetQuestionById(questionId);
+
+                return Json(new
+                {
+                    isSuccess = true,
+                    questionId = questionId,
+                    description = updatedQuestion.Description
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { isSuccess = false, message = "Lỗi khi lưu trắc nghiệm!" });
+            }
+        }
+
+
+
         [HttpPost]
         public async Task<IActionResult> DeleteArticle(int lessonId)
         {
@@ -588,6 +734,10 @@ namespace Web.CMS.Controllers.Course
                 else if (model.Type == "Lesson")
                 {
                     _CourseRepository.DeleteLessonAsync(model.Id); // Gọi repository để xóa Lesson
+                }
+                else if (model.Type == "Quiz")
+                {
+                    _CourseRepository.DeleteQuizAsync(model.Id); // Gọi repository để xóa Quiz
                 }
                 else
                 {

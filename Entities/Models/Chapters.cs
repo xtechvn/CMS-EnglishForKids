@@ -20,7 +20,7 @@ public class Chapters
     [Column("SourceId")]
     public int CourseId { get; set; }
 
-    public string CreatedBy { get; set; }
+    public int? CreatedBy { get; set; }
 
     public DateTime CreatedDate { get; set; }
 

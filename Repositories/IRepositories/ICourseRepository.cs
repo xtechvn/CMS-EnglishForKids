@@ -14,10 +14,20 @@ namespace Repositories.IRepositories
         GenericViewModel<CourseViewModel> GetPagingList(CourseSearchModel searchModel, int currentPage, int pageSize);
             
         List<ChapterViewModel> GetListChapterLessionBySourceId(int courseId);
+        List<ChapterViewModel> GetListChapterLessionQuizBySourceId(int courseId , int pageIndex, int pageSize);
+        Task<Quiz> GetQuestionById(int questionId);
+        Task<List<QuizAnswer>> GetAnswersByQuestionId(int questionId);
+
+
         Task<int> SaveCourse(CourseModel model);
         Task UpdateVideoIntro(int courseId, string videoUrl);
         Task<int> SaveChapter(Chapters model);
         Task<int> SaveLesson(Lessions model);
+        Task<int> SaveQuiz(Quiz model);
+        Task<int> SaveQuizAnswer(QuizAnswer model);
+        Task<int> UpdateQuizDescription(int quizId, string description);
+
+
 
         Task<bool> SaveArticleAsync(int lessonId, string article);
 
@@ -30,6 +40,10 @@ namespace Repositories.IRepositories
         List<AttachFile> GetFilesByLessonIds(List<int> lessonIds);
         Task<bool> DeleteFilesByLessonId(int lessonId, int fileType);
         Task<int> DeleteLessonAsync(int id);
+        Task<int> DeleteQuizAsync(int id);
+        Task<int> DeleteQuizAnswers(int id);
+
+
         Task<bool> DeleteArticleAsync(int lessonId);
 
         Task<int> DeleteChapterAsync(int id);

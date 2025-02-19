@@ -305,6 +305,8 @@ namespace Utilities.Contants
         public static string Sp_UpdateOrder = "Sp_UpdateOrder";
 
         public static string SP_GetListChapterLessionBySourceId = "SP_GetListLessionBySourceId";
+        public static string SP_GetListQuizBySourceId = "SP_GetListQuizBySourceId";
+
         public static string SP_GetAttachFilesByLessonId = "SP_GetAttachFilesByLessonId";
 
         public static string sp_InsertChapters = "sp_InsertChapters";
