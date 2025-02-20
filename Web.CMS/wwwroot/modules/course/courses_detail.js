@@ -254,7 +254,7 @@ $(document).on("click", ".btn-add-type, .btn-edit-item", function () {
     openItemForm(container, type, title, id, parentId);
 });
 function openItemForm(container, type, title, id = 0, parentId = 0) {
-   
+
     const placeholderText = type === "Chapter" ? "Vui lòng nhập tên phần" :
         type === "Quiz" ? "Vui lòng nhập nội dung câu hỏi" :
             "Vui lòng nhập tên bài học";
@@ -380,7 +380,7 @@ $(document).on("click", ".btn-delete-item", function () {
                     //    panelListQuiz.hide(); // Ẩn danh sách câu hỏi
                     //    btnToggleContent.show(); // Hiển thị lại nút "Câu hỏi"
                     //    btnChevron.hide(); // Ẩn nút chevron
-                       
+
                     //}
                 }
             });
@@ -992,11 +992,14 @@ $(document).on("click", ".btn-toggle-content", function () {
 
 
 $(document).on("click", ".btn-file, .btn-file1", function (e) {
+    debugger
     e.preventDefault(); // Ngăn chặn hành vi mặc định
 
     const type = $(this).data("type"); // Lấy giá trị data-type (video, article, quiz)
     const itemId = $(this).data("item-id"); // Lấy ID bài giảng hoặc quiz
     const wrapper = $(this).closest(".panel-content").parent(); // Tìm phần tử cha chứa các panel
+    const wrapper2 = $(`#quiz_${itemId} .lesson-content-wrapper`);
+    const commonQuiz = wrapper2.find(".common-panel.common-quiz");
 
     console.log(`📂 Người dùng chọn loại nội dung: ${type}`);
 
@@ -1026,6 +1029,9 @@ $(document).on("click", ".btn-file, .btn-file1", function (e) {
         panelQuiz.show();
         wrapper.find(".dynamic-title").text("Thêm Câu Hỏi Trắc Nghiệm");
 
+        // ✅ Đánh dấu rằng panel được mở từ "Trắc nghiệm một đáp án"
+        commonQuiz.attr("data-opened-from-quiz", "true");
+
         // ✅ Ẩn nút "Câu hỏi"
         $(`#quiz_${itemId} .btn-toggle-content`).hide();
 
@@ -1053,6 +1059,7 @@ $(document).on("click", ".btn-file, .btn-file1", function (e) {
 
     console.log(`✅ Đã mở panel upload cho: ${type}`);
 });
+
 
 
 
@@ -1140,8 +1147,9 @@ $(document).on("click", ".btn-close-content", function () {
     const panelQuiz = wrapper.find(".panel-quiz"); // Panel của Quiz
     const panelListQuiz = wrapper.find(".panel-listquiz"); // Danh sách câu hỏi
     const panelDefault = wrapper.find(".panel-default"); // Panel mặc định (nếu có)
-    const panelUpload = wrapper.find(".panel-upload-article, .panel-content"); // Panel bài viết
+    const panelUpload = wrapper.find(".panel-upload-article, .panel-content, .panel-upload-video"); // Panel bài viết & video
     const isQuiz = wrapper.closest(".lesson-block").attr("id").includes("quiz_"); // Xác định có phải Quiz không
+    const lessonId = wrapper.closest(".lesson-block").attr("id").replace("lesson_", "");
 
     if (isQuiz) {
         // ✅ Nếu là Quiz, quay về danh sách câu hỏi thay vì ẩn hoàn toàn
@@ -1156,6 +1164,14 @@ $(document).on("click", ".btn-close-content", function () {
         // ✅ Hiển thị lại nút "Câu hỏi"
         const quizId = wrapper.closest(".lesson-block").attr("id").replace("quiz_", "");
         $(`#quiz_${quizId} .btn-toggle-content`).show();
+
+        // **➡ Kiểm tra nếu panel này được mở từ "Trắc nghiệm một đáp án"**
+        const commonQuiz = wrapper.find(".common-panel.common-quiz");
+        if (commonQuiz.attr("data-opened-from-quiz") === "true") {
+            console.log("📌 Đóng từ Trắc nghiệm một đáp án -> Ẩn luôn common-quiz");
+            commonQuiz.hide(); // Ẩn toàn bộ panel quiz
+            commonQuiz.removeAttr("data-opened-from-quiz"); // Xóa flag sau khi đóng
+        }
     } else {
         // ✅ Nếu không phải Quiz, xử lý cho Chapter & Lesson
         panelUpload.hide(); // Ẩn panel bài viết nếu có
@@ -1171,43 +1187,46 @@ $(document).on("click", ".btn-close-content", function () {
         }
 
         // ✅ Kiểm tra nếu bài giảng có nội dung (TinyMCE không rỗng), hiển thị lại phần liên quan
-        const lessonId = wrapper.closest(".lesson-block").attr("id").replace("lesson_", "");
-        const articleContent = tinymce.get(`text-editor-chapter-${lessonId}`)?.getContent().trim();
+        const articleContent = tinymce.get(`text-editor-chapter-${lessonId}`)?.getContent().trim(); // Lấy nội dung bài viết
+        const hasVideo = $(`#fileList_${lessonId} tr`).length > 0; // Kiểm tra có video không
+        const hasArticle = articleContent && articleContent.length > 0; // Kiểm tra bài viết có nội dung không
+        const hasResource = $(`#downloadList_${lessonId} tr`).length > 0; // Kiểm tra nếu có tài nguyên tải xuống
 
-        if (articleContent && articleContent.length > 0) {
-            if (wrapper.find(".panel-baiviet").length) {
-                wrapper.find(".panel-baiviet").fadeIn("slow");
-            }
-            if (wrapper.find(".box-tailieu").length) {
-                wrapper.find(".box-tailieu").fadeIn("slow");
-            }
-            if (wrapper.find(".btn-resource").length) {
-                wrapper.find(".btn-resource").show();
-            }
+        if (hasArticle) {
+            wrapper.find(".panel-baiviet").fadeIn("slow");
+        }
+        if (hasResource) {
+            wrapper.find(".box-tailieu").fadeIn("slow");
+        }
+        if (wrapper.find(".btn-resource").length) {
+            wrapper.find(".btn-resource").show();
+        }
+
+        // **➡ Kiểm tra điều kiện để hiển thị hoặc ẩn chữ "Nội dung"**
+        if (!hasVideo && !hasArticle) {
+            console.log("📌 Chưa có nội dung -> Hiển thị lại 'Nội dung'");
+            $(`#lesson_${lessonId} .btn-toggle-content.toogle-article`).fadeIn("slow");
+        } else {
+            console.log("📌 Đã có nội dung -> Ẩn 'Nội dung'");
+            $(`#lesson_${lessonId} .btn-toggle-content.toogle-article`).hide();
         }
     }
 });
+
+
 $(document).on("click", ".btn-close-content2", function () {
     debugger
     const wrapper = $(this).closest(".lesson-content-wrapper");
     const panelQuiz = wrapper.find(".panel-quiz"); // Panel của Quiz
     const panelListQuiz = wrapper.find(".panel-listquiz"); // Danh sách câu hỏi
+    const panelContent = wrapper.find(".panel-content"); // Panel chọn nội dung
+    const commonQuiz = wrapper.find(".common-quiz"); // Chỉ tìm `.common-quiz` trong bài giảng này
 
-    $(".panel-content").hide();
-    $(".common-quiz").hide();
-    $(".toogle-quiz").show();
-    panelQuiz.hide();
-
-  
-      
-
-       
+    panelContent.hide(); // Ẩn Panel Chọn Nội Dung
+    commonQuiz.hide(); // Chỉ ẩn `.common-quiz` của quiz này
+    wrapper.find(".toogle-quiz").show(); // Hiển thị lại nút "Câu hỏi"
+    panelQuiz.hide(); // Ẩn Panel trắc nghiệm
 });
-
-
-
-
-
 
 
 
@@ -1436,6 +1455,14 @@ function updateLessonUI(lessonId, files, isResource) {
     debugger;
     $(`#lesson_${lessonId} .panel-upload-video, #lesson_${lessonId} .btn-toggle-content`).hide();
     $(`#lesson_${lessonId} .panel-default`).fadeIn("slow");
+    // ✅ Kiểm tra nếu là tài nguyên thì hiển thị "Nội dung"
+    if (isResource) {
+        console.log("📌 Upload tài nguyên - Hiển thị lại 'Nội dung'");
+        $(`#lesson_${lessonId} .btn-toggle-content.toogle-article`).fadeIn("slow");
+    } else {
+        console.log("📌 Upload video - Ẩn 'Nội dung'");
+        $(`#lesson_${lessonId} .btn-toggle-content.toogle-article`).hide();
+    }
 
     // ✅ Kiểm tra xem trước đó "Nội dung" có bị ẩn hay không
     const wasContentHidden = $(`#lesson_${lessonId} .btn-toggle-content`).is(":hidden");
