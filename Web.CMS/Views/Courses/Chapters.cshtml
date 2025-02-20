@@ -73,14 +73,14 @@
                                                         <i class="icofont-ui-edit edit"></i>
                                                     </a>
                                                     <a href="javascript:void(0)" class="btn-delete-item" data-item-id="@lesson.Id" data-item-type="Lesson">
-                                                        <i class="icofont-trash del"></i>
+                                                        <i class="icofont-trash del"></i>   
                                                     </a>
                                                 </div>
                                                 <div class="action-buttons">
                                                     @if ((lesson.Files == null || lesson.Files.Count == 0 || !lesson.Files.Any(f => f.Type == 40))
                                                    && string.IsNullOrWhiteSpace(lesson.Article))
                                                     {
-                                                        <span class="btn btn-default white min2 btn-toggle-content">
+                                                        <span class="btn btn-default white min2 btn-toggle-content toogle-article">
                                                             <i class="icofont-plus mr-2"></i>Nội dung
                                                         </span>
                                                     }
@@ -158,9 +158,9 @@
 
                                                     <p>Thêm câu hỏi trắc nghiệm. Chọn loại câu hỏi bên dưới:</p>
                                                     <div class="content-options">
-                                                        <a href="javascript:void(0)" class="btn btn-default orange btn-file1" data-type="quiz" data-item-id="@quiz.Id">
-                                                            Trắc nghiệm một đáp án
-                                                        </a>
+                                                            <a href="javascript:void(0)" class="btn btn-default orange btn-file1" data-type="quiz" data-item-id="@quiz.Id">
+                                                                Trắc nghiệm một đáp án
+                                                            </a>
                                                     </div>
                                                 </div>
 
@@ -211,9 +211,11 @@
                                                 <div class="panel-quiz" id="panel-quiz-@quiz.Id" style="display: none;">
                                                     <div class="content-header">
                                                         <h6 class="mt-3">Đặt câu hỏi</h6>
-                                                        <a href="javascript:void(0)" class="btn-close-content">
-                                                            <i class="icofont-close"></i>
-                                                        </a>
+                                                        
+                                                            <a href="javascript:void(0)" class="btn-close-content">
+                                                                <i class="icofont-close"></i>
+                                                            </a>
+                                                       
                                                     </div>
 
                                                     <textarea rows="5" class="form-control text-editor-quiz" id="text-editor-quiz-@quiz.Id" placeholder="Nhập câu hỏi..."></textarea>
