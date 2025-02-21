@@ -32,33 +32,8 @@ $(document).ready(function () {
         _newsDetail1.disabledView();
 
     }
+    
 
-    // Khi tải trang, kiểm tra tab nào đang được lưu trong localStorage
-    const activeTab = localStorage.getItem("activeTab");
-    if (activeTab) {
-        // Hiển thị tab đã lưu trong localStorage
-        $(`.tab-link[data-tab="${activeTab}"]`).addClass("active");
-        $(".tab-content").hide(); // Ẩn tất cả nội dung
-        $(`#${activeTab}`).addClass("active").show(); // Hiển thị nội dung của tab đã lưu
-    } else {
-        // Nếu không có tab nào được lưu, mặc định chọn tab đầu tiên
-        $(".tab-link").first().addClass("active");
-        $(".tab-content").first().addClass("active").show();
-    }
-
-    // Xử lý sự kiện khi nhấp vào một tab
-    $(".tab-link").on("click", function () {
-        const targetTab = $(this).data("tab"); // Lấy tab mục tiêu
-        localStorage.setItem("activeTab", targetTab); // Lưu tab vào localStorage
-
-        // Cập nhật giao diện Tabs
-        $(".tab-link").removeClass("active"); // Xóa lớp active khỏi tất cả Tabs
-        $(this).addClass("active"); // Thêm lớp active cho Tab được chọn
-
-        // Hiển thị nội dung của Tab được chọn
-        $(".tab-content").removeClass("active").hide(); // Ẩn tất cả nội dung
-        $(`#${targetTab}`).addClass("active").show(); // Hiển thị nội dung của Tab được chọn
-    });
 });
 _common.tinyMce('#text-editor');
 //===========================================================================================
@@ -66,19 +41,42 @@ _common.tinyMce('#text-editor');
 _common.tinyMce('#text-editor-quiz');
 
 
-// Check chuyển Tab
-$(document).on("click", ".tab-link", function (event) {
-    debugger
+// 1️. Khi load trang, kiểm tra tab đã lưu trong localStorage
+let currentTab = localStorage.getItem("currentTab");
 
+// Nếu không có tab nào được lưu, mặc định là 'course-info'
+if (!currentTab) {
+    currentTab = "course-info";
+}
+
+// Ẩn tất cả các tab trước khi hiển thị tab đã lưu
+$(".tab-content").hide();
+$(`#${currentTab}`).show();
+
+// Cập nhật class active trên menu tab
+$(".tab-link").removeClass("active");
+$(`.tab-link[data-tab='${currentTab}']`).addClass("active");
+
+// Nếu tab là "chapters-tab", cần load dữ liệu chương học
+if (currentTab === "chapters-tab") {
+    const courseId = $("#Id").val();
+    if (courseId && courseId > 0) {
+        loadChapters(courseId);
+    }
+}
+/// 2️. Xử lý sự kiện chuyển tab
+$(document).on("click", ".tab-link", function (event) {
     event.preventDefault(); // Ngăn hành động mặc định
 
-    const targetTab = $(this).data("tab"); // Lấy tab được chỉ định
+    const targetTab = $(this).data("tab"); // Lấy tab được chọn
     const courseId = $("#Id").val(); // Lấy ID khóa học từ input ẩn
 
+    // Lưu tab hiện tại vào localStorage
+    localStorage.setItem("currentTab", targetTab);
 
+    // Nếu tab là "chapters-tab" mà khóa học chưa được lưu, cảnh báo
     if (targetTab === "chapters-tab") {
         if (!courseId || courseId <= 0) {
-            // Nếu khóa học chưa được lưu
             Swal.fire({
                 title: "Bạn cần lưu khóa học để tạo chương",
                 icon: "warning",
@@ -87,23 +85,23 @@ $(document).on("click", ".tab-link", function (event) {
                 cancelButtonText: "Không",
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Gọi hàm lưu khóa học
-                    _newsDetail1.OnSave('0');
+                    _newsDetail1.OnSave('0'); // Gọi hàm lưu khóa học
                 }
             });
         } else {
-            // Nếu khóa học đã lưu, tải nội dung tiết học
+            // Nếu khóa học đã lưu, tải nội dung chương học
             loadChapters(courseId);
             $(".tab-content").hide(); // Ẩn tất cả các tab
             $(`#${targetTab}`).show(); // Hiển thị tab "chapters-tab"
         }
     } else {
-        // Chuyển tab bình thường
         $(".tab-content").hide();
         $(`#${targetTab}`).show();
     }
 
-
+    // Cập nhật class active trên menu tab
+    $(".tab-link").removeClass("active");
+    $(this).addClass("active");
 });
 // ===============================================================
 //Click Toogle Gíá
@@ -475,8 +473,9 @@ $(document).on("click", ".btn-add-answer", function (e) {
                 selector: `#${newAnswerId}`,
                 height: 130,
                 menubar: false,
-                plugins: 'lists link',
-                toolbar: 'bold italic underline | bullist numlist | link',
+                plugins: 'print preview paste importcss searchreplace autolink autosave save directionality code visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount imagetools textpattern noneditable help charmap quickbars emoticons',
+                toolbar: 'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | fullscreen  preview save print | insertfile image media template link anchor codesample | ltr rtl',
+                imagetools_cors_hosts: ['picsum.photos']
             });
         }
     }, 100);
@@ -564,8 +563,9 @@ function showQuizPanel(quizId, chapterId = 0) {
                 selector: answerId,
                 height: 130,
                 menubar: false,
-                plugins: 'lists link',
-                toolbar: 'bold italic underline | bullist numlist | link',
+                plugins: 'print preview paste importcss searchreplace autolink autosave save directionality code visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount imagetools textpattern noneditable help charmap quickbars emoticons',
+                toolbar: 'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | fullscreen  preview save print | insertfile image media template link anchor codesample | ltr rtl',
+                imagetools_cors_hosts: ['picsum.photos']
             });
         });
 
@@ -823,52 +823,55 @@ $(document).on("click", ".btn-save-quiz", function () {
                 let questionListPanel = quizBlock.find(".panel-listquiz");
                 let questionList = questionListPanel.find(".question-list");
 
+                // ✅ Loại bỏ ảnh khỏi nội dung câu hỏi trước khi hiển thị
+                let cleanDescription = response.description.replace(/<img[^>]*>/g, "");
+
                 // Tìm câu hỏi cần update
                 let questionElement = questionListPanel.find(`[data-question-id="${response.questionId}"]`);
 
                 // ✅ Nếu danh sách câu hỏi chưa có, tạo mới
                 if (questionListPanel.length === 0) {
                     quizBlock.find(".lesson-content-wrapper").html(`
-                    <div class="panel-listquiz">
-                        <div class="question-header flex-space-between">
-                            <div>
-                                <span class="question-title">Câu hỏi</span>
-                                <button class="btn btn-new-question ms-2" data-quiz-id="${quizId}">Câu hỏi mới</button>
-                            </div>
-                            <button class="btn btn-preview">Xem trước</button>
+                <div class="panel-listquiz">
+                    <div class="question-header flex-space-between">
+                        <div>
+                            <span class="question-title">Câu hỏi</span>
+                            <button class="btn btn-new-question ms-2" data-quiz-id="${quizId}">Câu hỏi mới</button>
                         </div>
-                        <div class="question-list"></div>
+                        <button class="btn btn-preview">Xem trước</button>
                     </div>
-                `);
+                    <div class="question-list"></div>
+                </div>
+            `);
                     questionListPanel = quizBlock.find(".panel-listquiz");
                     questionList = questionListPanel.find(".question-list");
                 }
 
                 if (questionElement.length > 0) {
                     // Cập nhật nội dung câu hỏi
-                    questionElement.find(".question-description").html(response.description);
+                    questionElement.find(".question-description").html(cleanDescription);
                 } else {
                     // Nếu là câu hỏi mới, thêm vào cuối danh sách
                     let newQuestionHtml = `
-                    <div class="question-content flex-space-between" data-question-id="${response.questionId}">
-                        <div class="item-title" style="display:flex">
-                            <strong class="question-number">${questionListPanel.find(".question-content").length + 1}.</strong>
-                            <span class="question-description mb-0">${response.description}</span>
-                            <span class="question-type">Trắc nghiệm một đáp án</span>
-                        </div>
-                        <div class="action-icons">
-                            <a href="javascript:void(0)" class="btn-edit-quiz" data-quiz-id="${quizId}" data-question-id="${response.questionId}">
-                                <i class="fas fa-pencil-alt"></i>
-                            </a>
-                            <a href="javascript:void(0)" class="btn-delete-item" data-item-id="${response.questionId}" data-item-type="Quiz">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                            <a href="javascript:void(0)" class="btn-move-item">
-                                <i class="fas fa-bars"></i>
-                            </a>
-                        </div>
+                <div class="question-content flex-space-between" data-question-id="${response.questionId}">
+                    <div class="item-title" style="display:flex">
+                        <strong class="question-number">${questionListPanel.find(".question-content").length + 1}.</strong>
+                        <span class="question-description mb-0">${cleanDescription}</span>
+                        <span class="question-type">Trắc nghiệm một đáp án</span>
                     </div>
-                `;
+                    <div class="action-icons">
+                        <a href="javascript:void(0)" class="btn-edit-quiz" data-quiz-id="${quizId}" data-question-id="${response.questionId}">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                        <a href="javascript:void(0)" class="btn-delete-item" data-item-id="${response.questionId}" data-item-type="Quiz">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        <a href="javascript:void(0)" class="btn-move-item">
+                            <i class="fas fa-bars"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
                     questionList.append(newQuestionHtml);
                 }
 
@@ -882,8 +885,8 @@ $(document).on("click", ".btn-save-quiz", function () {
                 if (quizBlock.find(".btn-chevron").length === 0) {
                     console.warn("⚠️ Không tìm thấy .btn-chevron, tạo mới...");
                     let chevronHtml = `<button type="button" class="btn-chevron" onclick="toggleContent('quiz_${quizId}')">
-                                        <i class="icofont-rounded-down"></i>
-                                   </button>`;
+                                    <i class="icofont-rounded-down"></i>
+                               </button>`;
                     quizBlock.find(".lesson-header .action-buttons").append(chevronHtml);
                 }
 
@@ -906,6 +909,7 @@ $(document).on("click", ".btn-save-quiz", function () {
             alert("Đã xảy ra lỗi!");
         }
     });
+
 
 });
 
@@ -1049,9 +1053,13 @@ $(document).on("click", ".btn-file, .btn-file1", function (e) {
                 tinymce.init({
                     selector: `#${this.id}`,
                     height: 130,
-                    menubar: false,
-                    plugins: 'lists link',
-                    toolbar: 'bold italic underline | bullist numlist | link',
+                    plugins: 'print preview paste importcss searchreplace autolink autosave save directionality code visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount imagetools textpattern noneditable help charmap quickbars emoticons',
+                    toolbar: 'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | fullscreen  preview save print | insertfile image media template link anchor codesample | ltr rtl',
+                    imagetools_cors_hosts: ['picsum.photos'],
+                    menubar: false
+                   
+                   
+                   
                 });
             });
         }, 100);
@@ -1142,6 +1150,7 @@ $(document).on("click", ".btn-edit-article", function () {
 
 
 $(document).on("click", ".btn-close-content", function () {
+    debugger
     const wrapper = $(this).closest(".lesson-content-wrapper");
     const commonPanel = wrapper.find(".common-panel");
     const panelQuiz = wrapper.find(".panel-quiz"); // Panel của Quiz

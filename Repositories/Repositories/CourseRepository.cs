@@ -191,30 +191,49 @@ namespace Repositories.Repositories
                 return null;
             }
         }
-        public Task<int> SaveQuiz(Quiz model)
+        public async Task<int> SaveQuiz(Quiz model)
         {
             try
             {
-                return _CourseDAL.SaveQuiz(model);
+                
+
+                // ✅ Chuyển đổi ảnh Base64 trong mô tả quiz trước khi lưu
+                model.Description = await  StringHelpers.ReplaceEditorImage(model.Description, _UrlStaticImage);
+
+                // 🔄 Gọi DAL để lưu quiz vào database
+                return await  _CourseDAL.SaveQuiz(model);
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("GetInvoiceRequests - InvoiceRequestRepository: " + ex);
-                return null;
+                LogHelper.InsertLogTelegram("SaveQuiz - CourseRepository: " + ex);
+                return -1;
             }
         }
-        public Task<int> SaveQuizAnswer(QuizAnswer model)
+        public async Task<int> SaveQuizAnswer(QuizAnswer model)
         {
             try
             {
-                return _CourseDAL.SaveQuizAnswer(model);
+                if (string.IsNullOrEmpty(model.Description))
+                {
+                    return 0; // Không có nội dung để lưu
+                }
+
+                // ✅ Chuyển đổi ảnh Base64 trong mô tả câu trả lời trước khi lưu
+                model.Description = await StringHelpers.ReplaceEditorImage(model.Description, _UrlStaticImage);
+
+                // 🔄 Gọi DAL để lưu câu trả lời vào database
+                return await _CourseDAL.SaveQuizAnswer(model);
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("GetInvoiceRequests - InvoiceRequestRepository: " + ex);
-                return null;
+                LogHelper.InsertLogTelegram("SaveQuizAnswer - CourseRepository: " + ex);
+                return -1;
             }
         }
+
+
+
+
 
         public async Task<int> UpdateQuizDescription(int quizId, string description)
         {
@@ -231,17 +250,52 @@ namespace Repositories.Repositories
 
         public async Task<bool> SaveArticleAsync(int lessonId, string article)
         {
-            var lesson = await _CourseDAL.GetLessonByIdAsync(lessonId);
-            if (lesson == null)
+            try
             {
-                return false; // Không tìm thấy bài giảng
+                if (string.IsNullOrEmpty(article))
+                {
+                    return false; // Không có nội dung bài viết để lưu
+                }
+
+                #region 📌 Upload ảnh trong bài viết lên server và thay thế URL
+
+                // Upload tất cả ảnh Base64 trong nội dung bài viết lên server
+                Task<string> TBody = StringHelpers.ReplaceEditorImage(article, _UrlStaticImage);
+
+                // Đợi tất cả tác vụ upload hoàn tất
+                await Task.WhenAll(TBody);
+
+                // Gán lại nội dung bài viết sau khi thay thế ảnh Base64 thành URL
+                article = TBody.Result;
+
+                #endregion
+
+                #region 📌 Cập nhật bài viết vào Database
+
+                // Tìm bài giảng theo ID
+                var lesson = await _CourseDAL.GetLessonByIdAsync(lessonId);
+                if (lesson == null)
+                {
+                    return false; // Không tìm thấy bài giảng
+                }
+
+                // Gán nội dung bài viết mới
+                lesson.Article = article;
+
+                // Cập nhật bài giảng trong DB
+                var isUpdated = await _CourseDAL.UpdateLessonAsync(lesson);
+
+                return isUpdated;
+
+                #endregion
             }
-            lesson.Article = article;
-            var isUpdated = await _CourseDAL.UpdateLessonAsync(lesson);
-
-            return true;
-
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"[CMS] SaveArticleAsync Error: {ex}");
+                return false;
+            }
         }
+
 
 
         public List<ChapterViewModel> GetListChapterLessionBySourceId(int courseId)
