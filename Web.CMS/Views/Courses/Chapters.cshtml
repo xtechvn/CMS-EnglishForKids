@@ -1,6 +1,8 @@
 ﻿    @using Utilities
     @using Utilities.Contants
     @using Entities.ViewModels
+    @using System.Text.RegularExpressions
+
     @model List<ChapterViewModel>
 
 
@@ -179,29 +181,33 @@
                                                             @{
                                                                 int questionIndex = 1;
                                                             }
-                                                            @foreach (var question in chapter.Quizzes.Where(q => q.ParentId == quiz.Id && q.IsDelete == 0))
-                                                            {
-                                                                <div class="question-content flex-space-between" data-question-id="@question.Id">
-                                                                    <div class="item-title" style="display:flex">
-                                                                        <strong class="question-number">@questionIndex.</strong>
-                                                                        <span class="question-description mb-0">@Html.Raw(question.Description)</span>
-                                                                        <span class="question-type">Trắc nghiệm một đáp án</span>
-                                                                    </div>
+                                                        @foreach (var question in chapter.Quizzes.Where(q => q.ParentId == quiz.Id && q.IsDelete == 0))
+                                                        {
+                                                            // ✅ Loại bỏ ảnh trong nội dung câu hỏi
+                                                            string questionDescription = Regex.Replace(question.Description, "<img.*?>", "", RegexOptions.IgnoreCase);
 
-                                                                    <div class="action-icons">
-                                                                        <a href="javascript:void(0)" class="btn-edit-quiz" data-quiz-id="@quiz.Id" data-question-id="@question.Id">
-                                                                            <i class="fas fa-pencil-alt"></i>
-                                                                        </a>
-                                                                        <a href="javascript:void(0)" class="btn-delete-item" data-item-id="@question.Id" data-item-type="Quiz">
-                                                                            <i class="fas fa-trash"></i>
-                                                                        </a>
-                                                                        <a href="javascript:void(0)" class="btn-move-item">
-                                                                            <i class="fas fa-bars"></i>
-                                                                        </a>
-                                                                    </div>
+                                                            <div class="question-content flex-space-between" data-question-id="@question.Id">
+                                                                <div class="item-title" style="display:flex">
+                                                                    <strong class="question-number">@questionIndex.</strong>
+                                                                    <span class="question-description">@Html.Raw(questionDescription)</span>
+                                                                    <span class="question-type">Trắc nghiệm một đáp án</span>
                                                                 </div>
-                                                                questionIndex++;
-                                                            }
+
+                                                                <div class="action-icons">
+                                                                    <a href="javascript:void(0)" class="btn-edit-quiz" data-quiz-id="@quiz.Id" data-question-id="@question.Id">
+                                                                        <i class="fas fa-pencil-alt"></i>
+                                                                    </a>
+                                                                    <a href="javascript:void(0)" class="btn-delete-item" data-item-id="@question.Id" data-item-type="Quiz">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </a>
+                                                                    <a href="javascript:void(0)" class="btn-move-item">
+                                                                        <i class="fas fa-bars"></i>
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            questionIndex++;
+                                                        }
+
                                                         </div>
                                                     </div>
                                                 }
@@ -300,6 +306,15 @@
 
 
 <style>
+    .question-description {
+        max-width: 600px; /* Điều chỉnh độ rộng tối đa */
+        white-space: nowrap; /* Giữ nội dung trên một dòng */
+        overflow: hidden; /* Ẩn phần nội dung thừa */
+        text-overflow: ellipsis; /* Hiển thị dấu "..." nếu quá dài */
+        display: inline-block; /* Giữ cho nó không xuống dòng */
+        vertical-align: middle; /* Căn giữa nếu cần */
+    }
+
     .lesson-item {
         background: #fff;
         border: 1px solid #e5e7eb;
