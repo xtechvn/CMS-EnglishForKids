@@ -16,7 +16,10 @@ namespace Repositories.IRepositories
         List<ChapterViewModel> GetListChapterLessionBySourceId(int courseId);
         List<ChapterViewModel> GetListChapterLessionQuizBySourceId(int courseId , int pageIndex, int pageSize);
         Task<Quiz> GetQuestionById(int questionId);
-        Task<List<QuizAnswer>> GetAnswersByQuestionId(int questionId);
+        Task<List<QuizAnswer>> GetAnswersByQuestionId(int questionIds);
+        //Task<List<QuizAnswer>> GetAnswersByQuestionIds(List<int> questionIds);
+
+
 
 
         Task<int> SaveCourse(CourseModel model);

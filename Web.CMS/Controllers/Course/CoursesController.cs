@@ -132,7 +132,7 @@ namespace Web.CMS.Controllers.Course
             // Gán danh mục cha và con đã chọn
             ViewBag.SelectedParentCategory = selectedParentId;
             ViewBag.SelectedChildCategory = selectedChildId;
-            
+
             return View(model);
         }
 
@@ -142,8 +142,9 @@ namespace Web.CMS.Controllers.Course
             var subCategories = await _CourseRepository.GetSubCategories(parentId);
             return Json(subCategories);
         }
+        // Lưu Khóa Học(Course)
         [HttpPost]
-        public async Task<IActionResult> UpSert([FromForm] string data, IFormFile VideoIntro, [FromForm] string CurrentVideoPath)
+        public async Task<IActionResult> UpSert([FromForm] string data, [FromForm] string button_type, IFormFile VideoIntro, [FromForm] string CurrentVideoPath)
         {
             try
             {
@@ -156,6 +157,8 @@ namespace Web.CMS.Controllers.Course
 
                 // Deserialize dữ liệu từ request body
                 var model = JsonConvert.DeserializeObject<CourseModel>(data, settings);
+                // Kiểm tra nếu chỉ cập nhật trạng thái thì bỏ qua kiểm tra dữ liệu bắt buộc
+                bool isStatusUpdate = button_type == "status_update";
 
                 // Lấy giá trị mặc định của NEWS_CATEGORY_ID từ cấu hình
                 //var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
@@ -172,39 +175,33 @@ namespace Web.CMS.Controllers.Course
                     model.AuthorId = int.Parse(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 }
 
-                // Kiểm tra xem nội dung bài viết có trống không
-                model.Benefif = ArticleHelper.HighLightLinkTag(model.Benefif);
-                if (string.IsNullOrWhiteSpace(model.Benefif) || string.IsNullOrWhiteSpace(model.Title) || string.IsNullOrWhiteSpace(model.Description))
+                if (!isStatusUpdate)
                 {
-                    return new JsonResult(new
+                    // Kiểm tra dữ liệu bắt buộc nếu đây là request cập nhật đầy đủ
+                    model.Benefif = ArticleHelper.HighLightLinkTag(model.Benefif);
+                    if (string.IsNullOrWhiteSpace(model.Benefif) || string.IsNullOrWhiteSpace(model.Title) || string.IsNullOrWhiteSpace(model.Description))
                     {
-                        isSuccess = false,
-                        message = "Phần Tiêu đề, Mô tả và Nội dung bài viết không được để trống"
-                    });
-                }
+                        return new JsonResult(new { isSuccess = false, message = "Phần Tiêu đề, Mô tả và Nội dung bài viết không được để trống" });
+                    }
 
-                // Kiểm tra giới hạn độ dài của phần Lead
-                if (model.Description.Length >= 400)
-                {
-                    return new JsonResult(new
+                    if (model.Description.Length >= 400)
                     {
-                        isSuccess = false,
-                        message = "Phần Mô tả không được vượt quá 400 ký tự"
-                    });
+                        return new JsonResult(new { isSuccess = false, message = "Phần Mô tả không được vượt quá 400 ký tự" });
+                    }
                 }
 
 
 
                 // Lưu bài viết và lấy ID của bài viết đã được lưu
                 var courseId = await _CourseRepository.SaveCourse(model);
-               
+
 
                 // Kiểm tra xem quá trình lưu bài viết có thành công không
                 if (courseId > 0)
                 {
                     if (VideoIntro != null)
                     {
-                       
+
 
                         var fileUrl = await UpLoadHelper.UploadFileOrImage(VideoIntro, courseId, 35);
                         if (string.IsNullOrEmpty(fileUrl))
@@ -221,10 +218,37 @@ namespace Web.CMS.Controllers.Course
                         model.VideoIntro = CurrentVideoPath;
                     }
 
-                    // Lấy danh sách chapters và lessons
-                    var chapters = _CourseRepository.GetListChapterLessionBySourceId(courseId);
+                    // ✅ Gọi duy nhất 1 hàm lấy cả Chapter, Lesson và Quiz (chỉ lấy dữ liệu chưa bị xóa)
+                    var chapters = _CourseRepository.GetListChapterLessionQuizBySourceId(courseId, 1, 100)
+                                   .Where(ch => ch.IsDelete == 0)
+                                   .ToList();
+                    var lessons = chapters.SelectMany(ch => ch.Lessons).Where(l => l.IsDelete == 0).ToList();
+                    var quizzes = chapters.SelectMany(ch => ch.Quizzes).Where(q => q.IsDelete == 0).ToList();
 
-                    // Chuẩn bị dữ liệu để lưu vào Redis
+                    // ✅ Lấy danh sách LessonId để lấy file
+                    var lessonIds = lessons.Select(l => l.Id).Distinct().ToList();
+                    var allFiles = lessonIds.Any() ? _CourseRepository.GetFilesByLessonIds(lessonIds) : new List<AttachFile>();
+                    var fileLookup = allFiles.GroupBy(f => f.DataId).ToDictionary(group => group.Key, group => group.ToList());
+
+                    // ✅ Lấy danh sách QuizId để lấy QuizAnswer
+                    //var quizIds = quizzes.Select(q => q.Id).Distinct().ToList();
+                    //var quizAnswers = quizIds.Any() ? _CourseRepository.GetAnswersByQuestionIds(quizIds) : new List<QuizAnswer>();
+                    // ✅ Lấy QuizAnswer bằng cách gọi nhiều lần với `int`
+                    var quizAnswers = new List<QuizAnswer>();
+                    foreach (var quiz in quizzes)
+                    {
+                        var answers = await _CourseRepository.GetAnswersByQuestionId(quiz.Id);
+                        if (answers != null)
+                        {
+                            quizAnswers.AddRange(answers);
+                        }
+                    }
+
+                    // ✅ Tạo Dictionary để map QuizAnswer theo QuizId
+                    var quizAnswerLookup = quizAnswers.GroupBy(qa => qa.QuizId)
+                                                      .ToDictionary(group => group.Key, group => group.ToList());
+
+                    // ✅ Tạo dữ liệu Redis
                     var redisData = new
                     {
                         isSuccess = true,
@@ -244,16 +268,56 @@ namespace Web.CMS.Controllers.Course
                         {
                             ChapterId = chapter.Id,
                             ChapterTitle = chapter.Title,
-                            Lessons = chapter.Lessons.Select(lesson => new
+
+                            // ✅ Xử lý lỗi Concat() bằng cách ép kiểu object
+                            Items = lessons.Where(l => l.ChapterId == chapter.Id).Select(lesson => new
                             {
+                                Type = "Lesson",
                                 LessonId = lesson.Id,
                                 LessonTitle = lesson.Title,
                                 Author = lesson.Author,
                                 Thumbnail = lesson.Thumbnail,
-                                VideoDuration = lesson.VideoDuration
-                            })
+                                VideoDuration = lesson.VideoDuration,
+                                Article = lesson.Article,
+
+                                Files = fileLookup.ContainsKey(lesson.Id)
+                                    ? fileLookup[lesson.Id].Select(f => new
+                                    {
+                                        FileId = f.Id,
+                                        Type = f.Type,
+                                        Path = f.Path,
+                                        Ext = f.Ext
+                                    }).Cast<object>().ToList()
+                                    : new List<object>()
+                            }).Select(x => (object)x) // ✅ Ép kiểu về object
+                    .Concat(
+                        quizzes.Where(q => q.ParentId == -1 && q.ChapterId == chapter.Id).Select(quiz => new
+                        {
+                            Type = "Quiz",
+                            QuizId = quiz.Id,
+                            Title = quiz.Title,
+                            Questions = quizzes.Where(q => q.ParentId == quiz.Id).Select(q => new
+                            {
+                                QuestionId = q.Id,
+                                Description = q.Description,
+                                Answers = quizAnswerLookup.ContainsKey(q.Id)
+                                    ? quizAnswerLookup[q.Id].Select(a => (object)new
+                                    {
+                                        AnswerId = a.Id,
+                                        Description = a.Description,
+                                        IsCorrect = a.IsCorrectAnswer,
+                                        Note = a.Note
+                                    }).ToList()
+                                    : new List<object>()
+
+                            }).ToList()
+                        }).Select(x => (object)x) // ✅ Ép kiểu về object
+                    ).ToList()
                         })
                     };
+
+
+
 
                     var redisJson = JsonConvert.SerializeObject(redisData);
                     // Xử lý trạng thái hiển thị
@@ -315,84 +379,7 @@ namespace Web.CMS.Controllers.Course
             }
         }
 
-
-
-        public async Task<IActionResult> RelationArticle(long Id)
-        {
-            var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
-            ViewBag.StringTreeViewCate = await _GroupProductRepository.GetListTreeViewCheckBox(NEWS_CATEGORY_ID, -1);
-            ViewBag.ListAuthor = await _UserRepository.GetUserSuggestionList(string.Empty);
-            return PartialView();
-        }
-        //[HttpGet]
-        //public async Task<IActionResult> GetChapterDetails(int courseId)
-        //{
-        //    if (courseId <= 0)
-        //    {
-        //        return Json(new { isSuccess = false, message = "ID khóa học không hợp lệ!" });
-        //    }
-
-        //    try
-        //    {
-        //        var chapters = _CourseRepository.GetListChapterLessionBySourceId(courseId);
-        //        return Json(new { isSuccess = true, data = chapters });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Json(new { isSuccess = false, message = ex.Message });
-        //    }
-        //}
-
-        public async Task<IActionResult> Chapters(int courseId, int pageIndex = 1, int pageSize = 10)
-        {
-            if (courseId <= 0)
-            {
-                return RedirectToAction("Detail");
-            }
-
-            // Gọi duy nhất 1 hàm để lấy cả Chapter, Lesson và Quiz
-            var chapterLessons = _CourseRepository.GetListChapterLessionQuizBySourceId(courseId, pageIndex, pageSize);
-            // Kiểm tra có dữ liệu không
-            if (chapterLessons == null || !chapterLessons.Any())
-            {
-                return PartialView("Chapters", new List<ChapterViewModel>());
-            }
-            Console.WriteLine($"📌 Chapters: {chapterLessons.Count}");
-            foreach (var chapter in chapterLessons)
-            {
-                Console.WriteLine($"🔍 Chapter {chapter.Id}: Lessons {chapter.Lessons.Count}, Quizzes {chapter.Quizzes.Count}");
-            }
-
-            // Tạo danh sách lessonId để truy vấn file
-            var lessonIds = chapterLessons
-                .SelectMany(chapter => chapter.Lessons.Select(lesson => lesson.Id))
-                .Distinct()
-                .ToList();
-
-            // Lấy tất cả file của các lesson trong một lần gọi
-            var allFiles = _CourseRepository.GetFilesByLessonIds(lessonIds);
-
-            // Map file theo lessonId
-            var fileLookup = allFiles.GroupBy(file => file.DataId).ToDictionary(group => group.Key, group => group.ToList());
-
-            // Gán file vào từng lesson
-            foreach (var chapter in chapterLessons)
-            {
-                foreach (var lesson in chapter.Lessons)
-                {
-                    lesson.Files = fileLookup.ContainsKey(lesson.Id) ? fileLookup[lesson.Id] : new List<AttachFile>();
-                }
-                // ✅ Đảm bảo `Quizzes` không null
-        chapter.Quizzes ??= new List<QuizViewModel>();
-            }
-
-            ViewBag.CourseId = courseId;
-            return PartialView("Chapters", chapterLessons);
-        }
-
-
-
-
+        // Add Or Update của  Chapter và Leesion(Bài Viết)
         [HttpPost]
         public async Task<IActionResult> AddorUpdateItem([FromBody] ItemViewModel model)
         {
@@ -438,10 +425,7 @@ namespace Web.CMS.Controllers.Course
                             CourseId = model.CourseId,
                             Title = model.Title,
                             ChapterId = model.ParentId,
-                            ParentId =  -1,
-                            //Description = model.Description,
-                            //Order = model.Order,
-
+                            ParentId = -1,
                             //Thumbnail = model.Thumbnail,
                             CreatedBy = userid,
                             // Type = model.QuizType, // Nếu có nhiều loại Quiz
@@ -455,19 +439,20 @@ namespace Web.CMS.Controllers.Course
                         return Json(new { isSuccess = false, message = "Loại dữ liệu không hợp lệ!" });
 
                 }
-              
 
-               
-                
-                    return Json(new { isSuccess = true, message = "Thêm phần mới thành công!" });
-                
-              
+
+
+
+                return Json(new { isSuccess = true, message = "Thêm phần mới thành công!" });
+
+
             }
             catch (Exception ex)
             {
                 return Json(new { isSuccess = false, message = "Đã xảy ra lỗi khi thêm phần mới!" });
             }
         }
+        //Upload File Video Hoặc Tài Nguyên nằm trong Bài Giảng
         [HttpPost]
         public async Task<IActionResult> UploadFile(int lessonId, List<IFormFile> files, bool isReplace = false, bool isResource = false)
         {
@@ -492,7 +477,7 @@ namespace Web.CMS.Controllers.Course
                 foreach (var file in files)
                 {
                     // Kiểm tra loại file hợp lệ (Video chỉ nhận định dạng video)
-                    
+
                     var filePath = await UpLoadHelper.UploadFileOrImage(file, lessonId, fileType);
                     if (!string.IsNullOrEmpty(filePath))
                     {
@@ -524,6 +509,7 @@ namespace Web.CMS.Controllers.Course
             }
         }
         [HttpPost]
+        // Lưu Bài Viết ,Bài Viết ngang hàng với Videoo và nằm trong Bìa Giảng
         public async Task<IActionResult> SaveArticle(int lessonId, string article)
         {
             try
@@ -533,7 +519,7 @@ namespace Web.CMS.Controllers.Course
                     return Json(new { isSuccess = false, message = "Nội dung bài viết không được để trống!" });
                 }
 
-                var result = await _CourseRepository.SaveArticleAsync(lessonId,article);
+                var result = await _CourseRepository.SaveArticleAsync(lessonId, article);
                 return Json(new
                 {
                     isSuccess = result,
@@ -547,47 +533,7 @@ namespace Web.CMS.Controllers.Course
                 return Json(new { isSuccess = false, message = "Lỗi khi lưu bài viết!", error = ex.Message });
             }
         }
-
-        [HttpGet]
-        public async Task<IActionResult> GetQuizQuestion(int questionId)
-        {
-            try
-            {
-                var question = await _CourseRepository.GetQuestionById(questionId);
-
-                if (question == null)
-                {
-                    return Json(new { isSuccess = false, message = "Câu hỏi không tồn tại!" });
-                }
-
-                var answers = await _CourseRepository.GetAnswersByQuestionId(questionId);
-                answers = answers.OrderBy(a => a.Id).ToList();
-
-                return Json(new
-                {
-                    isSuccess = true,
-                    data = new
-                    {
-                        question = new { Id = question.Id, Description = question.Description },
-                        answers = answers.Select(a => new
-                        {
-                            Id = a.Id,
-                            Description = a.Description,
-                            Note = a.Note,
-                            IsCorrect = a.IsCorrectAnswer
-                        })
-                    }
-                        
-                });
-            }
-            catch (Exception ex)
-            {
-                LogHelper.InsertLogTelegram($"GetQuizQuestion - QuizController: {ex}");
-                return Json(new { isSuccess = false, message = "Lỗi khi lấy dữ liệu câu hỏi!" });
-            }
-        }
-
-
+        // Lưu Câu Hỏi và Câu Trả lời
         [HttpPost]
         public async Task<IActionResult> SaveQuizAnswer([FromBody] QuizSaveViewModel model)
         {
@@ -671,6 +617,102 @@ namespace Web.CMS.Controllers.Course
         }
 
 
+        // Lây ra Toàn bộ Course, Chapter,Lession ,File, Quiz rồi Render ra trang
+        public async Task<IActionResult> Chapters(int courseId, int pageIndex = 1, int pageSize = 10)
+        {
+            if (courseId <= 0)
+            {
+                return RedirectToAction("Detail");
+            }
+
+            // Gọi duy nhất 1 hàm để lấy cả Chapter, Lesson và Quiz
+            var chapterLessons = _CourseRepository.GetListChapterLessionQuizBySourceId(courseId, pageIndex, pageSize);
+            // Kiểm tra có dữ liệu không
+            if (chapterLessons == null || !chapterLessons.Any())
+            {
+                return PartialView("Chapters", new List<ChapterViewModel>());
+            }
+            Console.WriteLine($"📌 Chapters: {chapterLessons.Count}");
+            foreach (var chapter in chapterLessons)
+            {
+                Console.WriteLine($"🔍 Chapter {chapter.Id}: Lessons {chapter.Lessons.Count}, Quizzes {chapter.Quizzes.Count}");
+            }
+
+            // Tạo danh sách lessonId để truy vấn file
+            var lessonIds = chapterLessons
+                .SelectMany(chapter => chapter.Lessons.Select(lesson => lesson.Id))
+                .Distinct()
+                .ToList();
+
+            // Lấy tất cả file của các lesson trong một lần gọi
+            var allFiles = _CourseRepository.GetFilesByLessonIds(lessonIds);
+
+            // Map file theo lessonId
+            var fileLookup = allFiles.GroupBy(file => file.DataId).ToDictionary(group => group.Key, group => group.ToList());
+
+            // Gán file vào từng lesson
+            foreach (var chapter in chapterLessons)
+            {
+                foreach (var lesson in chapter.Lessons)
+                {
+                    lesson.Files = fileLookup.ContainsKey(lesson.Id) ? fileLookup[lesson.Id] : new List<AttachFile>();
+                }
+                // ✅ Đảm bảo `Quizzes` không null
+                chapter.Quizzes ??= new List<QuizViewModel>();
+            }
+
+            ViewBag.CourseId = courseId;
+            return PartialView("Chapters", chapterLessons);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetQuizQuestion(int questionId)
+        {
+            try
+            {
+                var question = await _CourseRepository.GetQuestionById(questionId);
+
+                if (question == null)
+                {
+                    return Json(new { isSuccess = false, message = "Câu hỏi không tồn tại!" });
+                }
+
+                var answers = await _CourseRepository.GetAnswersByQuestionId(questionId);
+                answers = answers.OrderBy(a => a.Id).ToList();
+
+                return Json(new
+                {
+                    isSuccess = true,
+                    data = new
+                    {
+                        question = new { Id = question.Id, Description = question.Description },
+                        answers = answers.Select(a => new
+                        {
+                            Id = a.Id,
+                            Description = a.Description,
+                            Note = a.Note,
+                            IsCorrect = a.IsCorrectAnswer
+                        })
+                    }
+
+                });
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"GetQuizQuestion - QuizController: {ex}");
+                return Json(new { isSuccess = false, message = "Lỗi khi lấy dữ liệu câu hỏi!" });
+            }
+        }
+
+        public async Task<IActionResult> RelationArticle(long Id)
+        {
+            var NEWS_CATEGORY_ID = Convert.ToInt32(_configuration["Config:default_news_root_group"]);
+            ViewBag.StringTreeViewCate = await _GroupProductRepository.GetListTreeViewCheckBox(NEWS_CATEGORY_ID, -1);
+            ViewBag.ListAuthor = await _UserRepository.GetUserSuggestionList(string.Empty);
+            return PartialView();
+        }
+
+
 
         [HttpPost]
         public async Task<IActionResult> DeleteArticle(int lessonId)
@@ -688,7 +730,7 @@ namespace Web.CMS.Controllers.Course
 
 
         [HttpPost]
-        public async Task<IActionResult> DeleteResource(long fileId,  long lessonId)
+        public async Task<IActionResult> DeleteResource(long fileId, long lessonId)
         {
             try
             {
@@ -704,7 +746,7 @@ namespace Web.CMS.Controllers.Course
                     return Json(new { isSuccess = false, message = "Không tìm thấy file!" });
                 }
 
-               
+
 
                 // Xóa record trong database
                 await _AttachFileRepository.DeleteAttachFile(fileId);
@@ -720,7 +762,7 @@ namespace Web.CMS.Controllers.Course
 
 
 
-        
+
 
         [HttpPost]
         public IActionResult DeleteItem([FromBody] ItemDeleteViewModel model)
@@ -752,7 +794,7 @@ namespace Web.CMS.Controllers.Course
             }
         }
 
-        
+
 
         [HttpPost]
         public async Task<IActionResult> UpsertChapterAndLesson([FromForm] string chapters, [FromForm] List<IFormFile> files, [FromForm] List<string> fileKeys)
@@ -1046,7 +1088,7 @@ namespace Web.CMS.Controllers.Course
 
         public async Task ClearCacheArticle(long articleId, string ArrCategoryId)
         {
-           string token = string.Empty;
+            string token = string.Empty;
             try
             {
                 var api = new APIService2(_configuration);

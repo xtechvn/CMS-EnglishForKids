@@ -173,14 +173,14 @@
 
         @if (isQuiz)
         {
-            <!-- Nếu là Quiz, chỉ hiển thị "Trắc nghiệm 1 đáp án" -->
+           @*  <!-- Nếu là Quiz, chỉ hiển thị "Trắc nghiệm 1 đáp án" -->
             <p>Thêm câu hỏi trắc nghiệm. Chọn loại câu hỏi bên dưới:</p>
             <div class="content-options">
                 <a href="javascript:void(0)" class="btn btn-default orange btn-file1" data-type="quiz" data-item-id="@quiz.Id">
                     Trắc nhiệm một đáp án
                 </a>
 
-            </div>
+            </div> *@
 
 
 
@@ -200,7 +200,7 @@
         }
     </div>
 
-    @if (quiz != null)
+   @*  @if (quiz != null)
     {
         @if (chapter.Quizzes.Any(q => q.ParentId == quiz.Id && q.IsDelete == 0))
         {
@@ -303,7 +303,7 @@
                 <a href="javascript:void(0)" class="btn btn-default btn-save-quiz" data-parent-id="@chapter.Id" data-quiz-id="@quiz.Id">Lưu</a>
             </div>
         </div>
-    }
+    } *@
 
 
 
