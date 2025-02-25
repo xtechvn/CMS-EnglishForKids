@@ -378,6 +378,7 @@ namespace Repositories.Repositories
                                 Title = row.Field<string>("LessionTitle"),
                                 Article = row.Field<string>("LessionArticle") ?? "", // ✅ Không để null
                                 IsDelete = row.Field<int?>("LessionIsDelete") ?? 0,
+                                ChapterId = row.Field<int?>("ChapterId") ?? -1
                             }).ToList()
                             : new List<LessonViewModel>(),
 
@@ -440,6 +441,7 @@ namespace Repositories.Repositories
         {
             return await _CourseDAL.GetQuizAnswersByQuestionId(questionId);
         }
+       
 
 
         public List<AttachFile> GetFilesByLessonIds(List<int> lessonIds)

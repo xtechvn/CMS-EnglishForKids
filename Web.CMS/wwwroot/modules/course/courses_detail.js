@@ -132,23 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 //========================================================================
-/// Lấy phần tử nút
-const displayButton = document.getElementById("display-button");
 
-// Khởi tạo trạng thái dựa trên nội dung ban đầu của nút
-let displayStatus = displayButton.textContent.trim() === "Đã Xuất Bản" ? 0 : 2; // 0: Hiển thị, 2: Không hiển thị
-
-// Xử lý sự kiện khi nhấn nút
-displayButton.addEventListener("click", function () {
-    // Toggle trạng thái
-    displayStatus = displayStatus === 0 ? 2 : 0;
-
-    // Cập nhật giao diện nút
-    this.textContent = displayStatus === 0 ? "Đã Xuất Bản" : "Xuất Bản";
-
-    // Log trạng thái mới (có thể gửi đến server nếu cần)
-    //console.log("Trạng thái hiển thị trên website:", displayStatus);
-});
 
 //=================================================================
 $(document).on("input", ".chapter-title", function () {
@@ -486,6 +470,7 @@ $(document).on("click", ".btn-add-answer", function (e) {
 
 
 function showQuizPanel(quizId, chapterId = 0) {
+    debugger
     let quizBlock = $(`#quiz_${quizId}`);
     let panelQuiz = quizBlock.find(".panel-quiz");
 
@@ -606,9 +591,11 @@ function generateDefaultAnswers(quizId) {
 //Thêm Câu hỏi
 
 $(document).on("click", ".btn-new-question", function (e) {
+    debugger
     e.preventDefault();
     const quizId = $(this).data("quiz-id");
     const chapterId = $(`#quiz_${quizId}`).closest(".block-item").data("parent-id") || 0; // Lấy chapterId đúng
+    quizOpened = false;
 
     console.log(`📌 Đang mở panel trắc nghiệm cho Quiz ID: ${quizId}`);
     showQuizPanel(quizId, chapterId);
@@ -625,6 +612,7 @@ $(document).on("click", ".btn-edit-quiz", function (e) {
     const quizId = $(this).data("quiz-id");
     const questionId = $(this).data("question-id");
     const chapterId = $(`#quiz_${quizId}`).closest(".block-item").data("parent-id") || 0; // Lấy chapterId đúng
+    quizOpened = false;
 
     // Lấy panel-quiz và hiển thị nó
 
@@ -758,7 +746,7 @@ $(document).on("click", ".btn-save-quiz", function () {
 
     // ✅ Lấy danh sách đáp án
     $(`#quiz-answers-${quizId} .answer-item`).each(function (index) {
-        debugger
+
         let answerDataId = $(this).attr("data-answer-id") ? parseInt($(this).attr("data-answer-id")) : 0;
         const answerTextarea = $(this).find(".text-editor-answer");
         const answerId = answerTextarea.attr("id"); // ✅ Lấy ID textarea
@@ -820,31 +808,37 @@ $(document).on("click", ".btn-save-quiz", function () {
             debugger
             if (response.isSuccess) {
                 let quizBlock = $(`#quiz_${quizId}`);
-                let questionListPanel = quizBlock.find(".panel-listquiz");
-                let questionList = questionListPanel.find(".question-list");
+                //let questionListPanel = quizBlock.find(".panel-listquiz");
+                //let questionList = questionListPanel.find(".question-list");
+                let quizWrapper = quizBlock.find(".quiz-wrapper");
+                let commonPanel = quizWrapper.find(".common-panel.common-quiz"); // ✅ Lấy đúng common-panel
+                let panelListQuiz = commonPanel.find(".panel-listquiz");
+                let questionList = panelListQuiz.find(".question-list");
 
                 // ✅ Loại bỏ ảnh khỏi nội dung câu hỏi trước khi hiển thị
                 let cleanDescription = response.description.replace(/<img[^>]*>/g, "");
 
                 // Tìm câu hỏi cần update
-                let questionElement = questionListPanel.find(`[data-question-id="${response.questionId}"]`);
+                let questionElement = panelListQuiz.find(`[data-question-id="${response.questionId}"]`);
 
                 // ✅ Nếu danh sách câu hỏi chưa có, tạo mới
-                if (questionListPanel.length === 0) {
-                    quizBlock.find(".lesson-content-wrapper").html(`
-                <div class="panel-listquiz">
-                    <div class="question-header flex-space-between">
-                        <div>
-                            <span class="question-title">Câu hỏi</span>
-                            <button class="btn btn-new-question ms-2" data-quiz-id="${quizId}">Câu hỏi mới</button>
+                if (panelListQuiz.length === 0) {
+                    commonPanel.append(`
+                        <div class="panel-listquiz" id="panel-listquiz-${quizId}">
+                            <div class="question-header flex-space-between">
+                                <div>
+                                    <span class="question-title">Câu hỏi</span>
+                                    <button class="btn btn-new-question ms-2" data-quiz-id="${quizId}">Câu hỏi mới</button>
+                                </div>
+                                <button class="btn btn-preview">Xem trước</button>
+                            </div>
+                            <div class="question-list" id="question-list-${quizId}"></div>
                         </div>
-                        <button class="btn btn-preview">Xem trước</button>
-                    </div>
-                    <div class="question-list"></div>
-                </div>
-            `);
-                    questionListPanel = quizBlock.find(".panel-listquiz");
-                    questionList = questionListPanel.find(".question-list");
+                    `);
+                    //questionListPanel = quizBlock.find(".panel-listquiz");
+                    //questionList = questionListPanel.find(".question-list");
+                    panelListQuiz = commonPanel.find(".panel-listquiz");
+                    questionList = panelListQuiz.find(".question-list");
                 }
 
                 if (questionElement.length > 0) {
@@ -855,7 +849,7 @@ $(document).on("click", ".btn-save-quiz", function () {
                     let newQuestionHtml = `
                 <div class="question-content flex-space-between" data-question-id="${response.questionId}">
                     <div class="item-title" style="display:flex">
-                        <strong class="question-number">${questionListPanel.find(".question-content").length + 1}.</strong>
+                        <strong class="question-number">${panelListQuiz.find(".question-content").length + 1}.</strong>
                         <span class="question-description mb-0">${cleanDescription}</span>
                         <span class="question-type">Trắc nghiệm một đáp án</span>
                     </div>
@@ -876,13 +870,14 @@ $(document).on("click", ".btn-save-quiz", function () {
                 }
 
                 // ✅ Hiển thị danh sách câu hỏi nếu đang bị ẩn
-                questionListPanel.show();
+                panelListQuiz.show();
 
                 // ✅ Ẩn panel nhập câu hỏi
                 quizBlock.find(".panel-quiz").hide();
 
                 // ✅ Kiểm tra nếu `.btn-chevron` chưa tồn tại, thì thêm vào
                 if (quizBlock.find(".btn-chevron").length === 0) {
+                    debugger
                     console.warn("⚠️ Không tìm thấy .btn-chevron, tạo mới...");
                     let chevronHtml = `<button type="button" class="btn-chevron" onclick="toggleContent('quiz_${quizId}')">
                                     <i class="icofont-rounded-down"></i>
@@ -994,7 +989,7 @@ $(document).on("click", ".btn-toggle-content", function () {
 });
 
 
-
+let quizOpened = false; // Biến đánh dấu người dùng đã mở quiz từ "Trắc nghiệm một đáp án"
 $(document).on("click", ".btn-file, .btn-file1", function (e) {
     debugger
     e.preventDefault(); // Ngăn chặn hành vi mặc định
@@ -1028,6 +1023,7 @@ $(document).on("click", ".btn-file, .btn-file1", function (e) {
             }
         }, 100);
     } else if (type === "quiz") {
+        quizOpened = true; // Khi bấm vào "Trắc nghiệm một đáp án", đánh dấu đã mở quiz
         // ✅ Khi chọn Quiz, hiển thị panel quiz
         const panelQuiz = wrapper.find(".panel-quiz");
         panelQuiz.show();
@@ -1152,7 +1148,7 @@ $(document).on("click", ".btn-edit-article", function () {
 $(document).on("click", ".btn-close-content", function () {
     debugger
     const wrapper = $(this).closest(".lesson-content-wrapper");
-    const commonPanel = wrapper.find(".common-panel");
+    const commonQuiz = wrapper.find(".common-panel.common-quiz");
     const panelQuiz = wrapper.find(".panel-quiz"); // Panel của Quiz
     const panelListQuiz = wrapper.find(".panel-listquiz"); // Danh sách câu hỏi
     const panelDefault = wrapper.find(".panel-default"); // Panel mặc định (nếu có)
@@ -1170,17 +1166,21 @@ $(document).on("click", ".btn-close-content", function () {
         wrapper.find(".answer-list .answer-item").slice(3).remove(); // Xóa tất cả đáp án ngoại trừ 3 đáp án mặc định
         wrapper.find(".answer-list input[type='radio']").prop("checked", false); // Reset radio button
 
-        // ✅ Hiển thị lại nút "Câu hỏi"
-        const quizId = wrapper.closest(".lesson-block").attr("id").replace("quiz_", "");
-        $(`#quiz_${quizId} .btn-toggle-content`).show();
-
-        // **➡ Kiểm tra nếu panel này được mở từ "Trắc nghiệm một đáp án"**
-        const commonQuiz = wrapper.find(".common-panel.common-quiz");
-        if (commonQuiz.attr("data-opened-from-quiz") === "true") {
-            console.log("📌 Đóng từ Trắc nghiệm một đáp án -> Ẩn luôn common-quiz");
-            commonQuiz.hide(); // Ẩn toàn bộ panel quiz
-            commonQuiz.removeAttr("data-opened-from-quiz"); // Xóa flag sau khi đóng
+        // ✅ Kiểm tra nếu người dùng mở Quiz từ "Trắc nghiệm một đáp án" thì mới hiển thị lại nút "Câu hỏi"
+        if (quizOpened) {
+            const quizId = wrapper.closest(".lesson-block").attr("id").replace("quiz_", "");
+            $(`#quiz_${quizId} .btn-toggle-content`).show();
+            commonQuiz.hide();
+        } else {
+            const quizId = wrapper.closest(".lesson-block").attr("id").replace("quiz_", "");
+            $(`#quiz_${quizId} .btn-toggle-content`).hide();
+            commonQuiz.show();
         }
+
+        // Reset flag sau khi đóng panel
+        quizOpened = false;
+
+        
     } else {
         // ✅ Nếu không phải Quiz, xử lý cho Chapter & Lesson
         panelUpload.hide(); // Ẩn panel bài viết nếu có
@@ -2100,7 +2100,28 @@ $('#parent-category').change(function () {
     }
 });
 
+// Xử lý khi nhấn "Xuất Bản"
+document.getElementById("display-button").addEventListener("click", function () {
+    debugger
+    let displayButton = this;
+    let currentStatus = displayButton.textContent.trim() === "Đã Xuất Bản" ? 0 : 2;
 
+    Swal.fire({
+        title: "Xác nhận",
+        text: currentStatus === 0 ? "Bạn có muốn ẩn khóa học này không?" : "Bạn có muốn xuất bản khóa học này không?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: currentStatus === 0 ? "Ẩn khóa học" : "Xuất Bản",
+        cancelButtonText: "Hủy",
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let newStatus = currentStatus === 0 ? 2 : 0;
+
+            _newsDetail1.OnSave(newStatus, "status_update");
+        }
+    });
+});
 
 
 var _newsDetail1 = {
@@ -2117,7 +2138,7 @@ var _newsDetail1 = {
     },
 
 
-    OnSave: function (articleStatus) {
+    OnSave: function (articleStatus, button_type = "save") {
         debugger
         const formData = new FormData();
         const videoFile = $('#video_intro_file')[0].files[0];
@@ -2204,7 +2225,7 @@ var _newsDetail1 = {
                 Thumbnail: $('#img_16x9').attr('src') == undefined ? "" : $('#img_16x9').attr('src'),
                 //VideoIntro: videoFile,
                 Benefif: _body,  // Giả sử là "Benefit" mà bạn cần sử dụng
-                Status: displayStatus,  // Status of course (Published/Unpublished)
+                Status: articleStatus , // 0 = Xuất bản, 2 = Lưu tạm
                 // Price: $('#price-input').val(),
                 // OriginalPrice: $('#original-price-input').val(),
 
@@ -2238,9 +2259,9 @@ var _newsDetail1 = {
             }
             // Đưa dữ liệu JSON vào FormData
             formData.append("data", JSON.stringify(_model));
+            formData.append("button_type", button_type); // ✅ Xác định gọi từ đâu
 
             $.ajax({
-
                 url: '/courses/upsert',
                 type: 'POST',
                 data: formData,
