@@ -458,7 +458,9 @@ namespace Repositories.Repositories
                     DataId = row.Field<long>("DataId"),
                     UserId = row.Field<int>("UserId"),
                     Type = row.Field<int>("Type"),
-                    Path = Path.GetFileName(row.Field<string>("Path")),
+                    //Path = Path.GetFileName(row.Field<string>("Path")),
+                    Path = row.Field<string>("Path"),
+
                     Ext = row.Field<string>("Ext"),
                     Capacity = row.Field<double>("Capacity"),
                     CreateDate = row.Field<DateTime>("CreateDate")

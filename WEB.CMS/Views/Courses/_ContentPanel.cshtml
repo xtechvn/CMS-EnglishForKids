@@ -43,7 +43,7 @@
                             {
                                 <tr id="file_@lesson.Id-@(file.Path != null ? file.Path.Split('/').Last().Replace(" ", "_") : "unknown")">
 
-                                    <td>@file.Path</td>
+                                    <td>@System.IO.Path.GetFileName(file.Path)</td>
                                     <td>@file.Ext</td>
                                     <td>
                                         <span class="progress-text" id="progress-text-@lesson.Id-@(file.Id)">Hoàn thành</span>
