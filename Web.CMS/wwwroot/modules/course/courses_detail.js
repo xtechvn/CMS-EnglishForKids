@@ -325,7 +325,7 @@ $(document).on("click", ".btn-save-item", function () {
     const id = $this.data("item-id") || 0;
     const parentId = $this.data("parent-id") || 0;
     const courseId = $("#Id").val();
-    const title = $this.closest(type === "Chapter" ? ".block-chap" : ".box-add-chap").find("input.item-title").val().trim();
+    const title = $this.closest(type === "Chapter" ? ".block-chap" : ".box-add-chap").find("input.item-title1").val().trim();
 
     if (!title) {
         Swal.fire("Lỗi", "Vui lòng nhập tên!", "error");
