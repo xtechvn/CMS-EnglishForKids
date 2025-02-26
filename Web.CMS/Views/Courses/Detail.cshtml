@@ -10,6 +10,19 @@
 <!-- CSS Dependencies -->
 <link href="~/lib/tags-input/bootstrap-tagsinput.css" rel="stylesheet" />
 <style>
+    .custom-input {
+        position: relative;
+    }
+
+    .character-count {
+        position: absolute;
+        right: 10px;
+        bottom: 10px; /* Đưa label xuống dưới */
+        background: white; /* Giữ nền trắng để không bị đè lên */
+        padding: 2px 5px;
+        font-size: 14px;
+        color: #666;
+    }
     .bootstrap-tagsinput .tag {
         display: inline-block;
         margin: 5px 2px 5px 0px;
@@ -184,9 +197,9 @@
                         <div class="block-content">
                             <h3>Tiêu đề khóa học</h3>
                             <div class="custom-input">
-                                <input type="text" class="form-control" asp-for="@Model.Title"
+                                <input type="text" class="form-control item-title" asp-for="@Model.Title"
                                        placeholder="Nhập tiêu đề khóa học..." maxlength="300">
-                                <label class="custom-label">0/300</label>
+                                <label class="custom-label character-count">0/300</label>
                             </div>
                             <p class="color-gray">
                                 Tiêu đề của bạn không những phải thu hút sự chú ý, chứa nhiều thông tin mà còn được tối ưu hóa để dễ tìm kiếm
@@ -197,9 +210,9 @@
                         <div class="block-content">
                             <h3>Tóm tắt khóa học</h3>
                             <div class="custom-input">
-                                <textarea class="form-control" asp-for="@Model.Description"
-                                          placeholder="Nhập tóm tắt khóa học..." maxlength="400"></textarea>
-                                <label class="custom-label">0/400</label>
+                                <textarea class="form-control item-title" asp-for="@Model.Description"
+                                          placeholder="Nhập tóm tắt khóa học..." maxlength="300"></textarea>
+                                <label class="character-count custom-label">0/300</label>
                             </div>
                             <p class="color-gray">
                                 Sử dụng 1 hoặc 2 từ khóa có liên quan và đề cập đến 3-4 lĩnh vực quan trọng nhất mà bạn đã đề cập trong khóa học của bạn.
@@ -212,6 +225,7 @@
                             <textarea rows="4" class="form-control" id="text-editor" asp-for="@Model.Benefif"></textarea>
                             <p class="color-gray">Mô tả phải dài ít nhất là 200 từ.</p>
                         </div>
+                       
 
                         <!-- Course Tags -->
                             @* <div class="block-content">
@@ -352,7 +366,7 @@
                                     <i class="fa fa-floppy-o"></i>Lưu bản nháp
                                 </button> *@
 
-                                <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@ArticleStatus.PUBLISH','save')">
+                                <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
                                     <i class="fa fa-clipboard"></i>Lưu
                                 </button>
                                 }
@@ -361,7 +375,7 @@
 
 
 
-                                <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@ArticleStatus.PUBLISH','save')">
+                                <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
                                     <i class="fa fa-clipboard"></i>Lưu
                                 </button>
                                 <button type="button" class="btn btn-default orange line round">
@@ -392,7 +406,7 @@
                                 <i class="fa fa-floppy-o"></i>Lưu bản nháp
                             </button> *@
 
-                            <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@ArticleStatus.PUBLISH','save')">
+                            <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
                                 <i class="fa fa-clipboard"></i>Lưu
                             </button>
                             <button type="button" class="btn btn-default orange line round" >
