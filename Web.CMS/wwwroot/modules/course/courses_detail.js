@@ -134,17 +134,22 @@ document.addEventListener("DOMContentLoaded", function () {
 //========================================================================
 
 
-//=================================================================
-$(document).on("input", ".chapter-title", function () {
-    const maxLength = $(this).attr("maxlength");
-    const currentLength = $(this).val().length;
 
-    // Hiển thị số ký tự hiện tại và tối đa
-    $(this).siblings(".character-count").text(`${currentLength}/${maxLength}`);
-});
+
 
 //=============================================================================
 //MỚIIIIIIIIIIIIII
+// Bắt sự kiện nhập và đếm số ký tự
+$(".item-title").each(function () {
+    const charCount = $(this).val().length; // Lấy số ký tự hiện tại (kể cả khi load lại)
+    $(this).siblings(".character-count").text(`${charCount}/300`);
+});
+
+// Bắt sự kiện nhập và đếm số ký tự
+$(".item-title").on("input", function () {
+    const charCount = $(this).val().length;
+    $(this).siblings(".character-count").text(`${charCount}/300`);
+});
 function sendRequest(url, data, successMessage, reloadCallback) {
     debugger
     $.ajax({
@@ -235,6 +240,7 @@ $(document).on("click", ".btn-add-type, .btn-edit-item", function () {
     // Mở form
     openItemForm(container, type, title, id, parentId);
 });
+
 function openItemForm(container, type, title, id = 0, parentId = 0) {
 
     const placeholderText = type === "Chapter" ? "Vui lòng nhập tên phần" :
@@ -256,8 +262,8 @@ function openItemForm(container, type, title, id = 0, parentId = 0) {
                     <span class="text-nowrap">${headerText}:</span>
                 </p>
                 <div class="custom-input w-100">
-                    <input type="text" class="form-control item-title" placeholder="${placeholderText}" value="${title}" maxlength="200" />
-                    <span class="character-count custom-label">0/200</span>
+                    <input type="text" class="form-control item-title1" placeholder="${placeholderText}" value="${title}" maxlength="100" />
+                    <span class="character-count1 custom-label">0/100</span>
                 </div>
             </div>
             <div class="flex align-items-center justify-content-end mt20 gap10">
@@ -295,12 +301,18 @@ function openItemForm(container, type, title, id = 0, parentId = 0) {
             container.find("> .item-content").append(formHtml).show();
         }
     }
+    // Bắt sự kiện nhập và đếm số ký tự
+    $(".item-title1").each(function () {
+        const charCount = $(this).val().length; // Lấy số ký tự hiện tại (kể cả khi load lại)
+        $(this).siblings(".character-count1").text(`${charCount}/100`);
+    });
 
     // Bắt sự kiện nhập và đếm số ký tự
-    $(".item-title").focus().on("input", function () {
+    $(".item-title1").on("input", function () {
         const charCount = $(this).val().length;
-        $(this).siblings(".character-count").text(`${charCount}/200`);
+        $(this).siblings(".character-count1").text(`${charCount}/100`);
     });
+   
 }
 
 
@@ -1935,6 +1947,10 @@ $("#image_file").on("change", function (event) {
 
     if (file) {
         const fileType = file.name.split('.').pop().toLowerCase();
+        // Lưu ảnh cũ nếu nó đang hiển thị
+        if ($("#img_16x9").is(":visible")) {
+            oldImageSrc = $("#img_16x9").attr("src"); // Lưu ảnh cũ
+        }
 
         // Hiển thị tên file trên nhãn
         $("label[for='image_file']").text(file.name);
@@ -1991,11 +2007,19 @@ $("#btn-cancel-crop").click(function () {
     $("#croppie-container").hide();
     $("#btn-cropimage").hide();
     $("#btn-cancel-crop").hide();
-    $("#img_16x9").hide();
-    $("#image_placeholder").show();
+
+    // Nếu có ảnh cũ thì khôi phục lại
+    if (oldImageSrc) {
+        $("#img_16x9").attr("src", oldImageSrc).show();
+    } else {
+        $("#img_16x9").hide();
+        $("#image_placeholder").show();
+    }
+
     $("#image_file").val('');
     $("label[for='image_file']").text("Không có file nào được chọn");
 });
+
 
 $('#thumbnail_file').on('change', function (event) {
     var file = event.target.files[0];
@@ -2122,6 +2146,18 @@ document.getElementById("display-button").addEventListener("click", function () 
         }
     });
 });
+function countWords(str) {
+    // Loại bỏ các khoảng trắng ở đầu và cuối chuỗi
+    str = str.trim();
+    // Nếu chuỗi rỗng, trả về 0
+    if (str === "") {
+        return 0;
+    }
+    // Tách chuỗi thành các từ dựa trên khoảng trắng
+    var words = str.split(/\s+/);
+    // Trả về số lượng từ
+    return words.length;
+}
 
 
 var _newsDetail1 = {
@@ -2142,15 +2178,35 @@ var _newsDetail1 = {
         debugger
         const formData = new FormData();
         const videoFile = $('#video_intro_file')[0].files[0];
-
-        // Nếu không có video mới, sử dụng video hiện tại (video cũ)
-        if (!videoFile) {
+        const maxFileSize = 100 * 1024 * 1024; // 100MB
+        // Kiểm tra nếu có video mới và kích thước vượt quá 100MB
+        if (videoFile) {
+            if (videoFile.size > maxFileSize) {
+                _msgalert.error("Kích thước video không được vượt quá 100MB!");
+                return false;
+            }
+            formData.append("VideoIntro", videoFile); // Lưu video mới
+        } else {
+            // Nếu không có video mới, sử dụng video hiện tại (video cũ)
             const currentVideoPath = $("#video_intro_src").attr("src");
             if (currentVideoPath) {
                 formData.append("CurrentVideoPath", currentVideoPath); // Lưu đường dẫn video hiện tại
+            } else {
+                _msgalert.error('Bạn phải upload Video cho khóa học');
+                return false;
             }
-        } else {
-            formData.append("VideoIntro", videoFile); // Lưu video mới
+        }
+
+
+        // Kiểm tra xem đã chọn danh mục chưa
+        if ($('#parent-category').val() === "" || $('#parent-category').val() == null) {
+            _msgalert.error("Bạn phải chọn danh mục chính.");
+            return false;
+        }
+
+        if ($('#child-category').val() === "" || $('#child-category').val() == null) {
+            _msgalert.error("Bạn phải chọn danh mục con.");
+            return false;
         }
         let formvalid = $('#form-news');
         var max_pos = $('#ArticleType:checked').val() == "0" ? 7 : 8;
@@ -2162,7 +2218,7 @@ var _newsDetail1 = {
                 },
                 Description: {
                     required: true,
-                    maxlength: 400
+                    maxlength: 300
                 },
                 Position: {
                     min: 0,
@@ -2180,7 +2236,7 @@ var _newsDetail1 = {
                 },
                 Description: {
                     required: "Vui lòng nhập mô tả ngắn cho bài viết",
-                    maxlength: "Mô tả cho bài viết không được vượt quá 400 ký tự"
+                    maxlength: "Mô tả cho bài viết không được vượt quá 300 ký tự"
                 },
                 Position: {
                     min: "Vị trí bài viết phải trong khoảng 0 đến " + max_pos,
@@ -2194,6 +2250,23 @@ var _newsDetail1 = {
 
         if (formvalid.valid()) {
             var _body = tinymce.activeEditor.getContent();
+
+            // Chuyển HTML thành plain text và loại bỏ dấu cách thừa
+            var textContent = $('<div>').html(_body).text().trim();
+
+            // Loại bỏ các ký tự đặc biệt và khoảng trắng thừa
+            textContent = textContent.replace(/\s+/g, ' ').trim();
+
+            // Đếm số ký tự (bao gồm cả dấu cách)
+            var charCount = textContent.length;
+
+
+            // Kiểm tra số từ
+            if (charCount < 200) {
+                _msgalert.error('Mô tả phải dài ít nhất 200 từ. Hiện tại ước tính có khoảng ' + charCount + ' từ.');
+                return false;
+            }
+
             var _tags = $('#news-tag').tagsinput('items');
             //var _categories = [];
             var _relatedCourseTagIds = [];
@@ -2214,10 +2287,9 @@ var _newsDetail1 = {
             //    _msgalert.error('Bạn phải chọn chuyên mục cho bài viết');
             //    return false;
             //}
-            if ($('#Description').val().length >= 400) {
-                _msgalert.error('Mô tả cho bài viết không được vượt quá 400 ký tự');
-                return false;
-            }
+
+            // Kiểm tra số lượng từ trong Benefif
+            
             var _model = {
                 Id: $('#Id').val(),
                 Title: $('#Title').val(),
@@ -2284,7 +2356,7 @@ var _newsDetail1 = {
                         }
                         Swal.fire("Thành công", result.message, "success").then(() => {
 
-                            window.location.href = `/courses/detail/${result.dataId}`;
+                            window.location.href = `/courses`;
 
                         });
 

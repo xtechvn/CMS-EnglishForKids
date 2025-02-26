@@ -1,4 +1,6 @@
-﻿@using Entities.ViewModels
+﻿@using Utilities
+@using Utilities.Contants
+@using Entities.ViewModels
 
 @model Tuple<ChapterViewModel, object>
 
@@ -79,7 +81,8 @@
 
                     </div>
                 </div>
-                <a class="btn btn-default min"><i class="icofont-video-alt"></i>Xem trước</a>
+                @* <a class="btn btn-default min"href="@("http://qc-fe.truonghoctot.vn/khoa-hoc"+CommonHelper.genLinkNewsV2(Model.Title,Model.Id.ToString())+".html")" title="Xem trên trang chủ" target="_blank"><i class="icofont-video-alt"></i>Xem trước</a> *@
+                
             </div>
 
             <!-- Box hiển thị tài liệu có thể tải xuống -->
