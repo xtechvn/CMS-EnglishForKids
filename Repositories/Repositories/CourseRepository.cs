@@ -529,7 +529,7 @@ namespace Repositories.Repositories
                 var model = await _CourseDAL.FindAsync(Id);
                 model.Status = Status;
 
-                if (Status == CourseStatus.SAVE)
+                if (Status == CourseStatus.REMOVE)
                 {
                     model.CreatedDate = DateTime.Now;
                     model.UpdatedDate = DateTime.Now;

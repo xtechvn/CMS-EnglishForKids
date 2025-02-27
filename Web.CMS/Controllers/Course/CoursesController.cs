@@ -391,7 +391,7 @@ namespace Web.CMS.Controllers.Course
                 var rs = await _CourseRepository.ChangeCourseStatus(Id, articleStatus);
 
                 // ✅ Xóa dữ liệu Redis khi hạ bài viết
-                if (articleStatus == 1)
+                if (articleStatus == 2)
                 {
                     await _redisConn.DeleteCacheByKeyword(CacheName.COURSE_DETAIL + Id, db_index);
                 }
