@@ -233,7 +233,7 @@
 
                                         text-decoration: underline;
                                         font-style: italic;
-                                                " href="javascripts:;" class="btn" onclick="_newsDetail1.EditCourseDetail('@Model.Id','@CourseStatus.SAVE')">
+                                                            " href="javascripts:;" class="btn" onclick="_newsDetail1.EditCourseDetail('@Model.Id','@CourseStatus.REMOVE')">
                                         Sửa Khóa Học
                                     </a>
                                     }
@@ -412,57 +412,27 @@
                             </div>
 
                         </div>
-                        <!-- Form Actions -->
-                        <div class="bottom-action flex align-items-center justify-content-center mt20 gap10">
+                    </div>
+                    <!-- Form Actions -->
+                    <div class="bottom-action flex align-items-center justify-content-center mt20 gap10">
 
-                                @if (Model.Status != ArticleStatus.PUBLISH)
+                            @if (Model.Status != ArticleStatus.PUBLISH)
+                            {
+                                if (Model.Id <= 0)
                                 {
-                                    if (Model.Id <= 0)
-                                    {
 
-                                        @*  <button type="button" class="btn btn-default orange line round" onclick="_newsDetail1.OnSave('@ArticleStatus.SAVE','save')">
+                                    @*  <button type="button" class="btn btn-default orange line round" onclick="_newsDetail1.OnSave('@ArticleStatus.SAVE','save')">
                                     <i class="fa fa-floppy-o"></i>Lưu bản nháp
                                 </button> *@
 
-                                    <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
-                                        <i class="fa fa-clipboard"></i>Lưu
-                                    </button>
-                                    }
-                                    else
-                                    {
-
-
-
-                                    <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
-                                        <i class="fa fa-clipboard"></i>Lưu
-                                    </button>
-                                    <button type="button" class="btn btn-default orange line round">
-                                        <a class="bold"
-                                           href="@("http://qc-fe.truonghoctot.vn/khoa-hoc"+CommonHelper.genLinkNewsV2(Model.Title,Model.Id.ToString())+".html")" title="Xem trên trang chủ" target="_blank">Xem Trước</a>
-                                    </button>
-                                    }
+                                <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
+                                    <i class="fa fa-clipboard"></i>Lưu
+                                </button>
                                 }
-
-
-                                @*  <button type="button" class="btn btn-default gray" onsubmit="return false" onclick="_newsDetail1.OnOpenRelationForm('@Model.Id')">
-                        Thêm tin liên quan
-                        </button> *@
-                                @if (Model.Status == ArticleStatus.PUBLISH)
+                                else
                                 {
-                                    @*  <button type="button" id="ha_bai_viet" class="btn btn-default red open-popup" onclick="_newsDetail1.OnChangeArticleStatus('@Model.Id','@ArticleStatus.REMOVE')">
-                        Hạ bài viết
-                        </button> *@
 
-                                    @if (Model.Status == ArticleStatus.REMOVE || Model.Status == ArticleStatus.SAVE)
-                                    {
-                                    <button type="button" class="btn btn-default orange line dashed round" onclick="_newsDetail1.OnDelete('@Model.Id')">
-                                        Xóa bài viết
-                                    </button>
-                                    }
 
-                                    @*  <button type="button" class="btn btn-default orange line round" onclick="_newsDetail1.OnSave('@ArticleStatus.SAVE','save')">
-                                <i class="fa fa-floppy-o"></i>Lưu bản nháp
-                            </button> *@
 
                                 <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
                                     <i class="fa fa-clipboard"></i>Lưu
@@ -471,12 +441,42 @@
                                     <a class="bold"
                                        href="@("http://qc-fe.truonghoctot.vn/khoa-hoc"+CommonHelper.genLinkNewsV2(Model.Title,Model.Id.ToString())+".html")" title="Xem trên trang chủ" target="_blank">Xem Trước</a>
                                 </button>
+                                }
+                            }
 
+
+                            @*  <button type="button" class="btn btn-default gray" onsubmit="return false" onclick="_newsDetail1.OnOpenRelationForm('@Model.Id')">
+                        Thêm tin liên quan
+                        </button> *@
+                            @if (Model.Status == ArticleStatus.PUBLISH)
+                            {
+                                @*  <button type="button" id="ha_bai_viet" class="btn btn-default red open-popup" onclick="_newsDetail1.OnChangeArticleStatus('@Model.Id','@ArticleStatus.REMOVE')">
+                        Hạ bài viết
+                        </button> *@
+
+                                @if (Model.Status == ArticleStatus.REMOVE || Model.Status == ArticleStatus.SAVE)
+                                {
+                                <button type="button" class="btn btn-default orange line dashed round" onclick="_newsDetail1.OnDelete('@Model.Id')">
+                                    Xóa bài viết
+                                </button>
                                 }
 
+                                @*  <button type="button" class="btn btn-default orange line round" onclick="_newsDetail1.OnSave('@ArticleStatus.SAVE','save')">
+                                <i class="fa fa-floppy-o"></i>Lưu bản nháp
+                            </button> *@
+
+                            <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
+                                <i class="fa fa-clipboard"></i>Lưu
+                            </button>
+                            <button type="button" class="btn btn-default orange line round">
+                                <a class="bold"
+                                   href="@("http://qc-fe.truonghoctot.vn/khoa-hoc"+CommonHelper.genLinkNewsV2(Model.Title,Model.Id.ToString())+".html")" title="Xem trên trang chủ" target="_blank">Xem Trước</a>
+                            </button>
+
+                            }
 
 
-                        </div>
+
                     </div>
 
                 </div>
@@ -484,34 +484,28 @@
                 <!-- Tab Tiết Học -->
                 <div id="chapters-tab" class="tab-content">
 
-                    <section class="main-container clearfix">
-                        <div id="chapter-list">
-                            <div style="max-width:100%">
-                                <div class="line-bottom" style="
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                        ">
-                                    <h2>Chương trình giảng dạy</h2>
-                                    <div class="btn-right text-right">
-                                            @if (Model.Status == ArticleStatus.PUBLISH)
-                                            {
-                                            <a style="
+                    <div class="line-bottom" style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                ">
+                        <h2>Chương trình giảng dạy</h2>
+                        <div class="btn-right text-right">
+                                @if (Model.Status == ArticleStatus.PUBLISH)
+                                {
+                                <a style="
                                         font-size: 15px;
                                         text-decoration: underline;
                                         font-style: italic;
-                                                    " href="javascripts:;" class="btn" onclick="_newsDetail1.EditCourseDetail('@Model.Id','@CourseStatus.SAVE')">
-                                                Sửa Khóa Học
-                                            </a>
-                                            }
-                                    </div>
-                                </div>
-                                <div id="chapters-container" class="Tabs @(Model.Status == 0 ? "locked" : "")"></div>
-
-                            </div>
-
+                                                                    " href="javascripts:;" class="btn" onclick="_newsDetail1.EditCourseDetail('@Model.Id','@CourseStatus.REMOVE')">
+                                    Sửa Khóa Học
+                                </a>
+                                }
                         </div>
-                    </section>
+
+                    </div>
+                    <div id="chapters-container" class="Tabs @(Model.Status == 0 ? "locked" : "")"></div>
+
 
                 </div>
             </div>

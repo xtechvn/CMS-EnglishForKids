@@ -40,41 +40,54 @@ _common.tinyMce('#text-editor');
 
 _common.tinyMce('#text-editor-quiz');
 
+//TABSSSSSSSSSSSS
 
-// 1️. Khi load trang, kiểm tra tab đã lưu trong localStorage
+// 🟢 Lấy tham số từ URL
+let urlParams = new URLSearchParams(window.location.search);
+let fromList = urlParams.has("fromList");
+
+// 🟢 Kiểm tra tab đã lưu trong localStorage
 let currentTab = localStorage.getItem("currentTab");
 
-// Nếu không có tab nào được lưu, mặc định là 'course-info'
-if (!currentTab) {
+// 🟢 Nếu vào từ danh sách khóa học, reset về "Khóa Học" (course-info)
+if (fromList) {
     currentTab = "course-info";
+    localStorage.setItem("currentTab", currentTab); // ✅ Cập nhật lại localStorage
+    history.replaceState(null, "", window.location.pathname); // ✅ Xóa `fromList=true` khỏi URL
 }
 
-// Ẩn tất cả các tab trước khi hiển thị tab đã lưu
+// 🟢 Nếu chưa có tab nào được lưu, mặc định là "Khóa Học"
+if (!currentTab) {
+    currentTab = "course-info";
+    localStorage.setItem("currentTab", currentTab);
+}
+
+// 🟢 Ẩn tất cả tab và hiển thị tab đã lưu hoặc mặc định
 $(".tab-content").hide();
 $(`#${currentTab}`).show();
 
-// Cập nhật class active trên menu tab
+// 🟢 Cập nhật class active trên menu tab
 $(".tab-link").removeClass("active");
 $(`.tab-link[data-tab='${currentTab}']`).addClass("active");
 
-// Nếu tab là "chapters-tab", cần load dữ liệu chương học
+// 🟢 Nếu tab là "chapters-tab", cần load dữ liệu chương học
 if (currentTab === "chapters-tab") {
     const courseId = $("#Id").val();
     if (courseId && courseId > 0) {
         loadChapters(courseId);
     }
 }
-/// 2️. Xử lý sự kiện chuyển tab
+/// 🟢 Xử lý sự kiện khi click chuyển tab
 $(document).on("click", ".tab-link", function (event) {
-    event.preventDefault(); // Ngăn hành động mặc định
+    event.preventDefault();
 
-    const targetTab = $(this).data("tab"); // Lấy tab được chọn
-    const courseId = $("#Id").val(); // Lấy ID khóa học từ input ẩn
+    const targetTab = $(this).data("tab");
+    const courseId = $("#Id").val();
 
-    // Lưu tab hiện tại vào localStorage
+    // 🟢 Lưu tab hiện tại vào localStorage để giữ nguyên khi reload
     localStorage.setItem("currentTab", targetTab);
 
-    // Nếu tab là "chapters-tab" mà khóa học chưa được lưu, cảnh báo
+    // 🟢 Nếu tab là "chapters-tab", kiểm tra khóa học đã lưu
     if (targetTab === "chapters-tab") {
         if (!courseId || courseId <= 0) {
             Swal.fire({
@@ -89,21 +102,21 @@ $(document).on("click", ".tab-link", function (event) {
                 }
             });
         } else {
-            // Nếu khóa học đã lưu, tải nội dung chương học
             loadChapters(courseId);
-            $(".tab-content").hide(); // Ẩn tất cả các tab
-            $(`#${targetTab}`).show(); // Hiển thị tab "chapters-tab"
+            $(".tab-content").hide();
+            $(`#${targetTab}`).show();
         }
     } else {
         $(".tab-content").hide();
         $(`#${targetTab}`).show();
     }
 
-    // Cập nhật class active trên menu tab
     $(".tab-link").removeClass("active");
     $(this).addClass("active");
 });
-// ===============================================================
+// ==============================================================================================
+
+
 //Click Toogle Gíá
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -132,10 +145,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 //========================================================================
-
-
-
-
 
 //=============================================================================
 //MỚIIIIIIIIIIIIII
@@ -2168,12 +2177,16 @@ document.getElementById("display-button").addEventListener("click", function () 
         if (result.isConfirmed) {
             let newStatus = currentStatus === 0 ? 2 : 0;
 
-            _newsDetail1.OnSave(newStatus, "status_update");
-            if (newStatus === 0) {
-                $(".Tabs").addClass("locked");
-            } else {
-                $(".Tabs").removeClass("locked");
-            }
+            // ✅ Chỉ khóa Tabs nếu lưu thành công
+            _newsDetail1.OnSave(newStatus, "status_update", function (isSuccess) {
+                if (isSuccess) {
+                    if (newStatus === 0) {
+                        $(".Tabs").addClass("locked"); // ✅ Chỉ khóa nếu thành công
+                    } else {
+                        $(".Tabs").removeClass("locked");
+                    }
+                }
+            });
 
         }
     });
@@ -2206,7 +2219,7 @@ var _newsDetail1 = {
     },
 
 
-    OnSave: function (articleStatus, button_type = "save") {
+    OnSave: function (articleStatus, button_type = "save", callback = null) {
         debugger
         const formData = new FormData();
         const videoFile = $('#video_intro_file')[0].files[0];
@@ -2282,13 +2295,13 @@ var _newsDetail1 = {
 
         if (formvalid.valid()) {
             // Lấy nội dung TinyMCE từ textarea có class .des-course
-            var editor = tinymce.get($('.des-course').attr('id'));
+        var editor = tinymce.get($('.des-course').attr('id'));
 
-            if (editor) {
-                var _body = editor.getContent().trim(); // Lấy nội dung
-            } else {
-                var _body = $('.des-course').val().trim(); // Nếu TinyMCE chưa khởi tạo, lấy từ textarea gốc
-            }
+        if (editor) {
+            var _body = editor.getContent().trim(); // Lấy nội dung
+        } else {
+            var _body = $('.des-course').val().trim(); // Nếu TinyMCE chưa khởi tạo, lấy từ textarea gốc
+        }
 
             // Chuyển HTML thành plain text và loại bỏ dấu cách thừa
             var textContent = $('<div>').html(_body).text().trim();
@@ -2398,14 +2411,19 @@ var _newsDetail1 = {
                             window.location.href = `/courses`;
 
                         });
+                        // ✅ Gọi callback thông báo lưu thành công
+                        if (callback) callback(true);
 
 
 
                     } else {
                         _msgalert.error(result.message);
+                        // ✅ Gọi callback thông báo lưu thất bại
+                        if (callback) callback(false);
                     }
                 },
                 error: function (jqXHR) {
+                    if (callback) callback(false);
 
                 }
             });
