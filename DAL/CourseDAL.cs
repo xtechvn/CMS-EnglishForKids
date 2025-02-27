@@ -670,7 +670,13 @@ namespace DAL
                                 .ToListAsync();
                             if (files != null)
                             {
-
+                                //foreach (var file in files)
+                                //{
+                                //    if (System.IO.File.Exists(file.Path))
+                                //    {
+                                //        System.IO.File.Delete(file.Path);
+                                //    }
+                                //}
                                 // 🔹 Xóa dữ liệu file trong database
                                 _DbContext.AttachFiles.RemoveRange(files);
                                 await _DbContext.SaveChangesAsync(); // Lưu thay đổi vào DB

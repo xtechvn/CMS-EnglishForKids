@@ -1371,7 +1371,26 @@ $(document).on("change", ".custom-file-input.auto-upload", function () {
     const fileName = files.length === 1 ? files[0].name : `${files.length} files selected`;
     input.next(".custom-file-label").text(fileName);
 
-    // ✅ Chuẩn bị dữ liệu upload
+    // ✅ Nếu là video, lấy thời gian trước khi upload
+    if (isReplace) {
+        const videoElement = document.createElement("video");
+        videoElement.preload = "metadata";
+
+        videoElement.onloadedmetadata = function () {
+            window.URL.revokeObjectURL(videoElement.src);
+            const duration = Math.floor(videoElement.duration); // Lấy số giây
+            uploadFileWithDuration(lessonId, files, isReplace, isResource, duration);
+        };
+
+        videoElement.src = URL.createObjectURL(files[0]); // Đọc metadata từ video
+    } else {
+        uploadFileWithDuration(lessonId, files, isReplace, isResource, 0); // Không phải video, duration = 0
+    }
+});
+
+// ✅ Hàm thực hiện upload file với duration từ HTML5 Video API
+function uploadFileWithDuration(lessonId, files, isReplace, isResource, duration) {
+    debugger
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
         formData.append("files", files[i]);
@@ -1379,6 +1398,7 @@ $(document).on("change", ".custom-file-input.auto-upload", function () {
     formData.append("lessonId", lessonId);
     formData.append("isReplace", isReplace);
     formData.append("isResource", isResource);
+    formData.append("duration", duration); // ✅ Gửi thời gian video lên server
 
     $.ajax({
         url: "/Courses/UploadFile",
@@ -1397,7 +1417,8 @@ $(document).on("change", ".custom-file-input.auto-upload", function () {
             alert("Có lỗi xảy ra khi tải file lên. Vui lòng thử lại!");
         },
     });
-});
+}
+
 
 // Xử lý sự kiện click nút xóa file
 $(document).on("click", ".btn-delete-file", function () {
@@ -2148,6 +2169,12 @@ document.getElementById("display-button").addEventListener("click", function () 
             let newStatus = currentStatus === 0 ? 2 : 0;
 
             _newsDetail1.OnSave(newStatus, "status_update");
+            if (newStatus === 0) {
+                $(".Tabs").addClass("locked");
+            } else {
+                $(".Tabs").removeClass("locked");
+            }
+
         }
     });
 });
@@ -2254,7 +2281,14 @@ var _newsDetail1 = {
         });
 
         if (formvalid.valid()) {
-            var _body = tinymce.activeEditor.getContent();
+            // Lấy nội dung TinyMCE từ textarea có class .des-course
+            var editor = tinymce.get($('.des-course').attr('id'));
+
+            if (editor) {
+                var _body = editor.getContent().trim(); // Lấy nội dung
+            } else {
+                var _body = $('.des-course').val().trim(); // Nếu TinyMCE chưa khởi tạo, lấy từ textarea gốc
+            }
 
             // Chuyển HTML thành plain text và loại bỏ dấu cách thừa
             var textContent = $('<div>').html(_body).text().trim();
@@ -2526,19 +2560,25 @@ var _newsDetail1 = {
         });
     },
 
-    EditNewDetail: function (id, status) {
-        let title = 'Xác nhận hạ bài viết';
-        let description = 'Bài viết đang hiển thị ngoài mặt trang sẽ bị hạ.Bạn có đồng ý không?';
+    EditCourseDetail: function (id, status) {
+        debugger
+        let title = 'Xác nhận hạ Khóa Học';
+        let description = 'Khóa Học đang hiển thị ngoài mặt trang sẽ bị hạ.Bạn có đồng ý không?';
         _msgconfirm.openDialog(title, description, function () {
             $.ajax({
-                url: '/news/ChangeArticleStatus',
+                url: '/courses/ChangeCourseStatus',
                 type: 'POST',
                 data: { Id: id, articleStatus: status },
                 success: function (result) {
                     if (result.isSuccess) {
                         _msgalert.success(result.message);
                         setTimeout(function () {
-                            window.location.href = "/news/detail/" + result.dataId;
+                            // ✅ Mở khóa nhập liệu
+                            $(".course-Tabs").removeClass("locked");
+
+                            // ✅ Cập nhật Status = 2
+                            //$("#CourseStatus").val(2);
+                            window.location.href = "/courses/detail/" + result.dataId;
 
                         }, 200);
                     } else {

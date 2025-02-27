@@ -180,13 +180,15 @@ namespace DAL
             try
             {
 
-                SqlParameter[] objParam_order = new SqlParameter[6];
+                SqlParameter[] objParam_order = new SqlParameter[7];
                 objParam_order[0] = new SqlParameter("@DataId", booking.DataId);
                 objParam_order[1] = new SqlParameter("@UserId", booking.UserId);
                 objParam_order[2] = new SqlParameter("@Type", booking.Type);
                 objParam_order[3] = new SqlParameter("@Path", booking.Path);
                 objParam_order[4] = new SqlParameter("@Ext", booking.Ext);
                 objParam_order[5] = new SqlParameter("@Capacity", booking.Capacity);
+                objParam_order[6] = new SqlParameter("@Duration", booking.Duration);
+
 
                 var id = dbWorker.ExecuteNonQuery(StoreProcedureConstant.SP_InsertAttachFile, objParam_order);
                 booking.Id = id;
