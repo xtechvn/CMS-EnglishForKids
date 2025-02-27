@@ -463,7 +463,10 @@ namespace Repositories.Repositories
 
                     Ext = row.Field<string>("Ext"),
                     Capacity = row.Field<double>("Capacity"),
-                    CreateDate = row.Field<DateTime>("CreateDate")
+                    CreateDate = row.Field<DateTime>("CreateDate"),
+                    Duration = row.Field<int?>("Duration") ?? 0
+
+
                 }).ToList();
             }
             catch (Exception ex)
@@ -526,7 +529,7 @@ namespace Repositories.Repositories
                 var model = await _CourseDAL.FindAsync(Id);
                 model.Status = Status;
 
-                if (Status == CourseStatus.PUBLISH)
+                if (Status == CourseStatus.SAVE)
                 {
                     model.CreatedDate = DateTime.Now;
                     model.UpdatedDate = DateTime.Now;

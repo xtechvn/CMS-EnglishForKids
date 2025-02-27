@@ -286,7 +286,8 @@ namespace Web.CMS.Controllers.Course
                                         FileId = f.Id,
                                         Type = f.Type,
                                         Path = f.Path,
-                                        Ext = f.Ext
+                                        Ext = f.Ext,
+                                        Duration =f.Duration
                                     }).Cast<object>().ToList()
                                     : new List<object>()
                             }).Select(x => (object)x) // ✅ Ép kiểu về object
@@ -379,6 +380,68 @@ namespace Web.CMS.Controllers.Course
             }
         }
 
+        public async Task<IActionResult> ChangeCourseStatus(int Id, int articleStatus)
+        {
+            try
+            {
+                var _ActionName = string.Empty;
+
+                
+
+                var rs = await _CourseRepository.ChangeCourseStatus(Id, articleStatus);
+
+                // ✅ Xóa dữ liệu Redis khi hạ bài viết
+                if (articleStatus == 1)
+                {
+                    await _redisConn.DeleteCacheByKeyword(CacheName.COURSE_DETAIL + Id, db_index);
+                }
+
+                if (rs > 0)
+                {
+                    //  clear cache article 
+                    var Categories = await _CourseRepository.GetCourseCategoryIdList(Id);
+                    ClearCacheArticle(Id, string.Join(",", Categories));
+
+                    // Tạo message để push vào queue
+                    //var j_param = new Dictionary<string, object>
+                    //        {
+                    //              { "store_name", "Sp_GetAllArticle" },
+                    //            { "index_es", "es_hulotoys_sp_get_article" },
+                    //            {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
+                    //              {"id" , Id }
+
+                    //        };
+                    //var _data_push = JsonConvert.SerializeObject(j_param);
+                    //// Push message vào queue
+                    //var response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
+
+                    return new JsonResult(new
+                    {
+                        isSuccess = true,
+                        message = _ActionName + " thành công",
+                        dataId = Id
+                    });
+                }
+                else
+                {
+                    return new JsonResult(new
+                    {
+                        isSuccess = false,
+                        message = _ActionName + " thất bại"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("ChangeArticleStatus - NewsController: " + ex);
+                return new JsonResult(new
+                {
+                    isSuccess = false,
+                    message = ex.Message.ToString()
+                });
+            }
+        }
+
         // Add Or Update của  Chapter và Leesion(Bài Viết)
         [HttpPost]
         public async Task<IActionResult> AddorUpdateItem([FromBody] ItemViewModel model)
@@ -454,7 +517,7 @@ namespace Web.CMS.Controllers.Course
         }
         //Upload File Video Hoặc Tài Nguyên nằm trong Bài Giảng
         [HttpPost]
-        public async Task<IActionResult> UploadFile(int lessonId, List<IFormFile> files, bool isReplace = false, bool isResource = false)
+        public async Task<IActionResult> UploadFile(int lessonId, List<IFormFile> files, int duration = 0, bool isReplace = false, bool isResource = false)
         {
             try
             {
@@ -490,7 +553,8 @@ namespace Web.CMS.Controllers.Course
                             Path = filePath,
                             Ext = Path.GetExtension(filePath),
                             Capacity = file.Length,
-                            CreateDate = DateTime.Now
+                            CreateDate = DateTime.Now,
+                            Duration = (fileType == 40) ? duration : 0 // ✅ Sử dụng duration từ client
                         };
                         // Lưu vào repository (kiểm tra và thêm mới nếu chưa tồn tại)
                         var fileId = await _AttachFileRepository.AddAttachFile(attachFile);
@@ -936,70 +1000,7 @@ namespace Web.CMS.Controllers.Course
             }
         }
 
-        public async Task<IActionResult> ChangeArticleStatus(int Id, int articleStatus)
-        {
-            try
-            {
-                var _ActionName = string.Empty;
-
-                switch (articleStatus)
-                {
-                    case ArticleStatus.PUBLISH:
-                        _ActionName = "Đăng bài viết";
-                        break;
-
-                    case ArticleStatus.REMOVE:
-                        _ActionName = "Hạ bài viết";
-                        break;
-                }
-
-                var rs = await _CourseRepository.ChangeCourseStatus(Id, articleStatus);
-
-                if (rs > 0)
-                {
-                    //  clear cache article
-                    var Categories = await _CourseRepository.GetCourseCategoryIdList(Id);
-                    ClearCacheArticle(Id, string.Join(",", Categories));
-
-                    // Tạo message để push vào queue
-                    //var j_param = new Dictionary<string, object>
-                    //        {
-                    //              { "store_name", "Sp_GetAllArticle" },
-                    //            { "index_es", "es_hulotoys_sp_get_article" },
-                    //            {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
-                    //              {"id" , Id }
-
-                    //        };
-                    //var _data_push = JsonConvert.SerializeObject(j_param);
-                    //// Push message vào queue
-                    //var response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
-
-                    return new JsonResult(new
-                    {
-                        isSuccess = true,
-                        message = _ActionName + " thành công",
-                        dataId = Id
-                    });
-                }
-                else
-                {
-                    return new JsonResult(new
-                    {
-                        isSuccess = false,
-                        message = _ActionName + " thất bại"
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                LogHelper.InsertLogTelegram("ChangeArticleStatus - NewsController: " + ex);
-                return new JsonResult(new
-                {
-                    isSuccess = false,
-                    message = ex.Message.ToString()
-                });
-            }
-        }
+     
         public async Task<string> GetSuggestionTag(string name)
         {
             try
