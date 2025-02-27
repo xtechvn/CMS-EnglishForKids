@@ -12,6 +12,7 @@ public partial class AttachFile
     public int UserId { get; set; }
 
     public int? Type { get; set; }
+    public int? Duration { get; set; }
 
     public string Path { get; set; }
 
