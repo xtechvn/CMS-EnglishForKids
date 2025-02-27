@@ -1254,8 +1254,13 @@ $(document).on("click", ".btn-close-content2", function () {
 //Khi nhấn "Thay thế Video" hoặc "Thêm Tài Nguyên"
 $(document).on("click", ".btn-resource", function () {
     debugger
+    const wrapper = $(this).closest(".lesson-content-wrapper");
     const lessonId = $(this).data("lesson-id");
     const type = $(this).hasClass("btn-replace-video") ? "video" : "resource";
+    // Reset input file
+    const fileInput = wrapper.find(".panel-upload-video .custom-file-input");
+    fileInput.val("");
+    fileInput.next(".custom-file-label").text("Không có file nào được chọn");
 
     if (!lessonId) {
         console.error("🔴 Lỗi: lessonId bị undefined");
@@ -1349,7 +1354,7 @@ $(document).on("change", ".custom-file-input.auto-upload", function () {
     const files = this.files;
     const lessonId = input.data("lesson-id");
 
-    if (files.length === 0 || !lessonId) return alert("Lỗi: Không tìm thấy Lesson ID");
+    //if (files.length === 0 || !lessonId) return alert("Lỗi: Không tìm thấy Lesson ID");
 
     const type = $(`#lesson_${lessonId} .panel-upload-video`).attr("data-type"); // ✅ Lấy type đúng
     const isReplace = type === "video";
