@@ -1371,7 +1371,7 @@ $(document).on("change", ".custom-file-input.auto-upload", function () {
 
     // ✅ Kiểm tra đúng loại file trước khi upload
     if (isReplace && !isValidVideoFile(files)) {
-        alert("❌ Chỉ được upload file Video (.mp4, .avi, .mov)!");
+        alert("❌ Chỉ được upload file Video (.mp4, .avi, .mov) hoặc Audio (.mp3)!");
         resetFileInput(input);
         return;
     }
@@ -1427,7 +1427,20 @@ function uploadFileWithDuration(lessonId, files, isReplace, isResource, duration
         },
     });
 }
+/** Hàm kiểm tra định dạng file Video hoặc Audio hợp lệ */
+function isValidVideoFile(files) {
+    const allowedExtensions = ["mp4", "avi", "mov", "mp3"]; // ✅ Thêm mp3
+    return Array.from(files).every(file => {
+        const ext = file.name.split(".").pop().toLowerCase();
+        return allowedExtensions.includes(ext);
+    });
+}
 
+/** Hàm reset input file khi chọn file không hợp lệ */
+function resetFileInput(input) {
+    input.val("");  // Reset giá trị file input
+    input.next(".custom-file-label").text("Không có file nào được chọn"); // Đặt lại tên file hiển thị
+}
 
 // Xử lý sự kiện click nút xóa file
 $(document).on("click", ".btn-delete-file", function () {
@@ -1491,19 +1504,7 @@ $(document).on("click", ".btn-delete-file", function () {
     });
 });
 
-/** Hàm kiểm tra định dạng file Video hợp lệ */
-function isValidVideoFile(files) {
-    const allowedExtensions = ["mp4", "avi", "mov"];
-    return Array.from(files).every(file => {
-        const ext = file.name.split(".").pop().toLowerCase();
-        return allowedExtensions.includes(ext);
-    });
-}
-/** Hàm reset input file khi chọn file không hợp lệ */
-function resetFileInput(input) {
-    input.val("");  // Reset giá trị file input
-    input.next(".custom-file-label").text("Không có file nào được chọn"); // Đặt lại tên file hiển thị
-}
+
 
 
 // Hàm cập nhật giao diện sau khi upload thành công
