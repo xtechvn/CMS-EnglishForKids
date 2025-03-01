@@ -152,7 +152,7 @@ namespace Utilities
             {
                 // Danh sách phần mở rộng hợp lệ
                 //var validImageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                var validFileExtensions = new[] { ".pdf", ".doc", ".docx", ".txt", ".xls", ".xlsx",".mp4",".mp3" };
+                var validFileExtensions = new[] { ".pdf", ".doc", ".docx", ".txt", ".xls", ".xlsx",".mp4",".mp3", ".jpg", ".jpeg", ".png", ".gif" };
 
                 var extension = Path.GetExtension(file.FileName).ToLower();
 
