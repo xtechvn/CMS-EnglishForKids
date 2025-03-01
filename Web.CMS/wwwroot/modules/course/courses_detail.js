@@ -226,6 +226,9 @@ $(document).on("click", ".btn-add-type, .btn-edit-item", function () {
         ? container.find(".item-title").first().text().trim()
         : "";
 
+
+   
+
     // 👉 **Khôi phục các bài giảng trước đó về trạng thái bình thường**
     $(".box-add-chap").each(function () {
         let lessonContainer = $(this);
@@ -271,7 +274,8 @@ function openItemForm(container, type, title, id = 0, parentId = 0) {
                     <span class="text-nowrap">${headerText}:</span>
                 </p>
                 <div class="custom-input w-100">
-                    <input type="text" class="form-control item-title1" placeholder="${placeholderText}" value="${title}" maxlength="100" />
+                  <input type="text" class="form-control item-title1" placeholder="${placeholderText}" value="${title.replace(/"/g, '&quot;')}" maxlength="100" />
+
                     <span class="character-count1 custom-label">0/100</span>
                 </div>
             </div>
@@ -1375,6 +1379,11 @@ $(document).on("change", ".custom-file-input.auto-upload", function () {
         resetFileInput(input);
         return;
     }
+    //if (isResource && !isValidResourceFile(files)) {
+    //    alert("❌ File không hợp lệ! Chỉ chấp nhận các định dạng: .pdf, .doc, .docx, .txt, .xls, .xlsx, .mp4, .mp3, .jpg, .jpeg, .png, .gif");
+    //    resetFileInput(input);
+    //    return;
+    //}
 
     // ✅ Hiển thị file name
     const fileName = files.length === 1 ? files[0].name : `${files.length} files selected`;
@@ -1430,6 +1439,14 @@ function uploadFileWithDuration(lessonId, files, isReplace, isResource, duration
 /** Hàm kiểm tra định dạng file Video hoặc Audio hợp lệ */
 function isValidVideoFile(files) {
     const allowedExtensions = ["mp4", "avi", "mov", "mp3"]; // ✅ Thêm mp3
+    return Array.from(files).every(file => {
+        const ext = file.name.split(".").pop().toLowerCase();
+        return allowedExtensions.includes(ext);
+    });
+}
+// ✅ Hàm kiểm tra định dạng file Tài Nguyên hợp lệ
+function isValidResourceFile(files) {
+    const allowedExtensions = ["pdf", "doc", "docx", "txt", "xls", "xlsx", "mp4", "mp3", "jpg", "jpeg", "png", "gif"];
     return Array.from(files).every(file => {
         const ext = file.name.split(".").pop().toLowerCase();
         return allowedExtensions.includes(ext);
@@ -2295,30 +2312,26 @@ var _newsDetail1 = {
         });
 
         if (formvalid.valid()) {
-            // Lấy nội dung TinyMCE từ textarea có class .des-course
-        var editor = tinymce.get($('.des-course').attr('id'));
+            // ✅ Lấy nội dung TinyMCE (_body)
+            var editor = tinymce.get($('.des-course').attr('id'));
+            var _body = "";
 
-        if (editor) {
-            var _body = editor.getContent().trim(); // Lấy nội dung
-        } else {
-            var _body = $('.des-course').val().trim(); // Nếu TinyMCE chưa khởi tạo, lấy từ textarea gốc
-        }
+            if (editor) {
+                _body = editor.getContent().trim();
+            } else {
+                _body = $('.des-course').val().trim();
+            }
 
-            // Chuyển HTML thành plain text và loại bỏ dấu cách thừa
-            var textContent = $('<div>').html(_body).text().trim();
+            // ✅ Kiểm tra số từ theo TinyMCE
+            var wordCount = editor ? editor.plugins.wordcount.getCount() : _body.split(/\s+/).filter(word => word.length > 0).length;
 
-            // Loại bỏ các ký tự đặc biệt và khoảng trắng thừa
-            textContent = textContent.replace(/\s+/g, ' ').trim();
+            console.log("✅ Số từ trong mô tả:", wordCount);
 
-            // Đếm số ký tự (bao gồm cả dấu cách)
-            var charCount = textContent.length;
-
-
-            // Kiểm tra số từ
-            if (charCount < 200) {
-                _msgalert.error('Mô tả phải dài ít nhất 200 từ. Hiện tại ước tính có khoảng ' + charCount + ' từ.');
+            if (wordCount < 200) {
+                _msgalert.error("❌ Mô tả phải dài ít nhất 200 từ.");
                 return false;
             }
+
 
             var _tags = $('#news-tag').tagsinput('items');
             //var _categories = [];
