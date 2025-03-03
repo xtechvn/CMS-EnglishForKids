@@ -13,279 +13,279 @@
 
     /* Khóa toàn bộ khu vực khi ở trạng thái "Đã Xuất Bản" */
     .locked {
-        pointer-events: none; /* Ngăn mọi thao tác */
-        user-select: none; /* Không cho copy */
-        opacity: 1; /* Giữ nguyên UI, không làm mờ */
+    pointer-events: none; /* Ngăn mọi thao tác */
+    user-select: none; /* Không cho copy */
+    opacity: 1; /* Giữ nguyên UI, không làm mờ */
     }
 
-        /* Chặn nhập liệu vào input, textarea, select */
-        .locked input,
-        .locked textarea,
-        .locked select {
-            pointer-events: none;
-            background-color: #f5f5f5; /* Làm mờ nhẹ để báo hiệu */
-            cursor: not-allowed;
-        }
+    /* Chặn nhập liệu vào input, textarea, select */
+    .locked input,
+    .locked textarea,
+    .locked select {
+    pointer-events: none;
+    background-color: #f5f5f5; /* Làm mờ nhẹ để báo hiệu */
+    cursor: not-allowed;
+    }
 
-        /* Chặn thao tác trên trình soạn thảo TinyMCE / CKEditor */
-        .locked .tox-tinymce,
-        .locked .tox-toolbar__primary {
-            pointer-events: none !important;
-            opacity: 1 !important; /* Giữ nguyên UI */
-        }
+    /* Chặn thao tác trên trình soạn thảo TinyMCE / CKEditor */
+    .locked .tox-tinymce,
+    .locked .tox-toolbar__primary {
+    pointer-events: none !important;
+    opacity: 1 !important; /* Giữ nguyên UI */
+    }
 
-        /* Ngăn các nút bấm hoạt động */
-        .locked button,
-        .locked a {
-            pointer-events: none;
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+    /* Ngăn các nút bấm hoạt động */
+    .locked button,
+    .locked a {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+    }
 
-        /* Hiển thị UI nhưng không cho chỉnh sửa */
-        .locked .custom-input {
-            background-color: #f8f9fa;
-        }
+    /* Hiển thị UI nhưng không cho chỉnh sửa */
+    .locked .custom-input {
+    background-color: #f8f9fa;
+    }
 
     .custom-input {
-        position: relative;
+    position: relative;
     }
 
     .character-count {
-        position: absolute;
-        right: 10px;
-        bottom: 10px; /* Đưa label xuống dưới */
-        background: white; /* Giữ nền trắng để không bị đè lên */
-        padding: 2px 5px;
-        font-size: 14px;
-        color: #666;
+    position: absolute;
+    right: 10px;
+    bottom: 10px; /* Đưa label xuống dưới */
+    background: white; /* Giữ nền trắng để không bị đè lên */
+    padding: 2px 5px;
+    font-size: 14px;
+    color: #666;
     }
 
     .bootstrap-tagsinput .tag {
-        display: inline-block;
-        margin: 5px 2px 5px 0px;
-        color: #000;
-        background: #D9D9D9;
-        padding: 5px 5px 5px 10px;
+    display: inline-block;
+    margin: 5px 2px 5px 0px;
+    color: #000;
+    background: #D9D9D9;
+    padding: 5px 5px 5px 10px;
     }
 
     .bootstrap-tagsinput {
-        width: 100%;
+    width: 100%;
     }
 
     .user-hierarchy-tag ul .lever2 {
-        padding-left: 15px;
+    padding-left: 15px;
     }
 
     .loading {
-        position: absolute;
-        z-index: 1;
-        width: 100%;
-        height: 100%;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.479);
+    position: absolute;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.479);
     }
 
-        .loading img {
-            width: 2rem;
-        }
+    .loading img {
+    width: 2rem;
+    }
 
     .check-list {
-        display: inline-block !important;
+    display: inline-block !important;
     }
 
     #video_preview_container {
-        position: relative;
+    position: relative;
     }
 
     #choose_video_button {
-        margin-top: 10px;
-        display: inline-block;
+    margin-top: 10px;
+    display: inline-block;
     }
 
     <style >
-    /* Container chứa Tabs và Nội dung */
-    .tab-content-container {
+        /* Container chứa Tabs và Nội dung */
+        .tab-content-container {
         display: flex; /* Bố trí Tabs và Nội dung ngang hàng */
         flex-wrap: nowrap; /* Không cho phép thành phần con xuống dòng */
-    }
+        }
 
-    /* Tabs bên trái */
-    .side-left {
+        /* Tabs bên trái */
+        .side-left {
         flex: 0 0 250px; /* Tabs có chiều rộng cố định */
         max-width: 250px;
         padding: 10px;
         border-right: 1px solid #ccc; /* Đường kẻ ngăn cách Tabs và Nội dung */
-    }
+        }
 
-    /* Nội dung bên phải */
-    .tab-content {
+        /* Nội dung bên phải */
+        .tab-content {
         flex: 1; /* Chiếm toàn bộ phần còn lại của container */
         padding: 20px;
         display: none; /* Ẩn tất cả nội dung mặc định */
-    }
+        }
 
         /* Tab hiển thị */
         .tab-content.active {
-            display: block;
+        display: block;
         }
 
-    /* Tab được chọn */
-    .tab-link.active label {
+        /* Tab được chọn */
+        .tab-link.active label {
         font-weight: bold;
         color: #007bff;
-    }
+        }
 
-</style>
-
-
-
-<section class="main-container clearfix">
-    <!-- Hidden Fields -->
-    <input value="@Model.Status" id="News_Status" style="display:none;" />
-    <input value="@ViewBag.size_img" id="size_img" style="display:none;" />
-    <div class="flex row-main-head">
-        <h2 class="title_page">ĐĂNG KHÓA HỌC</h2>
+    </style>
 
 
-    </div>
 
-    <!-- Breadcrumb -->
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
-        <li class="breadcrumb-item"><a href="/courses">Khóa học</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Thêm mới khóa học</li>
-    </ol>
-
-    <!-- Main Form -->
-    <form id="form-news">
-        <div class="bg-white pd-16 radius10">
-            <div class="row">
-                <!-- Left Sidebar Navigation -->
-                <div class="col-lg-2 col-md-3 border-right">
+    <section class="main-container clearfix">
+        <!-- Hidden Fields -->
+        <input value="@Model.Status" id="News_Status" style="display:none;" />
+        <input value="@ViewBag.size_img" id="size_img" style="display:none;" />
+        <div class="flex row-main-head">
+            <h2 class="title_page">ĐĂNG KHÓA HỌC</h2>
 
 
-                    <div class="side-left sticky-top">
-                        <div class="mb-3">
-                            <h3>Tạo nội dung khóa học</h3>
+        </div>
 
-                            <ul class="tab-khoahoc">
-                                <li>
-                                    <i class="icofont-check-circled"></i>
-                                    Quay phim & chỉnh sửa
+        <!-- Breadcrumb -->
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="/courses">Khóa học</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Thêm mới khóa học</li>
+        </ol>
 
-                                </li>
-                                <li class="tab-link" data-tab="chapters-tab">
-                                    <i class="icofont-check-circled"></i>
-                                    Chương trình giảng dạy
+        <!-- Main Form -->
+        <form id="form-news">
+            <div class="bg-white pd-16 radius10">
+                <div class="row">
+                    <!-- Left Sidebar Navigation -->
+                    <div class="col-lg-2 col-md-3 border-right">
 
-                                </li>
-                            </ul>
-                            <h3>Xuất bản khóa học</h3>
 
-                            <ul class="tab-khoahoc">
-                                <li class="tab-link active" data-tab="course-info">
-                                    <i class="icofont-check-circled"></i>
-                                    Trang tổng quan khóa học
+                        <div class="side-left sticky-top">
+                            <div class="mb-3">
+                                <h3>Tạo nội dung khóa học</h3>
 
-                                </li>
-                                <li>
-                                    <i class="icofont-check-circled"></i>
-                                    Định giá
+                                <ul class="tab-khoahoc">
+                                    <li>
+                                        <i class="icofont-check-circled"></i>
+                                        Quay phim & chỉnh sửa
 
-                                </li>
-                                <li>
-                                    <i class="icofont-check-circled"></i>
-                                    Khuyến mại
+                                    </li>
+                                    <li class="tab-link" data-tab="chapters-tab">
+                                        <i class="icofont-check-circled"></i>
+                                        Chương trình giảng dạy
 
-                                </li>
-                                <li>
-                                    <i class="icofont-check-circled"></i>
-                                    Tin nhắn khóa học
+                                    </li>
+                                </ul>
+                                <h3>Xuất bản khóa học</h3>
 
-                                </li>
-                            </ul>
-                            <button type="button" id="display-button" class="btn btn-default orange w-100">
+                                <ul class="tab-khoahoc">
+                                    <li class="tab-link active" data-tab="course-info">
+                                        <i class="icofont-check-circled"></i>
+                                        Trang tổng quan khóa học
+
+                                    </li>
+                                    <li>
+                                        <i class="icofont-check-circled"></i>
+                                        Định giá
+
+                                    </li>
+                                    <li>
+                                        <i class="icofont-check-circled"></i>
+                                        Khuyến mại
+
+                                    </li>
+                                    <li>
+                                        <i class="icofont-check-circled"></i>
+                                        Tin nhắn khóa học
+
+                                    </li>
+                                </ul>
+                                <button type="button" id="display-button" class="btn btn-default orange w-100">
                                     @(Model.Status == 0 ? "Đã Xuất Bản" : "Xuất Bản")
-                            </button>
+                                </button>
+                            </div>
                         </div>
+
                     </div>
 
-                </div>
-
-                <!-- Tab Khóa Học -->
-                <div id="course-info" class="col-lg-10 col-md-9 box-thongtin tab-content active">
-                    <!-- Header Section -->
-                    <div class="line-bottom" style="padding-bottom: 0;">
-                        <div style="
+                    <!-- Tab Khóa Học -->
+                    <div id="course-info" class="col-lg-10 col-md-9 box-thongtin tab-content active">
+                        <!-- Header Section -->
+                        <div class="line-bottom" style="padding-bottom: 0;">
+                            <div style="
                             display: flex;
                             justify-content: space-between;
                             align-items: center;
-                        ">
-                            <h2>Trang tổng quan khóa học</h2>
-                            <div class="btn-right text-right">
+                            ">
+                                <h2>Trang tổng quan khóa học</h2>
+                                <div class="btn-right text-right">
                                     @if (Model.Status == ArticleStatus.PUBLISH)
                                     {
-                                    <a style="
+                                        <a style="
                                         font-size: 15px;
 
                                         text-decoration: underline;
                                         font-style: italic;
-                                                            " href="javascripts:;" class="btn" onclick="_newsDetail1.EditCourseDetail('@Model.Id','@CourseStatus.REMOVE')">
-                                        Sửa Khóa Học
-                                    </a>
+                                        " href="javascripts:;" class="btn" onclick="_newsDetail1.EditCourseDetail('@Model.Id','@CourseStatus.REMOVE')">
+                                            Sửa Khóa Học
+                                        </a>
                                     }
+                                </div>
                             </div>
+
+                            <p>
+                                Khi bạn hoàn thành phần này, hãy nghĩ đến việc tạo Trang tổng quan khóa học hấp dẫn thể hiện lý do ai đó muốn ghi danh khóa học của bạn.
+                                Tìm hiểu thêm về <a href="#" class="underline">cách tạo trang tổng quan khóa học của bạn</a> và
+                                <a href="#" class="underline">các tiêu chuẩn tiêu đề khóa học</a>.
+                            </p>
                         </div>
+                        <div class="Tabs @(Model.Status == 0 ? "locked" : "")">
+                            <!-- Course Information Form -->
+                            <div class="box-thongtin">
+                                <input type="hidden" asp-for="@Model.Id" />
 
-                        <p>
-                            Khi bạn hoàn thành phần này, hãy nghĩ đến việc tạo Trang tổng quan khóa học hấp dẫn thể hiện lý do ai đó muốn ghi danh khóa học của bạn.
-                            Tìm hiểu thêm về <a href="#" class="underline">cách tạo trang tổng quan khóa học của bạn</a> và
-                            <a href="#" class="underline">các tiêu chuẩn tiêu đề khóa học</a>.
-                        </p>
-                    </div>
-                    <div class="Tabs @(Model.Status == 0 ? "locked" : "")">
-                        <!-- Course Information Form -->
-                        <div class="box-thongtin">
-                            <input type="hidden" asp-for="@Model.Id" />
-
-                            <!-- Course Title -->
-                            <div class="block-content">
-                                <h3>Tiêu đề khóa học</h3>
-                                <div class="custom-input">
-                                    <input type="text" class="form-control item-title" asp-for="@Model.Title"
-                                           placeholder="Nhập tiêu đề khóa học..." maxlength="300">
-                                    <label class="custom-label character-count">0/300</label>
+                                <!-- Course Title -->
+                                <div class="block-content">
+                                    <h3>Tiêu đề khóa học</h3>
+                                    <div class="custom-input">
+                                        <input type="text" class="form-control item-title" asp-for="@Model.Title"
+                                        placeholder="Nhập tiêu đề khóa học..." maxlength="300">
+                                        <label class="custom-label character-count">0/300</label>
+                                    </div>
+                                    <p class="color-gray">
+                                        Tiêu đề của bạn không những phải thu hút sự chú ý, chứa nhiều thông tin mà còn được tối ưu hóa để dễ tìm kiếm
+                                    </p>
                                 </div>
-                                <p class="color-gray">
-                                    Tiêu đề của bạn không những phải thu hút sự chú ý, chứa nhiều thông tin mà còn được tối ưu hóa để dễ tìm kiếm
-                                </p>
-                            </div>
 
-                            <!-- Course Summary -->
-                            <div class="block-content">
-                                <h3>Tóm tắt khóa học</h3>
-                                <div class="custom-input">
-                                    <textarea class="form-control item-title" asp-for="@Model.Description"
-                                              placeholder="Nhập tóm tắt khóa học..." maxlength="300"></textarea>
-                                    <label class="character-count custom-label">0/300</label>
+                                <!-- Course Summary -->
+                                <div class="block-content">
+                                    <h3>Tóm tắt khóa học</h3>
+                                    <div class="custom-input">
+                                        <textarea class="form-control item-title" asp-for="@Model.Description"
+                                        placeholder="Nhập tóm tắt khóa học..." maxlength="300"></textarea>
+                                        <label class="character-count custom-label">0/300</label>
+                                    </div>
+                                    <p class="color-gray">
+                                        Sử dụng 1 hoặc 2 từ khóa có liên quan và đề cập đến 3-4 lĩnh vực quan trọng nhất mà bạn đã đề cập trong khóa học của bạn.
+                                    </p>
                                 </div>
-                                <p class="color-gray">
-                                    Sử dụng 1 hoặc 2 từ khóa có liên quan và đề cập đến 3-4 lĩnh vực quan trọng nhất mà bạn đã đề cập trong khóa học của bạn.
-                                </p>
-                            </div>
 
-                            <!-- Course Details -->
-                            <div class="block-content">
-                                <h3>Mô tả khóa học</h3>
-                                <textarea class="des-course" rows="4" class="form-control" id="text-editor" asp-for="@Model.Benefif"></textarea>
-                                <p class="color-gray">Mô tả phải dài ít nhất là 200 từ.</p>
-                            </div>
+                                <!-- Course Details -->
+                                <div class="block-content">
+                                    <h3>Mô tả khóa học</h3>
+                                    <textarea class="des-course" rows="4" class="form-control" id="text-editor" asp-for="@Model.Benefif"></textarea>
+                                    <p class="color-gray">Mô tả phải dài ít nhất là 200 từ.</p>
+                                </div>
 
 
-                            <!-- Course Tags -->
+                                <!-- Course Tags -->
                                 @* <div class="block-content">
                         <h3>Thêm từ khoá cho khóa học</h3>
                         <input type="text" class="form-control" id="news-tag"
@@ -293,7 +293,7 @@
                         placeholder="Nhập từ khóa và nhấn Enter...">
                         </div> *@
 
-                            <!-- Course Category -->
+                                <!-- Course Category -->
                                 @* <div class="block-content">
                                 <h3>Thông tin cơ bản</h3>
                                 <div class="user-hierarchy-tag" style="border: 1px solid #CCCCCC;border-radius: 3px;padding:15px;margin:0">
@@ -306,115 +306,115 @@
                             </div> *@
 
 
-                            <div class="block-content">
-                                <h3>Thông tin cơ bản</h3>
-                                <div class="row">
-                                    <!-- Danh mục cha -->
-                                    <div class="col-md-5">
-                                        <select id="parent-category" class="select2 w-100">
-                                            <option value="">- Chọn thể loại -</option>
+                                <div class="block-content">
+                                    <h3>Thông tin cơ bản</h3>
+                                    <div class="row">
+                                        <!-- Danh mục cha -->
+                                        <div class="col-md-5">
+                                            <select id="parent-category" class="select2 w-100">
+                                                <option value="">- Chọn thể loại -</option>
                                                 @foreach (var category in ViewBag.MainCategories)
                                                 {
-                                                <option value="@category.Id" selected="@(ViewBag.SelectedParentCategory == category.Id ? "selected" : null)">
+                                                    <option value="@category.Id" selected="@(ViewBag.SelectedParentCategory == category.Id ? "selected" : null)">
                                                         @category.Name
-                                                </option>
+                                                    </option>
                                                 }
-                                        </select>
-                                    </div>
+                                            </select>
+                                        </div>
 
-                                    <!-- Danh mục con -->
-                                    <div class="col-md-7">
-                                        <select id="child-category" class="select2 w-100">
-                                            <option value="">- Chọn thể loại con -</option>
+                                        <!-- Danh mục con -->
+                                        <div class="col-md-7">
+                                            <select id="child-category" class="select2 w-100">
+                                                <option value="">- Chọn thể loại con -</option>
                                                 @if (ViewBag.ChildCategories != null)
                                                 {
                                                     foreach (var subCategory in ViewBag.ChildCategories)
                                                     {
-                                                    <option value="@subCategory.Id" selected="@(ViewBag.SelectedChildCategory == subCategory.Id ? "selected" : null)">
+                                                        <option value="@subCategory.Id" selected="@(ViewBag.SelectedChildCategory == subCategory.Id ? "selected" : null)">
                                                             @subCategory.Name
-                                                    </option>
+                                                        </option>
                                                     }
                                                 }
-                                        </select>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
 
 
 
-                            <div class="block-content">
-                                <h3>Hình ảnh khóa học</h3>
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        <!-- Khung hiển thị ảnh -->
-                                        <div id="image_preview_container" class="border p-3 text-center" style="width: 100%; max-width: 750px;">
-                                            <!-- Croppie sẽ hiển thị tại đây -->
-                                            <div id="croppie-container" style="display: none;"></div>
-                                            <!-- Ảnh đã cắt hoặc gốc -->
-                                            <img id="img_16x9" src="@Model.Thumbnail" alt="Course Thumbnail" style="max-width: 100%; border: 1px solid #ddd; display: @(!string.IsNullOrEmpty(Model.Thumbnail) ? "block" : "none");">
-                                            <!-- Placeholder khi chưa chọn ảnh -->
-                                            <p id="image_placeholder" style="color: #888; font-style: italic; display: @(!string.IsNullOrEmpty(Model.Thumbnail) ? "none" : "block");">
-                                                Hiện chưa có ảnh được chọn.
+                                <div class="block-content">
+                                    <h3>Hình ảnh khóa học</h3>
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <!-- Khung hiển thị ảnh -->
+                                            <div id="image_preview_container" class="border p-3 text-center" style="width: 100%; max-width: 750px;">
+                                                <!-- Croppie sẽ hiển thị tại đây -->
+                                                <div id="croppie-container" style="display: none;"></div>
+                                                <!-- Ảnh đã cắt hoặc gốc -->
+                                                <img id="img_16x9" src="@Model.Thumbnail" alt="Course Thumbnail" style="max-width: 100%; border: 1px solid #ddd; display: @(!string.IsNullOrEmpty(Model.Thumbnail) ? "block" : "none");">
+                                                <!-- Placeholder khi chưa chọn ảnh -->
+                                                <p id="image_placeholder" style="color: #888; font-style: italic; display: @(!string.IsNullOrEmpty(Model.Thumbnail) ? "none" : "block");">
+                                                    Hiện chưa có ảnh được chọn.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0">
+                                                Tải hình ảnh khóa học lên tại đây. Để được chấp nhận, hình ảnh phải đáp ứng
+                                                <a href="#" class="text-primary">tiêu chuẩn chất lượng hình ảnh khóa học</a>.
                                             </p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-7">
-                                        <p class="mb-0">
-                                            Tải hình ảnh khóa học lên tại đây. Để được chấp nhận, hình ảnh phải đáp ứng
-                                            <a href="#" class="text-primary">tiêu chuẩn chất lượng hình ảnh khóa học</a>.
-                                        </p>
-                                        <p>Kích thước tối đa: 1 MB. Định dạng: jpg, jpeg, png, bmp, gif.</p>
-                                        <div class="custom-file mt-3">
-                                            <input type="file" class="custom-file-input" id="image_file" accept="image/*">
-                                            <label class="custom-file-label" for="image_file">Không có file nào được chọn</label>
-                                        </div>
-                                        <div class="mt-3">
-                                            <button type="button" id="btn-cropimage" class="btn btn-primary" style="display: none;">Cắt bớt hình ảnh</button>
-                                            <button type="button" id="btn-cancel-crop" class="btn btn-secondary" style="display: none;">Hủy bỏ</button>
+                                            <p>Kích thước tối đa: 1 MB. Định dạng: jpg, jpeg, png, bmp, gif.</p>
+                                            <div class="custom-file mt-3">
+                                                <input type="file" class="custom-file-input" id="image_file" accept="image/*">
+                                                <label class="custom-file-label" for="image_file">Không có file nào được chọn</label>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button type="button" id="btn-cropimage" class="btn btn-primary" style="display: none;">Cắt bớt hình ảnh</button>
+                                                <button type="button" id="btn-cancel-crop" class="btn btn-secondary" style="display: none;">Hủy bỏ</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
 
-                            <!-- Course Video -->
-                            <div class="block-content">
-                                <h3>Video giới thiệu</h3>
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        <div id="video_preview_container" style="text-align: center; margin-bottom: 15px;">
-                                            <!-- Video Preview -->
-                                            <video id="video_intro_preview" controls style="max-width: 100%; max-height: 300px; display: @(string.IsNullOrEmpty(Model.VideoIntro) ? "none" : "block");">
-                                                <source id="video_intro_src" src="@(!string.IsNullOrEmpty(Model.VideoIntro) ? Model.VideoIntro : "")" type="video/mp4">
-                                                Trình duyệt của bạn không hỗ trợ video.
-                                            </video>
+                                <!-- Course Video -->
+                                <div class="block-content">
+                                    <h3>Video giới thiệu</h3>
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <div id="video_preview_container" style="text-align: center; margin-bottom: 15px;">
+                                                <!-- Video Preview -->
+                                                <video id="video_intro_preview" controls style="max-width: 100%; max-height: 300px; display: @(string.IsNullOrEmpty(Model.VideoIntro) ? "none" : "block");">
+                                                    <source id="video_intro_src" src="@(!string.IsNullOrEmpty(Model.VideoIntro) ? Model.VideoIntro : "")" type="video/mp4">
+                                                    Trình duyệt của bạn không hỗ trợ video.
+                                                </video>
 
-                                            <!-- Nếu chưa có video, hiển thị thông báo -->
-                                            <p id="video_placeholder" style="color: #888; font-style: italic; display: @(string.IsNullOrEmpty(Model.VideoIntro) ? "block" : "none");">
-                                                Hiện chưa có video được chọn.
+                                                <!-- Nếu chưa có video, hiển thị thông báo -->
+                                                <p id="video_placeholder" style="color: #888; font-style: italic; display: @(string.IsNullOrEmpty(Model.VideoIntro) ? "block" : "none");">
+                                                    Hiện chưa có video được chọn.
+                                                </p>
+                                            </div>
+
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0">
+                                                Video quảng cáo của bạn là một cách nhanh chóng và hấp dẫn để học viên xem trước những gì họ sẽ học.
+                                                <a href="#" class="text-primary">Tìm hiểu cách tạo video quảng cáo thu hút!</a>
                                             </p>
-                                        </div>
-
-                                    </div>
-                                    <div class="col-md-7">
-                                        <p class="mb-0">
-                                            Video quảng cáo của bạn là một cách nhanh chóng và hấp dẫn để học viên xem trước những gì họ sẽ học.
-                                            <a href="#" class="text-primary">Tìm hiểu cách tạo video quảng cáo thu hút!</a>
-                                        </p>
-                                        <p>Kích thước tối đa của video là 100MB.</p>
-                                        <div class="custom-file mt-3">
-                                            <input type="file" class="custom-file-input" id="video_intro_file" accept="video/*">
-                                            <label class="custom-file-label" for="video_intro_file">Không có video nào được chọn</label>
+                                            <p>Kích thước tối đa của video là 100MB.</p>
+                                            <div class="custom-file mt-3">
+                                                <input type="file" class="custom-file-input" id="video_intro_file" accept="video/*">
+                                                <label class="custom-file-label" for="video_intro_file">Không có video nào được chọn</label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
+                            </div>
                         </div>
-                    </div>
-                    <!-- Form Actions -->
-                    <div class="bottom-action flex align-items-center justify-content-center mt20 gap10">
+                        <!-- Form Actions -->
+                        <div class="bottom-action flex align-items-center justify-content-center mt20 gap10">
 
                             @if (Model.Status != ArticleStatus.PUBLISH)
                             {
@@ -425,22 +425,26 @@
                                     <i class="fa fa-floppy-o"></i>Lưu bản nháp
                                 </button> *@
 
-                                <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
-                                    <i class="fa fa-clipboard"></i>Lưu
-                                </button>
+                                    <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
+                                        <i class="fa fa-clipboard"></i>Lưu
+                                    </button>
                                 }
                                 else
                                 {
 
 
 
-                                <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
-                                    <i class="fa fa-clipboard"></i>Lưu
-                                </button>
-                                <button type="button" class="btn btn-default orange line round">
-                                    <a class="bold"
-                                       href="@("http://qc-fe.truonghoctot.vn/khoa-hoc"+CommonHelper.genLinkNewsV2(Model.Title,Model.Id.ToString())+".html")" title="Xem trên trang chủ" target="_blank">Xem Trước</a>
-                                </button>
+                                    <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
+                                        <i class="fa fa-clipboard"></i>Lưu
+                                    </button>
+                                    @if (Model.Status == ArticleStatus.PUBLISH)
+                                    {
+                                          <button type="button" class="btn btn-default orange line round">
+                                        <a class="bold"
+                                           href="@("http://qc-fe.truonghoctot.vn/khoa-hoc"+CommonHelper.genLinkNewsV2(Model.Title,Model.Id.ToString())+".html")" title="Xem trên trang chủ" target="_blank">Xem Trước</a>
+                                    </button>
+                                    }
+                              
                                 }
                             }
 
@@ -461,9 +465,7 @@
                                 </button>
                                 }
 
-                                @*  <button type="button" class="btn btn-default orange line round" onclick="_newsDetail1.OnSave('@ArticleStatus.SAVE','save')">
-                                <i class="fa fa-floppy-o"></i>Lưu bản nháp
-                            </button> *@
+                               
 
                             <button type="button" class="btn btn-default orange round" onclick="_newsDetail1.OnSave('@Model.Status','save')">
                                 <i class="fa fa-clipboard"></i>Lưu

@@ -2098,6 +2098,15 @@ $("#video_intro_file").on("change", function () {
             this.value = ""; // Xóa giá trị file
             return;
         }
+        // Kiểm tra xem file có đuôi .mp4 không
+        const allowedExtensions = ["mp4"];
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+
+        if (!allowedExtensions.includes(fileExtension)) {
+            alert("Chỉ được phép tải lên video định dạng .mp4!");
+            this.value = ""; // Xóa giá trị file
+            return;
+        }
 
         if (file.size > maxFileSize) {
             alert("Kích thước video không được vượt quá 100MB!");
