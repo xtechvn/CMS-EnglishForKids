@@ -292,7 +292,7 @@ namespace Web.CMS.Controllers.Course
                                     : new List<object>()
                             }).Select(x => (object)x) // ✅ Ép kiểu về object
                     .Concat(
-                        quizzes.Where(q => q.ParentId == -1 && q.ChapterId == chapter.Id).Select(quiz => new
+                        quizzes.Where(q => q.ParentId == -1 && q.ChapterId == chapter.Id).OrderBy(q => q.Id).Select(quiz => new
                         {
                             Type = "Quiz",
                             QuizId = quiz.Id,
