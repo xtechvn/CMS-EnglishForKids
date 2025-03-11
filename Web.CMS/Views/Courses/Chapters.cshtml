@@ -12,7 +12,6 @@
 <section class="main-container clearfix">
     <div id="chapter-list">
             <div style="max-width:100%">
-                
 
                 <div class="box-thongtin">
                     <p>
@@ -174,7 +173,7 @@
                                                             @{
                                                                 int questionIndex = 1;
                                                             }
-                                                        @foreach (var question in chapter.Quizzes.Where(q => q.ParentId == quiz.Id && q.IsDelete == 0))
+                                                        @foreach (var question in chapter.Quizzes.Where(q => q.ParentId == quiz.Id && q.IsDelete == 0).OrderBy(q => q.Id))
                                                         {
                                                             // ✅ Loại bỏ ảnh trong nội dung câu hỏi
                                                             string questionDescription = Regex.Replace(question.Description, "<img.*?>", "", RegexOptions.IgnoreCase);

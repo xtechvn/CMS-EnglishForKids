@@ -682,7 +682,7 @@ namespace Web.CMS.Controllers.Course
 
 
         // Lây ra Toàn bộ Course, Chapter,Lession ,File, Quiz rồi Render ra trang
-        public async Task<IActionResult> Chapters(int courseId, int pageIndex = 1, int pageSize = 10)
+        public async Task<IActionResult> Chapters(int courseId, int pageIndex = 1, int pageSize = 100)
         {
             if (courseId <= 0)
             {

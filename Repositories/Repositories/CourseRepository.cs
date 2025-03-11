@@ -362,6 +362,7 @@ namespace Repositories.Repositories
 
                 // Bước 1: Ánh xạ Chapter + Lesson
                 var chapters = dataTableLessons.AsEnumerable()
+                    .Where(row => row.Field<int?>("ChapterIsDelete") == 0) // ✅ Chỉ lấy Chapter không bị xóa
                     .GroupBy(row => row.Field<int>("ChapterId"))
                     .Select(group => new ChapterViewModel
                     {
@@ -372,7 +373,7 @@ namespace Repositories.Repositories
 
                         // Lấy danh sách Lessons nếu có
                         Lessons = group.Any(row => row.Field<int?>("LessionId") != null)
-                            ? group.Where(row => row.Field<int?>("LessionId") != null).Select(row => new LessonViewModel
+                            ? group.Where(row => row.Field<int?>("LessionId") != null && row.Field<int?>("LessionIsDelete") == 0).Select(row => new LessonViewModel
                             {
                                 Id = row.Field<int>("LessionId"),
                                 Title = row.Field<string>("LessionTitle"),
@@ -388,6 +389,7 @@ namespace Repositories.Repositories
 
                 // Bước 2: Ánh xạ dữ liệu Quiz (có phân trang)
                 var quizzes = dataTableQuizzes.AsEnumerable()
+                    .Where(row => row.Field<int?>("IsDelete") == 0)
                     .GroupBy(row => row.Field<int>("ChapterId")) // Nhóm theo ChapterId
                     .Select(group => new
                     {
