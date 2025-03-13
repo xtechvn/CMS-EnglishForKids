@@ -151,15 +151,18 @@ namespace Utilities
             try
             {
                 // Danh sách phần mở rộng hợp lệ
-                //var validImageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                var validFileExtensions = new[] { ".pdf", ".doc", ".docx", ".txt", ".xls", ".xlsx",".mp4",".mp3", ".jpg", ".jpeg", ".png", ".gif" };
-
+                var validFileExtensions = new[] { ".pdf", ".doc", ".docx", ".txt", ".xls", ".xlsx", ".mp4", ".mp3", ".jpg", ".jpeg", ".png", ".gif" };
                 var extension = Path.GetExtension(file.FileName).ToLower();
 
-                if ( !validFileExtensions.Contains(extension))
+                if (!validFileExtensions.Contains(extension))
                 {
                     throw new Exception($"Định dạng file {extension} không được hỗ trợ.");
                 }
+
+                // 🔥 Tạo tên file mới theo yêu cầu
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(); // Lấy timestamp
+                string guid = Guid.NewGuid().ToString("N"); // Tạo GUID không dấu "-"
+                string newFileName = $"z{timestamp}_{guid}{extension}"; // Format: z[Timestamp]_[GUID].ext
 
                 byte[] AESKey = EncryptService.Get_AESKey(EncryptService.ConvertBase64StringToByte(AES_KEY));
                 byte[] AESIV = EncryptService.Get_AESIV(EncryptService.ConvertBase64StringToByte(AES_IV));
@@ -169,8 +172,9 @@ namespace Utilities
                 using var formData = new MultipartFormDataContent();
                 using var fileStream = file.OpenReadStream();
 
-                formData.Add(new StreamContent(fileStream), "data", file.FileName);
-                formData.Add(new StringContent(file.FileName), "name");
+                // 🛠️ Đưa tên file mới vào
+                formData.Add(new StreamContent(fileStream), "data", newFileName);
+                formData.Add(new StringContent(newFileName), "name"); // Dùng tên mới
                 formData.Add(new StringContent(dataId.ToString()), "data_id");
                 formData.Add(new StringContent(type.ToString()), "type");
                 formData.Add(new StringContent(token), "token");
@@ -194,6 +198,7 @@ namespace Utilities
                 throw;
             }
         }
+
 
 
         private static string GenerateToken(byte[] AESKey, byte[] AESIV)
