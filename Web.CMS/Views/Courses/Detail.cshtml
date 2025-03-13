@@ -46,6 +46,12 @@
     .locked .custom-input {
     background-color: #f8f9fa;
     }
+        /* Bỏ chặn nút xổ xuống trong trạng thái khóa */
+        .locked .btn-chevron {
+            pointer-events: auto !important;
+            opacity: 1 !important;
+            cursor: pointer !important;
+        }
 
     .custom-input {
     position: relative;
@@ -105,7 +111,6 @@
     display: inline-block;
     }
 
-    <style >
         /* Container chứa Tabs và Nội dung */
         .tab-content-container {
         display: flex; /* Bố trí Tabs và Nội dung ngang hàng */
