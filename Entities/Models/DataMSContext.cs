@@ -56,6 +56,8 @@ public partial class DataMSContext : DbContext
 
     public virtual DbSet<AttachFile> AttachFiles { get; set; }
 
+    public virtual DbSet<SourcePrice> SourcesPrices { get; set; }
+
     public virtual DbSet<BankOnePay> BankOnePays { get; set; }
 
     public virtual DbSet<BankingAccount> BankingAccounts { get; set; }
@@ -190,12 +192,14 @@ public partial class DataMSContext : DbContext
     {
         modelBuilder.Entity<Course>().ToTable("Sources"); // Ánh xạ Course tới bảng Source
 
-        modelBuilder.Entity< Chapters > ().ToTable("Chapters"); // Ánh xạ Course tới bảng Source
+        modelBuilder.Entity<Chapters>().ToTable("Chapters"); // Ánh xạ Course tới bảng Source
 
         modelBuilder.Entity<Lessions>().ToTable("Lessions"); // Ánh xạ Course tới bảng Source
 
-        modelBuilder.Entity<Quiz>().ToTable("Quiz"); 
-        modelBuilder.Entity<QuizAnswer>().ToTable("QuizAnswer"); 
+        modelBuilder.Entity<Quiz>().ToTable("Quiz");
+        modelBuilder.Entity<QuizAnswer>().ToTable("QuizAnswer");
+        modelBuilder.Entity<SourcePrice>().ToTable("SourcesPrice");
+
 
 
 
@@ -210,7 +214,7 @@ public partial class DataMSContext : DbContext
         {
             entity.ToTable("SourceTags");
 
-           // entity.Property(e => e.UpdateLast).HasColumnType("datetime");
+            // entity.Property(e => e.UpdateLast).HasColumnType("datetime");
         });
         modelBuilder.Entity<CourseRelated>(entity =>
         {

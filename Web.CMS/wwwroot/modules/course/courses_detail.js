@@ -42,6 +42,7 @@ _common.tinyMce('#text-editor-quiz');
 
 //TABSSSSSSSSSSSS
 
+
 // 🟢 Lấy tham số từ URL
 let urlParams = new URLSearchParams(window.location.search);
 let fromList = urlParams.has("fromList");
@@ -49,68 +50,72 @@ let fromList = urlParams.has("fromList");
 // 🟢 Kiểm tra tab đã lưu trong localStorage
 let currentTab = localStorage.getItem("currentTab");
 
-// 🟢 Nếu vào từ danh sách khóa học, reset về "Khóa Học" (course-info)
+// 🟢 Nếu vào từ danh sách khóa học, reset về tab "Khóa Học"
 if (fromList) {
-    currentTab = "course-info";
-    localStorage.setItem("currentTab", currentTab); // ✅ Cập nhật lại localStorage
-    history.replaceState(null, "", window.location.pathname); // ✅ Xóa `fromList=true` khỏi URL
+    currentTab = "videos-tab";
+    localStorage.setItem("currentTab", currentTab);
+    history.replaceState(null, "", window.location.pathname); // Xóa `fromList=true` khỏi URL
 }
 
-// 🟢 Nếu chưa có tab nào được lưu, mặc định là "Khóa Học"
+// 🟢 Nếu chưa có tab nào được lưu, đặt mặc định là "videos-tab"
 if (!currentTab) {
-    currentTab = "course-info";
+    currentTab = "videos-tab";
     localStorage.setItem("currentTab", currentTab);
 }
 
-// 🟢 Ẩn tất cả tab và hiển thị tab đã lưu hoặc mặc định
+// 🟢 Ẩn tất cả tab và hiển thị tab hiện tại
 $(".tab-content").hide();
 $(`#${currentTab}`).show();
 
-// 🟢 Cập nhật class active trên menu tab
+// 🟢 Cập nhật trạng thái active cho tab
 $(".tab-link").removeClass("active");
 $(`.tab-link[data-tab='${currentTab}']`).addClass("active");
 
-// 🟢 Nếu tab là "chapters-tab", cần load dữ liệu chương học
-if (currentTab === "chapters-tab") {
-    const courseId = $("#Id").val();
-    if (courseId && courseId > 0) {
-        loadChapters(courseId);
-    }
+// 🟢 Tự động load dữ liệu nếu cần
+let courseId = $("#Id").val();
+if (courseId && courseId > 0) {
+    if (currentTab === "chapters-tab") loadChapters(courseId);
+    if (currentTab === "prices-tab") loadPrices(courseId);
 }
-/// 🟢 Xử lý sự kiện khi click chuyển tab
+
+/// 🟢 Xử lý sự kiện khi click tab
 $(document).on("click", ".tab-link", function (event) {
     event.preventDefault();
+    let targetTab = $(this).data("tab");
 
-    const targetTab = $(this).data("tab");
-    const courseId = $("#Id").val();
+    // 🟢 Nếu tab không thay đổi, không làm gì
+    if (targetTab === currentTab) return;
 
-    // 🟢 Lưu tab hiện tại vào localStorage để giữ nguyên khi reload
-    localStorage.setItem("currentTab", targetTab);
+    // 🟢 Cập nhật tab hiện tại
+    currentTab = targetTab;
+    localStorage.setItem("currentTab", currentTab);
 
-    // 🟢 Nếu tab là "chapters-tab", kiểm tra khóa học đã lưu
-    if (targetTab === "chapters-tab") {
+    // 🟢 Xử lý tab đặc biệt (chapters & prices)
+    if (["chapters-tab", "prices-tab"].includes(targetTab)) {
         if (!courseId || courseId <= 0) {
             Swal.fire({
-                title: "Bạn cần lưu khóa học để tạo chương",
+                title: "Bạn cần tạo khóa học trước",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Có",
                 cancelButtonText: "Không",
             }).then((result) => {
                 if (result.isConfirmed) {
-                    _newsDetail1.OnSave('0'); // Gọi hàm lưu khóa học
+                    _newsDetail1.OnSave('0'); // Lưu khóa học
                 }
             });
+            return;
         } else {
-            loadChapters(courseId);
-            $(".tab-content").hide();
-            $(`#${targetTab}`).show();
+            if (targetTab === "chapters-tab") loadChapters(courseId);
+            if (targetTab === "prices-tab") loadPrices(courseId);
         }
-    } else {
-        $(".tab-content").hide();
-        $(`#${targetTab}`).show();
     }
 
+    // 🟢 Ẩn tất cả tab, hiển thị tab mới
+    $(".tab-content").hide();
+    $(`#${targetTab}`).show();
+
+    // 🟢 Cập nhật class active
     $(".tab-link").removeClass("active");
     $(this).addClass("active");
 });
@@ -118,32 +123,32 @@ $(document).on("click", ".tab-link", function (event) {
 
 
 //Click Toogle Gíá
-document.addEventListener("DOMContentLoaded", function () {
+//document.addEventListener("DOMContentLoaded", function () {
 
-    const toggle = document.getElementById("free-course-toggle");
-    const priceInput = document.getElementById("price-input");
-    const originalPriceInput = document.getElementById("original-price-input");
+//    const toggle = document.getElementById("free-course-toggle");
+//    const priceInput = document.getElementById("price-input");
+//    const originalPriceInput = document.getElementById("original-price-input");
 
 
-    toggle.addEventListener("change", function () {
-        if (this.checked) {
-            // Khi bật toggle, đặt giá về 0 và readonly
-            priceInput.value = "0";
-            priceInput.readOnly = true;
+//    toggle.addEventListener("change", function () {
+//        if (this.checked) {
+//            // Khi bật toggle, đặt giá về 0 và readonly
+//            priceInput.value = "0";
+//            priceInput.readOnly = true;
 
-            originalPriceInput.value = "0";
-            originalPriceInput.readOnly = true;
-        } else {
-            // Khi tắt toggle, cho phép chỉnh sửa giá
-            priceInput.readOnly = false;
-            originalPriceInput.readOnly = false;
+//            originalPriceInput.value = "0";
+//            originalPriceInput.readOnly = true;
+//        } else {
+//            // Khi tắt toggle, cho phép chỉnh sửa giá
+//            priceInput.readOnly = false;
+//            originalPriceInput.readOnly = false;
 
-            priceInput.value = ""; // Reset giá trị
-            originalPriceInput.value = "";
-        }
-    });
+//            priceInput.value = ""; // Reset giá trị
+//            originalPriceInput.value = "";
+//        }
+//    });
 
-});
+//});
 //========================================================================
 
 //=============================================================================
@@ -1850,6 +1855,70 @@ function loadChapters(courseId) {
         },
     });
 }
+//PricePanel
+function loadPrices(courseId) {
+    debugger
+    $.ajax({
+        url: `/Courses/Prices?courseId=${courseId}`,
+        type: "GET",
+        success: function (response) {
+            $("#prices-container").html(response); // Chèn dữ liệu vào container
+        },
+        error: function () {
+            Swal.fire("Lỗi", "Không thể Giá. Vui lòng thử lại sau!", "error");
+        },
+    });
+}
+
+$(document).on("click", "#savePrice", function (e) {
+    debugger
+    e.preventDefault();
+
+    let courseId = $("#Id").val();
+    let priceOption = $("input[name='priceOption']:checked").val();
+    let price = $("#priceInput").val().replace(/,/g, ""); // Xóa dấu "," trước khi gửi
+    let userId = 1; // 👈 Cần lấy từ session hoặc thông tin user đang đăng nhập
+    let priceId = $("#priceId").val() || 0; // Lấy Id của giá hiện tại, nếu không có thì để 0
+    if (!courseId || courseId <= 0) {
+        Swal.fire("Lỗi", "Khóa học không hợp lệ!", "error");
+        return;
+    }
+    if (priceOption === "paid") {
+        if (!price || parseFloat(price) <= 0) {
+            Swal.fire("Lỗi", "Vui lòng nhập giá hợp lệ!", "error");
+            return;
+        }
+    }
+
+    let model = {
+        Id: parseInt(priceId), // Cập nhật ID nếu có
+        SourceId: courseId,
+        Price: priceOption === "free" ? 0 : price,
+        CreatedBy: userId,
+        CreatedDate: new Date().toISOString()
+    };
+
+    $.ajax({
+        url: "/Courses/SavePrice",
+        type: "POST",
+        data: JSON.stringify(model), // Chuyển thành JSON
+        contentType: "application/json",
+        success: function (response) {
+            debugger
+            if (response.success) {
+                Swal.fire("Thành công", response.message, "success");
+                loadPrices(courseId); // Reload lại danh sách giá
+            } else {
+                Swal.fire("Lỗi", response.message, "error");
+            }
+        },
+        error: function () {
+            Swal.fire("Lỗi", "Không thể lưu giá. Vui lòng thử lại!", "error");
+        }
+    });
+});
+
+
 //========================================================================================================================================================================================
 $('#detail-cate-panel .btn-toggle-cate').click(function () {
     var seft = $(this);

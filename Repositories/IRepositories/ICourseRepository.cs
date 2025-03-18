@@ -15,6 +15,8 @@ namespace Repositories.IRepositories
             
         List<ChapterViewModel> GetListChapterLessionBySourceId(int courseId);
         List<ChapterViewModel> GetListChapterLessionQuizBySourceId(int courseId , int pageIndex, int pageSize);
+        List<SourcePrice> GetListPriceBySourceId(int courseId, int pageIndex, int pageSize);
+
         Task<Quiz> GetQuestionById(int questionId);
         Task<List<QuizAnswer>> GetAnswersByQuestionId(int questionIds);
         //Task<List<QuizAnswer>> GetAnswersByQuestionIds(List<int> questionIds);
@@ -33,8 +35,12 @@ namespace Repositories.IRepositories
 
 
         Task<bool> SaveArticleAsync(int lessonId, string article);
+        Task<int> SavePrice(SourcePrice model);
+        Task<bool> DeletePrice(int sourceId);
 
-        
+
+
+
         Task<CourseModel> GetCourseDetail(int Id);
         Task<List<CategoryModel>> GetMainCategories();
         Task<List<CategoryModel>> GetSubCategories(int parentId);
