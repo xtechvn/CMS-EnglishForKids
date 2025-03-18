@@ -1,0 +1,89 @@
+﻿@using Utilities
+@using Utilities.Contants
+@using Entities.Models
+@using System.Text.RegularExpressions
+@model List<SourcePrice>
+
+<div>
+    <div class="line-bottom">
+        <h2>Định giá</h2>
+    </div>
+    <div class="box-thongtin">
+        <p class="col-md-9">
+            Vui lòng chọn đơn vị tiền tệ và mức giá cho khóa học của bạn. Nếu bạn muốn cung cấp miễn phí khóa
+            học của mình thì khóa học đó phải có tổng thời lượng video dưới 2 giờ. Ngoài ra, các khóa học có
+            bài kiểm tra thực hành không thể miễn phí.
+        </p>
+
+        <table class="table-no-border mb-3">
+            <tbody>
+                <tr>
+                    <th></th>
+                    <th>Mức giá</th>
+                    <th>Tiền tệ</th>
+                </tr>
+
+                @{
+                    bool isFree = Model == null || !Model.Any(); // Kiểm tra khóa học có giá không
+                    double currentPrice = isFree ? 0 : Model.First().Price; // Lấy giá hiện tại
+                    int priceId = isFree ? 0 : Model.First().Id; // Lấy Id của giá hiện tại
+                }
+
+                <input type="hidden" id="priceId" value="@priceId" /> <!-- Lưu ID giá -->
+                <!-- Giá có thể nhập -->
+                <tr>
+                    <td>
+                        <label class="radio mb16">
+                            <input type="radio" name="priceOption" value="paid" @(isFree ? "" : "checked")>
+                            <span class="checkmark"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <input id="priceInput" class="form-control" type="text" placeholder="Nhập giá"
+                               value="@(isFree ? "" : currentPrice.ToString("N0"))"
+                        @(isFree ? "disabled" : "")>
+                    </td>
+                    <td><input disabled class="form-control" type="text" value="VND"></td>
+                </tr>
+
+                <!-- Miễn phí -->
+                <tr>
+                    <td>
+                        <label class="radio mb16">
+                            <input type="radio" name="priceOption" value="free" @(isFree ? "checked" : "")>
+                            <span class="checkmark"></span>
+                        </label>
+                    </td>
+                    <td>Miễn phí</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a href="#" class="btn btn-default" id="savePrice">Lưu</a>
+    </div>
+</div>
+
+
+
+<script>
+       $(document).ready(function () {
+        $("input[name='priceOption']").change(function () {
+            if ($(this).val() === "free") {
+                $("#priceInput").val("").prop("disabled", true);
+            } else {
+                $("#priceInput").prop("disabled", false);
+            }
+        });
+
+        $("#priceInput").on("input", function () {
+            let value = $(this).val().replace(/,/g, ""); // Xóa dấu `,` cũ
+            if (!isNaN(value) && value !== "") {
+                $(this).val(Number(value).toLocaleString("en-US")); // Thêm dấu `,`
+            } else {
+                $(this).val("");
+            }
+        });
+    });
+
+</script>

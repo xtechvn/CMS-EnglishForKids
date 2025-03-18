@@ -680,6 +680,68 @@ namespace Web.CMS.Controllers.Course
             }
         }
 
+        // Lưu Giá Khóa Học
+        [HttpPost]
+        public async Task<IActionResult> SavePrice([FromBody] SourcePrice model)
+        {
+            try
+            {
+
+                int userid = Convert.ToInt32(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                model.CreatedBy = userid;
+                if (model.SourceId <= 0)
+                {
+                    return Json(new { success = false, message = "Khóa học không hợp lệ!" });
+                }
+                if (model.Price < 0)
+                {
+                    return Json(new { success = false, message = "Giá không thể nhỏ hơn 0!" });
+                }
+
+                
+                if (model.Price == 0) // Nếu chuyển thành miễn phí
+                {
+                    bool  deleteResult = await _CourseRepository.DeletePrice(model.SourceId);
+                    if (deleteResult)
+                    {
+                        return Json(new { success = true, message = "Khóa học đã được chuyển thành miễn phí!" });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Lỗi khi cập nhật trạng thái miễn phí!" });
+                    }
+                }
+                if (model.Price == 0 && model.Price != null)
+                {
+                    return Json(new { success = false, message = "Vui lòng nhập giá hợp lệ!" });
+                }
+
+                var result = await _CourseRepository.SavePrice(model);
+                return Json(new { success = result, message = "Cập nhật giá thành công!" });
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi khi lưu Giá!" });
+            }
+        }
+
+
+        // Lây ra Toàn bộ Price rồi Render ra trang
+        public async Task<IActionResult> Prices(int courseId, int pageIndex = 1, int pageSize = 100)
+        {
+            if (courseId <= 0)
+            {
+                return RedirectToAction("Detail");
+            }
+
+            // Gọi duy nhất 1 hàm để lấy cả Chapter, Lesson và Quiz
+            var Prices = _CourseRepository.GetListPriceBySourceId(courseId, pageIndex, pageSize);
+
+            ViewBag.CourseId = courseId;
+            return PartialView("_PricePanel", Prices);
+        }
+
 
         // Lây ra Toàn bộ Course, Chapter,Lession ,File, Quiz rồi Render ra trang
         public async Task<IActionResult> Chapters(int courseId, int pageIndex = 1, int pageSize = 100)

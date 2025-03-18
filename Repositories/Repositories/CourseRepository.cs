@@ -18,6 +18,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Telegram.Bot.Types.Enums;
 using Utilities;
 using Utilities.Contants;
 
@@ -159,6 +160,18 @@ namespace Repositories.Repositories
                 return -1;
             }
         }
+        public Task<int> SavePrice(SourcePrice model)
+        {
+            try
+            {
+                return _CourseDAL.SavePrice(model);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetInvoiceRequests - InvoiceRequestRepository: " + ex);
+                return null;
+            }
+        }                                            
 
         public async Task UpdateVideoIntro(int courseId, string videoUrl)
         {
@@ -230,7 +243,7 @@ namespace Repositories.Repositories
                 return -1;
             }
         }
-
+       
 
 
 
@@ -434,6 +447,47 @@ namespace Repositories.Repositories
             }
         }
 
+        public List<SourcePrice> GetListPriceBySourceId(int courseId, int pageIndex, int pageSize)
+        {
+            try
+            {
+                // Lấy dữ liệu từ stored procedure
+                var dataTableSourcePrice = _CourseDAL.GetListPriceBySourceId(courseId, pageIndex, pageSize);
+
+                // Nếu không có dữ liệu, trả về danh sách rỗng
+                if (dataTableSourcePrice == null || dataTableSourcePrice.Rows.Count == 0)
+                {
+                    return new List<SourcePrice>();
+                }
+
+                // Ánh xạ dữ liệu từ DataTable sang danh sách SourcePrice
+                var sourcePrices = dataTableSourcePrice.AsEnumerable()
+                    .Select(row => new SourcePrice
+                    {
+                        Id = row.Field<int>("Id"),
+                        SourceId = row.Field<int>("SourceId"),
+                        Price = row.Field<double>("Price"),
+                        //FromDate = row.Field<DateTime>("FromDate"),
+                        //ToDate = row.Field<DateTime?>("ToDate"),
+                        //Status = row.Field<short>("Status"),
+                        CreatedDate = row.Field<DateTime>("CreatedDate"),
+                        CreatedBy = row.Field<int>("CreatedBy"),
+                        UpdatedDate = row.IsNull("UpdatedDate") ? (DateTime?)null : row.Field<DateTime>("UpdatedDate"),
+                        UpdatedBy = row.IsNull("UpdatedBy") ? (int?)null : row.Field<int>("UpdatedBy")
+                    })
+                    .ToList();
+
+                return sourcePrices;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetListPriceBySourceId - Repository: " + ex);
+                return new List<SourcePrice>();
+            }
+        }
+
+
+
         public async Task<Quiz> GetQuestionById(int questionId)
         {
             return await _CourseDAL.GetQuestionById(questionId);
@@ -521,7 +575,10 @@ namespace Repositories.Repositories
         {
             return await _CourseDAL.DeleteFilesByLessonId(lessonId , fileType);
         }
-
+        public async Task<bool> DeletePrice(int sourceId)
+        {
+            return await _CourseDAL.DeletePrice(sourceId);
+        }
 
 
         public async Task<int> ChangeCourseStatus(int Id, int Status)
@@ -645,7 +702,11 @@ namespace Repositories.Repositories
             }
         }
 
-        
+     
+
+
+
+
 
 
 

@@ -216,6 +216,47 @@ namespace DAL
 
 
         }
+        public async Task<int> SavePrice(SourcePrice model)
+        {
+            SqlParameter[] parameters;
+
+            if (model.Id > 0) // Gọi SP Update
+            {
+                parameters = new SqlParameter[]
+                {
+            new SqlParameter("@Id", model.Id),
+            new SqlParameter("@SourceId", model.SourceId),
+            new SqlParameter("@Price", (object)model.Price ?? DBNull.Value),
+            //new SqlParameter("@FromDate", (object)model.FromDate ?? DBNull.Value),
+            //new SqlParameter("@ToDate", (object)model.ToDate ?? DBNull.Value),
+            //new SqlParameter("@Status", (object)model.Status ?? DBNull.Value),
+            new SqlParameter("@UpdatedBy", (object)model.UpdatedBy ?? DBNull.Value),
+         
+                };
+
+                return _DbWorker.ExecuteNonQuery("sp_UpdateSourcesPrice", parameters);
+            }
+            else // Gọi SP Insert
+            {
+                parameters = new SqlParameter[]
+                {
+            new SqlParameter("@SourceId", model.SourceId),
+            new SqlParameter("@Price", (object)model.Price ?? DBNull.Value),
+            //new SqlParameter("@FromDate", (object)model.FromDate ?? DBNull.Value),
+            //new SqlParameter("@ToDate", (object)model.ToDate ?? DBNull.Value),
+            //new SqlParameter("@Status", (object)model.Status ?? DBNull.Value),
+            new SqlParameter("@CreatedDate", (object)model.CreatedDate ?? DBNull.Value),
+            new SqlParameter("@CreatedBy", (object)model.CreatedBy ?? DBNull.Value),
+          
+                };
+
+                return _DbWorker.ExecuteNonQuery("sp_InsertSourcesPrice", parameters);
+            }
+
+            // Lấy giá trị trả về từ @Identity
+            return Convert.ToInt32(parameters.Last().Value);
+        }
+
 
         public async Task<int> SaveLession(Lessions model)
         {
@@ -701,6 +742,52 @@ namespace DAL
                 return false;
             }
         }
+
+
+        public async Task<bool> DeletePrice(int sourceId)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    using (var transaction = await _DbContext.Database.BeginTransactionAsync())
+                    {
+                        try
+                        {
+                            // Lấy tất cả bản ghi trong SourcesPrice liên quan đến SourceId
+                            var prices = await _DbContext.SourcesPrices
+                                .Where(sp => sp.SourceId == sourceId)
+                                .ToListAsync();
+
+                            if (!prices.Any())
+                            {
+                                return false; // Không có giá để xóa
+                            }
+
+                            // Xóa tất cả giá liên quan
+                            _DbContext.SourcesPrices.RemoveRange(prices);
+                            await _DbContext.SaveChangesAsync();
+
+                            // Commit transaction
+                            await transaction.CommitAsync();
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.InsertLogTelegram($"DeletePrice - Transaction Rollback: {ex}");
+                            await transaction.RollbackAsync();
+                            return false; // Lỗi khi xử lý
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"DeletePrice - DAL Error: {ex}");
+                return false; // Lỗi chung
+            }
+        }
+
         public async Task<List<Lessions>> GetLessonsByChapterIdAsync(int chapterId)
         {
             try
@@ -840,6 +927,24 @@ namespace DAL
                 objParam[2] = new SqlParameter("@PageSize", pageSize);
 
                 return _DbWorker.GetDataTable(StoreProcedureConstant.SP_GetListQuizBySourceId, objParam);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetByInvoiceId - InvoiceRequestDAL: " + ex);
+            }
+            return null;
+        }
+
+        public DataTable GetListPriceBySourceId(int courseId, int pageIndex, int pageSize)
+        {
+            try
+            {
+                SqlParameter[] objParam = new SqlParameter[3];
+                objParam[0] = new SqlParameter("@SourceId", courseId);
+                objParam[1] = new SqlParameter("@PageIndex", pageIndex);
+                objParam[2] = new SqlParameter("@PageSize", pageSize);
+
+                return _DbWorker.GetDataTable(StoreProcedureConstant.SP_GetListPriceBySourceId, objParam);
             }
             catch (Exception ex)
             {
