@@ -248,6 +248,20 @@ namespace Web.CMS.Controllers.Course
                     var quizAnswerLookup = quizAnswers.GroupBy(qa => qa.QuizId)
                                                       .ToDictionary(group => group.Key, group => group.ToList());
 
+                    // ✅ Lấy giá khóa học từ DB
+                    var priceData = _CourseRepository.GetListPriceBySourceId(courseId, 1, 100)
+                                    .OrderByDescending(p => p.CreatedDate) // Lấy giá mới nhất
+                                    .FirstOrDefault();
+
+                    var priceInfo = priceData != null ? new
+                    {
+                        PriceId = priceData.Id,
+                        Price = priceData.Price.ToString("N0"), // Format có dấu phẩy
+                        Currency = "VND",
+                        CreatedDate = priceData.CreatedDate
+                    } : null; // ❌ Không có giá thì không cần gửi lên Redis
+
+
                     // ✅ Tạo dữ liệu Redis
                     var redisData = new
                     {
@@ -260,9 +274,10 @@ namespace Web.CMS.Controllers.Course
                             SourceThumbnail = model.Thumbnail,
                             SourceBenefif = model.Benefif,
                             VideoIntro = model.VideoIntro,
-                            Price = model.Price,
-                            OriginalPrice = model.OriginalPrice,
                             Status = model.Status,
+                            // ✅ Chỉ thêm giá nếu có giá
+                            PriceInfo = priceInfo
+
                         },
                         chapters = chapters.Select(chapter => new
                         {

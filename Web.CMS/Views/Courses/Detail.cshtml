@@ -526,8 +526,28 @@
                 </div>
                 @* Tab Định Giá *@ 
                 <div id="prices-tab" class="tab-content">
+                    <div class="line-bottom" style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                ">
+                        <h2>Định giá</h2>
+                        <div class="btn-right text-right">
+                            @if (Model.Status == ArticleStatus.PUBLISH)
+                            {
+                                <a style="
+                                        font-size: 15px;
+                                        text-decoration: underline;
+                                        font-style: italic;
+                                         " href="javascripts:;" class="btn" onclick="_newsDetail1.EditCourseDetail('@Model.Id','@CourseStatus.REMOVE')">
+                                    Sửa Khóa Học
+                                </a>
+                            }
+                        </div>
+
+                    </div>
                     @* @Html.Partial("_PricePanel") *@
-                    <div id="prices-container"></div> 
+                    <div id="prices-container" class="Tabs @(Model.Status == 0 ? "locked" : "")"></div>
 
 
 
