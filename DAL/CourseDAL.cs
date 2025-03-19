@@ -111,7 +111,7 @@ namespace DAL
 
                     entity.Type = model.Type;
                     entity.AuthorId = model.AuthorId;
-                    //entity.CreatedBy = model.CreatedBy;
+                    entity.CreatedBy = model.CreatedBy;
                     entity.CreatedDate = DateTime.Now;
                     //entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDate = DateTime.Now; // If updatedDate is null, use current date
@@ -141,7 +141,7 @@ namespace DAL
 
                         Type = model.Type,
                         AuthorId = model.AuthorId,
-                        //CreatedBy = model.CreatedBy,
+                        CreatedBy = model.CreatedBy,
                         CreatedDate = DateTime.Now,
                         //UpdatedBy = model.UpdatedBy,
                         UpdatedDate = DateTime.Now, // If updatedDate is null, use current date
@@ -509,6 +509,59 @@ namespace DAL
             }
         }
 
+        public async Task<int> DeleteChapterAsync(int chapterId)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    using (var transaction = _DbContext.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            var chapter = await _DbContext.Chapters.FindAsync(chapterId);
+                            if (chapter != null)
+                            {
+                                // Đánh dấu chapter là đã xóa
+                                chapter.IsDelete = 1;
+
+                                // Tìm tất cả lesson thuộc về chapter này
+                                var lessons = _DbContext.Lessions.Where(l => l.ChapterId == chapterId).ToList();
+                                foreach (var lesson in lessons)
+                                {
+                                    lesson.IsDelete = 1;
+                                }
+
+                                // Tìm tất cả quiz thuộc về chapter này
+                                var quizzes = _DbContext.Quiz.Where(q => q.ChapterId == chapterId).ToList();
+                                foreach (var quiz in quizzes)
+                                {
+                                    quiz.IsDelete = 1;
+                                }
+
+                                // Lưu thay đổi
+                                await _DbContext.SaveChangesAsync();
+
+                                // Commit transaction
+                                transaction.Commit();
+                            }
+                            return chapterId;
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.InsertLogTelegram("DeleteChapter - Transaction Rollback: " + ex);
+                            transaction.Rollback();
+                            return -1;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("DeleteChapter - Error: " + ex);
+                return -1;
+            }
+        }
 
         public async Task<int> DeleteLessonAsync(int id)
         {
@@ -634,40 +687,7 @@ namespace DAL
 
 
 
-        public async Task<int> DeleteChapterAsync(int chapterId)
-        {
-            try
-            {
-                using (var _DbContext = new EntityDataContext(_connection))
-                {
-                    using (var transaction = _DbContext.Database.BeginTransaction())
-                    {
-                        try
-                        {
-                            var chapter = await _DbContext.Chapters.FindAsync(chapterId);
-                            if (chapter != null)
-                            {
-                                chapter.IsDelete = 1; // Đánh dấu là đã xóa
-                                _DbContext.SaveChanges(); // Lưu thay đổi
-                            }
-                            transaction.Commit();
-                        }
-                        catch (Exception ex)
-                        {
-                            LogHelper.InsertLogTelegram("DeleteChapter - Transaction Rollback: " + ex);
-                            transaction.Rollback();
-                            return -1;
-                        }
-                    }
-                }
-                return chapterId;
-            }
-            catch (Exception ex)
-            {
-                LogHelper.InsertLogTelegram("DeleteChapter - Error: " + ex);
-                return -1;
-            }
-        }
+   
 
         public async Task<bool> DeleteArticleAsync(int lessonId)
         {

@@ -30,7 +30,7 @@ public partial class Course
     public int AuthorId { get; set; }
 
 
-    public string CreatedBy { get; set; }
+    public int? CreatedBy { get; set; }
 
     public DateTime? CreatedDate { get; set; }
     public DateTime? PublishDate { get; set; }
