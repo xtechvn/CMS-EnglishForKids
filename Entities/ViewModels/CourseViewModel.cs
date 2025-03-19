@@ -47,7 +47,7 @@ namespace Entities.ViewModels
 
         public int AuthorId { get; set; }
 
-        public string CreatedBy { get; set; }
+        public int? CreatedBy { get; set; } 
 
         public DateTime CreatedDate { get; set; }
 

@@ -190,7 +190,8 @@ namespace Web.CMS.Controllers.Course
                     }
                 }
 
-
+                int userid = Convert.ToInt32(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                model.CreatedBy = userid;
 
                 // Lưu bài viết và lấy ID của bài viết đã được lưu
                 var courseId = await _CourseRepository.SaveCourse(model);
