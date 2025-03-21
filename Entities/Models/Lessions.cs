@@ -21,5 +21,6 @@ namespace Entities.Models
         public string? Article { get; set; } // Cột lưu bài viết
         public int View { get; set; }
         public int ChapterId { get; set; } // Không có liên kết khóa ngoại
+        public int? SourceId { get; set; } // Khóa ngoại của bảng Source
     }
 }

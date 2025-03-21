@@ -12,6 +12,9 @@ namespace Entities.ViewModels
     {
         public int Id { get; set; } // Id của Lesson
         public int ChapterId { get; set; } // Id của Chapter mà Lesson thuộc về
+
+        public int SourceId { get; set; } // Id của Source
+     
         public string Title { get; set; } // Tên của Lesson
         public int? Type { get; set; } // Loại Lesson (Video/File/Text, etc.)
         public string VideoDuration { get; set; } // Thời lượng bài giảng (vd: "1 giờ 20 phút")
