@@ -1418,6 +1418,9 @@ function uploadFileWithDuration(lessonId, files, isReplace, isResource, duration
     for (let i = 0; i < files.length; i++) {
         formData.append("files", files[i]);
     }
+   
+    formData.append("sourceId", $('#Id').val());
+
     formData.append("lessonId", lessonId);
     formData.append("isReplace", isReplace);
     formData.append("isResource", isResource);

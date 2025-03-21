@@ -276,6 +276,8 @@ namespace DAL
 
             new SqlParameter("@View", model.View),
             new SqlParameter("@ChapterId", model.ChapterId),
+            new SqlParameter("@SourceId", model.SourceId ?? (object)DBNull.Value),
+
             //new SqlParameter("@UpdatedBy", model.UpdatedBy ?? (object)DBNull.Value),
             //new SqlParameter("@Identity", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
@@ -294,6 +296,7 @@ namespace DAL
             new SqlParameter("@ThumbnailName", model.ThumbnailName ?? (object)DBNull.Value),
             new SqlParameter("@View", model.View),
             new SqlParameter("@ChapterId", model.ChapterId),
+             new SqlParameter("@SourceId", model.SourceId ?? (object)DBNull.Value),
             //new SqlParameter("@CreatedBy", model.CreatedBy ?? (object)DBNull.Value),
             //new SqlParameter("@Identity", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };

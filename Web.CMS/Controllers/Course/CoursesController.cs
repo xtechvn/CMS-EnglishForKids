@@ -494,6 +494,7 @@ namespace Web.CMS.Controllers.Course
                             ThumbnailName = model.ThumbnailName,
                             CreatedBy = userid,
                             ChapterId = model.ParentId,
+                            SourceId = model.CourseId,
                             IsDelete = 0
                         });
                         break;
@@ -774,11 +775,7 @@ namespace Web.CMS.Controllers.Course
             {
                 return PartialView("Chapters", new List<ChapterViewModel>());
             }
-            Console.WriteLine($"📌 Chapters: {chapterLessons.Count}");
-            foreach (var chapter in chapterLessons)
-            {
-                Console.WriteLine($"🔍 Chapter {chapter.Id}: Lessons {chapter.Lessons.Count}, Quizzes {chapter.Quizzes.Count}");
-            }
+           
 
             // Tạo danh sách lessonId để truy vấn file
             var lessonIds = chapterLessons
